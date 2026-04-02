@@ -5,6 +5,10 @@
 typedef enum {
     FUSION_OK = 0,
     FUSION_ERRO = 1,
+    FUSION_INVALID_OPCODE,
+    FUSION_INVALID_OPERAND,
+    FUSION_BUFFER_OVERFLOW,
+    FUSION_NOT_IMPLEMENTED
 } FusionStatusFlag_t;
 typedef struct {
     unsigned char* buffer;

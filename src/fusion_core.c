@@ -23,3 +23,16 @@ void FUS_DestroyBufferCode(FusionBufferContext_t* ctx_buffer)
     free(ctx_buffer->buffer);
     free(ctx_buffer);
 }
+
+const char* FUS_StrError(FusionStatusFlag_t status)
+{
+    switch(status) {
+        case FUSION_OK: return "OK";
+        case FUSION_ERRO: return "Generic error";
+        case FUSION_INVALID_OPCODE: return "Invalid opcode";
+        case FUSION_INVALID_OPERAND: return "Invalid operand";
+        case FUSION_BUFFER_OVERFLOW: return "Buffer overflow";
+        case FUSION_NOT_IMPLEMENTED: return "Feature not implemented";
+        default: return "Unknown FusionStatusFlag";
+    }
+}

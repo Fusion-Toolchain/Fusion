@@ -12,7 +12,8 @@ typedef enum {
 } FusMirNodeKind_t;
 typedef enum {
     MIR_OPERAND_TYPE_REG,
-    MIR_OPERAND_TYPE_IMM
+    MIR_OPERAND_TYPE_IMM,
+    MIR_OPERAND_TYPE_MEM,
 } FusMirOperandType_t;
 
 typedef enum {
@@ -33,7 +34,16 @@ typedef struct {
         FusMirImm_t imm;
     } data;
 } FusMirOperand_t;
+
+typedef enum {
+    MIR_MODE_NONE = 0,
+    MIR_MODE64,
+    MIR_MODE32,
+    MIR_MODE16,
+} FusMirOpcodeMode_t;
 typedef struct {
+    FusMirOpcodeMode_t mode;
+
     FusMirNodeKind_t opcode;
     FusMirOperand_t src;
     FusMirOperand_t dst;
