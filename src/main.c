@@ -1,114 +1,39 @@
-#include <stdbool.h>
+#include "Fusion/FusionTypes.h"
+#include "Fusion/IRTypes/MirType.h"
+#include <Fusion/Fusion.h>
+
 #include <stddef.h>
 #include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 
-#include "x86_types.h"
-
-struct CopyPartMemory {
-    size_t* offset;
-    unsigned char* dst;
-    size_t dst_size;
-    unsigned char* src;
-    size_t src_size;
+static FusMirNode_t mir_exemple = {
+    .opcode = MIR_INSTR_MOV,
+    .src = {.type = MIR_OPERAND_TYPE_REG, .data.reg = 0x0},
+    .dst = {.type = MIR_OPERAND_TYPE_IMM, .data.imm = {.imm = 0xFF, .size = MIR_IMM64}}
 };
-typedef bool (*EncodeStep)(x86Instruction_t*,struct CopyPartMemory*);
-typedef struct {
-    EncodeStep steps[8];
-    size_t count;
-} EncodePipeline;
-
-static bool CopyOffsetData(struct CopyPartMemory* step)
-{
-    if (!step->offset || !step->src || !step->dst) return false;
-    if ((*step->offset) + step->src_size > step->dst_size) return false;
-
-    memcpy(step->dst + *step->offset, step->src, step->src_size);
-    *step->offset += step->src_size;
-
-    return true;
-}
-static inline bool CopyOffsetDataU8(struct CopyPartMemory* step, uint8_t value)
-{
-    if (!step->offset || !step->dst) return false;
-    if ((*step->offset) + 1 > step->dst_size) return false;
-
-    step->dst[(*step->offset)++] = value;
-    return true;
-}
-
-
-
-
-static bool x86Bytes_MountOpcode(x86Instruction_t* instr, struct CopyPartMemory* mounter)
-{
-    mounter->src = instr->opcode.opcode;
-    mounter->src_size = instr->opcode.opcode_size;
-    if (!CopyOffsetData(mounter)) return false;
-    return true;
-}
-
-static inline uint8_t MountModRM(x86ModRm_t* modrm)
-{
-    if (
-        modrm->mod > MODRM_MOD_MAX_VALUE ||
-        modrm->reg > MODRM_REG_MAX_VALUE ||
-        modrm->rm > MODRM_RM_MAX_VALUE
-    ){
-        return 0;
-    }
-
-    return (modrm->mod << 6) | (modrm->reg << 3) | modrm->rm;
-}
-static bool x86Bytes_MountModRM(x86Instruction_t* instr, struct CopyPartMemory* mounter)
-{
-    if (!instr->has_modrm) return true;
-
-    uint8_t modrm = MountModRM(&instr->modrm);
-    if (!CopyOffsetDataU8(mounter, modrm)) return false;
-    return true;
-}
-
-static EncodePipeline pipeline_funcs = {
-    .steps = {
-        [0]=x86Bytes_MountOpcode,
-        [1]=x86Bytes_MountModRM
-    },
-    .count = 2
+static FusMirNode_t mir_exemple2 = {
+    .opcode = MIR_INSTR_RET
 };
 
-static bool MountCodeBytes(x86Instruction_t* instr, size_t* offset, uint8_t* buffer, size_t buffer_size)
-{
-    if (!instr || !buffer || !offset) return false;
-    struct CopyPartMemory mounter_copy = {
-        .dst = buffer,
-        .dst_size = buffer_size,
-        .offset = offset,
-    };
-
-    for (size_t i = 0; i < pipeline_funcs.count; i++) {
-        if (!pipeline_funcs.steps[i](instr,&mounter_copy)) return false;
-    }
-    return true;
-}
-
-static x86Instruction_t exemple = {
-    .modrm = {.mod = MODRM_MOD_REG_DIRECT, .reg = 0x1, .rm = 0x1},
-    .has_modrm = true,
-    .opcode = {.opcode = {0x01}, .opcode_size = 1}
-};
 
 int main()
 {
-    size_t offset = 0;
-    unsigned char buffer[10];
+    FusionBufferContext_t* buffer = FUS_CreateBufferCode(1*1024);
+    if (!buffer) {
+        printf("Erro: Erro to build buffer Fusion!\n");
+        return 1;
+    }
 
-    MountCodeBytes(&exemple,&offset,buffer,sizeof(buffer));
-    for (size_t i = 0; i < offset; i++) {
-        printf(" 0x%02X",buffer[i]);
+    if (FUS_MountMirBytes(buffer,&mir_exemple) != FUSION_OK) {
+        printf("Erro ao gerar codigo!\n");
+        FUS_DestroyBufferCode(buffer);
+        return 1;
+    }
+    FUS_MountMirBytes(buffer,&mir_exemple2);
+
+    for (size_t i = 0; i < buffer->offset; i++) {
+        printf(" %02X",buffer->buffer[i]);
     }
     printf("\n");
 
-    return 0;
+    FUS_DestroyBufferCode(buffer);
 }
