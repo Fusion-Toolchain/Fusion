@@ -1,11 +1,13 @@
 #include <Fusion/FusionTypes.h>
+#include <Internal/Fus_Backend.h>
+#include <Fusion/IRTypes/MirType.h>
 
 #include <stddef.h>
 #include <stdlib.h>
 
-FusionBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
+FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 {
-    FusionBufferContext_t* ctx = malloc(sizeof(FusionBufferContext_t));
+    FusBufferContext_t* ctx = malloc(sizeof(FusBufferContext_t));
     if (!ctx) return NULL;
     unsigned char* buffer = malloc(buffer_size);
     if (!buffer) {
@@ -18,13 +20,21 @@ FusionBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 
     return ctx;
 }
-void FUS_DestroyBufferCode(FusionBufferContext_t* ctx_buffer)
+void FUS_DestroyBufferCode(FusBufferContext_t* ctx_buffer)
 {
     free(ctx_buffer->buffer);
     free(ctx_buffer);
 }
 
-const char* FUS_StrError(FusionStatusFlag_t status)
+FusStatusFlag_t FUS_MountMirBytes(FusBufferContext_t* fus_buffer, FusMirNode_t* mir_node)
+{
+    if (!fus_buffer || !mir_node) return FUSION_ERRO;
+
+    FusBackendInterface_t* interface = FUSI_BackendInit();
+    return interface->FUSI_BackendMountMir(fus_buffer,mir_node);
+}
+
+const char* FUS_StrError(FusStatusFlag_t status)
 {
     switch(status) {
         case FUSION_OK: return "OK";

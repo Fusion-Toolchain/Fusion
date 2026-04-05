@@ -4,6 +4,8 @@
 
 #include <Fusion/IRTypes/MirType.h>
 #include <Fusion/FusionTypes.h>
+#include <Internal/Fus_Backend.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -66,6 +68,11 @@ static bool X86_MountMov(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
         mount_instr->has_imm = true;
     }
     if (mir_node->dst.type == MIR_OPERAND_TYPE_REG) {
+        if (mir_node->mode == MIR_MODE16) {
+            mount_instr->prefix.prefix[0] = 0x66;
+            mount_instr->prefix.prefix_size = 1;
+            mount_instr->has_prefix = true;
+        }
         mount_instr->opcode.opcode[0] = 0x89;
         mount_instr->opcode.opcode_size = 1;
 
@@ -99,7 +106,7 @@ static X86_OpcodeProcess_t opcode_table[] = {
     {MIR_INSTR_MOV, X86_MountMov}
 };
 
-FusionStatusFlag_t FUS_MountMirBytes(FusionBufferContext_t* fus_buffer, FusMirNode_t* mir_node)
+FusStatusFlag_t X86_BackendMountMir(FusBufferContext_t* fus_buffer, FusMirNode_t* mir_node)
 {
     if (!fus_buffer || !mir_node) return FUSION_ERRO;
 
@@ -121,4 +128,12 @@ FusionStatusFlag_t FUS_MountMirBytes(FusionBufferContext_t* fus_buffer, FusMirNo
     ) return FUSION_OK; // X86 Mount return true.
 
     return FUSION_INVALID_OPCODE; // X86 Mount return false.
+}
+
+static FusBackendInterface_t interface = {
+    .FUSI_BackendMountMir = X86_BackendMountMir
+};
+FusBackendInterface_t* FUSI_BackendInit()
+{
+    return &interface;
 }

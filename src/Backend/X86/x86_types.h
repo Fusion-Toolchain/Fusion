@@ -1,17 +1,21 @@
 #ifndef X86_BACKEND_TYPES
 #define X86_BACKEND_TYPES
+
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct {
-    uint8_t opcode[3];
-    uint8_t opcode_size;
-} x86Opcode_t;
+/*
+ * ! MODRM TYPES !
+*/
 
 #define MODRM_MOD_MEM_00            0x0  
 #define MODRM_MOD_MEM_8BIT_DISP     0x1
 #define MODRM_MOD_MEM_32BIT_DISP    0x2
 #define MODRM_MOD_REG_DIRECT        0x3
+
+/*
+ * ! MODRM REGS !
+*/
 
 #define MODRM_RM_EAX 0x0
 #define MODRM_RM_ECX 0x1
@@ -22,9 +26,19 @@ typedef struct {
 #define MODRM_RM_ESI 0x6
 #define MODRM_RM_EDI 0x7
 
+/*
+ * ! MODRM MAX VALUES !
+*/
+
 #define MODRM_RM_MAX_VALUE 7
 #define MODRM_REG_MAX_VALUE 7
 #define MODRM_MOD_MAX_VALUE 3
+
+typedef struct {
+    uint8_t opcode[3];
+    uint8_t opcode_size;
+} x86Opcode_t;
+
 typedef struct {
     uint8_t mod;
     uint8_t reg;

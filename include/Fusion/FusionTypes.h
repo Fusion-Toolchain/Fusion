@@ -9,11 +9,11 @@ typedef enum {
     FUSION_INVALID_OPERAND,
     FUSION_BUFFER_OVERFLOW,
     FUSION_NOT_IMPLEMENTED
-} FusionStatusFlag_t;
+} FusStatusFlag_t;
 typedef struct {
     unsigned char* buffer;
     size_t buffer_size;
     size_t offset;
-} FusionBufferContext_t;
+} FusBufferContext_t;
 
 #endif
