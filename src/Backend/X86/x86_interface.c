@@ -1,31 +1,27 @@
-/*
-   TODO: Mover este esquema para core do Fusion, implementar interface de backend para este casso.
-*/
-
-#include <Fusion/IRTypes/MirType.h>
+#include <Fusion/IRTypes/HidrType.h>
 #include <Fusion/FusionTypes.h>
-#include <Internal/Fus_Backend.h>
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
+// LOCAL
 #include "x86_functions.h"
 #include "x86_types.h"
 
-static inline size_t CalMirImmSize(FusMirImmSize_t size_enum)
+static inline size_t CalMirImmSize(FusHidrImmSize_t size_enum)
 {
     switch (size_enum) {
-        case MIR_IMM8: return 1;
-        case MIR_IMM16: return 2;
-        case MIR_IMM32: return 4;
-        case MIR_IMM64: return 8;
+        case HIDR_IMM8: return 1;
+        case HIDR_IMM16: return 2;
+        case HIDR_IMM32: return 4;
+        case HIDR_IMM64: return 8;
 
         default: return 0;
     }
 }
 
-static bool X86_MountRet(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
+static bool X86_MountRet(FusHidrNode_t* mir_node,x86Instruction_t* mount_instr)
 {
     mount_instr->opcode.opcode[0] = 0xC3;
     mount_instr->opcode.opcode_size = 1;
@@ -33,32 +29,32 @@ static bool X86_MountRet(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
     return true;
 }
 
-static inline bool MirMovRules(FusMirNode_t* mir_node)
+static inline bool MirMovRules(FusHidrNode_t* mir_node)
 {
-    if (mir_node->mode == MIR_MODE_NONE) return false;
-    if (mir_node->src.type == MIR_OPERAND_TYPE_IMM) return false;
-    if (mir_node->src.type == MIR_OPERAND_TYPE_MEM) return false;
+    if (mir_node->mode == HIDR_MODE_NONE) return false;
+    if (mir_node->src.type == HIDR_OPERAND_TYPE_IMM) return false;
+    if (mir_node->src.type == HIDR_OPERAND_TYPE_MEM_REF) return false;
 
     return true;
 }
-static inline void X86_CaseMountMovRegImm(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
+static inline void X86_CaseMountMovRegImm(FusHidrNode_t* mir_node,x86Instruction_t* mount_instr)
 {
-    FusMirImmSize_t imm_type = mir_node->dst.data.imm.size;
+    FusHidrImmSize_t imm_type = mir_node->dst.data.imm.size;
 
-    if (imm_type == MIR_IMM16) {
+    if (imm_type == HIDR_IMM16) {
         mount_instr->prefix.prefix[0] = 0x66;
         mount_instr->prefix.prefix_size = 1;
         mount_instr->has_prefix = true;
     }
 
-    mount_instr->opcode.opcode[0] = (imm_type == MIR_IMM8 ? 0xB0 : 0xB8) + mir_node->src.data.reg;
+    mount_instr->opcode.opcode[0] = (imm_type == HIDR_IMM8 ? 0xB0 : 0xB8) + mir_node->src.data.reg;
     mount_instr->opcode.opcode_size = 1;
 }
-static bool X86_MountMov(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
+static bool X86_MountMov(FusHidrNode_t* mir_node,x86Instruction_t* mount_instr)
 {
     if (!MirMovRules(mir_node)) return false;
 
-    if (mir_node->dst.type == MIR_OPERAND_TYPE_IMM) {
+    if (mir_node->dst.type == HIDR_OPERAND_TYPE_IMM) {
         X86_CaseMountMovRegImm(mir_node,mount_instr);
 
         size_t imm_size = CalMirImmSize(mir_node->dst.data.imm.size);
@@ -67,8 +63,8 @@ static bool X86_MountMov(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
         mount_instr->imm.size = imm_size;
         mount_instr->has_imm = true;
     }
-    if (mir_node->dst.type == MIR_OPERAND_TYPE_REG) {
-        if (mir_node->mode == MIR_MODE16) {
+    if (mir_node->dst.type == HIDR_OPERAND_TYPE_REG) {
+        if (mir_node->mode == HIDR_MODE16) {
             mount_instr->prefix.prefix[0] = 0x66;
             mount_instr->prefix.prefix_size = 1;
             mount_instr->has_prefix = true;
@@ -84,10 +80,10 @@ static bool X86_MountMov(FusMirNode_t* mir_node,x86Instruction_t* mount_instr)
     return true;
 }
 
-static void X86_MirPrefixMount(FusMirNode_t* mir_node, x86Instruction_t* instr_bytes)
+static void X86_MirPrefixMount(FusHidrNode_t* mir_node, x86Instruction_t* instr_bytes)
 {
     switch (mir_node->mode) {
-        case MIR_MODE64: {
+        case HIDR_MODE64: {
             instr_bytes->prefix.prefix[0] = 0x48;
             instr_bytes->prefix.prefix_size = 1;
             instr_bytes->has_prefix = true;
@@ -96,17 +92,17 @@ static void X86_MirPrefixMount(FusMirNode_t* mir_node, x86Instruction_t* instr_b
     }
 }
 
-typedef bool (*X86_MounterOpcodeFunc_t)(FusMirNode_t*,x86Instruction_t*);
+typedef bool (*X86_MounterOpcodeFunc_t)(FusHidrNode_t*,x86Instruction_t*);
 typedef struct {
-    FusMirNodeKind_t opcode;
+    FusHidrNodeKind_t opcode;
     X86_MounterOpcodeFunc_t func;
 } X86_OpcodeProcess_t;
 static X86_OpcodeProcess_t opcode_table[] = {
-    {MIR_INSTR_RET, X86_MountRet},
-    {MIR_INSTR_MOV, X86_MountMov}
+    {HIDR_INSTR_RET, X86_MountRet},
+    {HIDR_INSTR_MOV, X86_MountMov}
 };
 
-FusStatusFlag_t X86_BackendMountMir(FusBufferContext_t* fus_buffer, FusMirNode_t* mir_node)
+FusStatusFlag_t X86_BackendMountMir(FusBufferContext_t* fus_buffer, FusHidrNode_t* mir_node)
 {
     if (!fus_buffer || !mir_node) return FUSION_ERRO;
 
@@ -130,10 +126,15 @@ FusStatusFlag_t X86_BackendMountMir(FusBufferContext_t* fus_buffer, FusMirNode_t
     return FUSION_INVALID_OPCODE; // X86 Mount return false.
 }
 
+
+//     INTERFACE
+#include <Internal/Fus_StaticBackend.h>
+
 static FusBackendInterface_t interface = {
     .FUSI_BackendMountMir = X86_BackendMountMir
 };
-FusBackendInterface_t* FUSI_BackendInit()
+FusBackendInterface_t* X86_BackendDefine()
 {
     return &interface;
 }
+REGISTER_BACKEND(X86_Backend,X86_BackendDefine);

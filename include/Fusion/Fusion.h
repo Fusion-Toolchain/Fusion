@@ -1,6 +1,7 @@
 #ifndef FUSION_INTERFACE_H
 #define FUSION_INTERFACE_H
-#include "IRTypes/MirType.h"
+#include "IRTypes/HidrType.h"
+#include "FusionFile.h"
 #include "FusionTypes.h"
 
 /*
@@ -19,7 +20,7 @@ void FUS_DestroyBufferCode(FusBufferContext_t* ctx_buffer);
  * @param FusMirNode_t* Mir Node
  * @return FusStatusFlag_t Build Flag
 */
-FusStatusFlag_t FUS_MountMirBytes(FusBufferContext_t* fus_buffer, FusMirNode_t* mir_node);
+FusStatusFlag_t FUS_MountMirBytes(FusBufferContext_t* fus_buffer, FusHidrNode_t* mir_node);
 
 /*
  * @brief Status By String

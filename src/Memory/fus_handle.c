@@ -4,8 +4,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define FUSION_HANDLE_MAX_GEN 255
+
 typedef struct {
     void* ptr;
+    FusDestroyFn_t destroy;
     uint8_t generation;
     uint8_t type;
 } FusSlot_t;
@@ -58,13 +61,14 @@ void FUSI_CloseHandleSystem()
     handle_table.freelist_count = 0;
 }
 
-FusMemoryId_t FUSI_AllocHandle(void* data, uint8_t type)
+FusMemoryId_t FUSI_AllocHandle(void* data, uint8_t type,FusDestroyFn_t destroy)
 {
     if (handle_table.freelist_count == 0) return FUSION_INVALID_HANDLE;
 
     uint32_t id = handle_table.freelist[--handle_table.freelist_count];
     FusSlot_t* slot = &handle_table.slots[id];
 
+    slot->destroy = destroy;
     slot->ptr = data;
     slot->type = type;
 
@@ -83,10 +87,16 @@ void* FUSI_GetDataHandle(FusMemoryId_t handle)
 void FUSI_FreeHandle(FusMemoryId_t handle)
 {
     uint32_t id = FUSI_HandleGetId(handle);
+    if (id >= handle_table.capacity) return;
 
     FusSlot_t* slot = &handle_table.slots[id];
+    if (slot->generation != FUSI_HandleGetGen(handle)) return;
+
     slot->ptr = NULL;
     slot->generation++;
+    if (slot->destroy && slot->ptr) slot->destroy(slot->ptr);
+
+    if (slot->generation == FUSION_HANDLE_MAX_GEN) return; 
 
     handle_table.freelist[handle_table.freelist_count++] = id;
 }

@@ -20,6 +20,8 @@
 */
 typedef uint32_t FusMemoryId_t;
 
+typedef void (*FusDestroyFn_t)(void* data);
+
 /*
  * @brief Create handle
  * @param uint16_t Internal Id
@@ -72,7 +74,7 @@ FusStatusFlag_t FUSI_InitHandleSystem();
  * @param uint8_t type
  * @return Return Handle
 */
-FusMemoryId_t FUSI_AllocHandle(void* data, uint8_t type);
+FusMemoryId_t FUSI_AllocHandle(void* data, uint8_t type,FusDestroyFn_t destroy);
 /*
  * @brief Get Handle Data
  * @param FusMemoryId_t handle
