@@ -86,14 +86,38 @@ static bool x86Bytes_MountPrefix(x86Instruction_t* instr, struct CopyPartMemory*
     return true;
 }
 
+static inline uint8_t MountSIB(x86Sib_t* sib)
+{
+    return (sib->scale << 6) | (sib->index << 3) | sib->base;
+}
+static bool x86Bytes_MountSIB(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+{
+    if (!instr->has_sib) return true;
+
+    uint8_t sib = MountSIB(&instr->sib);
+    return CopyOffsetDataU8(mounter, sib);
+}
+
+static bool x86Bytes_MountDisp(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+{
+    if (!instr->has_disp) return true;
+
+    mounter->src = (unsigned char*)&instr->disp.value;
+    mounter->src_size = instr->disp.size;
+
+    return CopyOffsetData(mounter);
+}
+
 static EncodePipeline pipeline_funcs = {
     .steps = {
         [0]=x86Bytes_MountPrefix,
         [1]=x86Bytes_MountOpcode,
         [2]=x86Bytes_MountModRM,
-        [3]=x86Bytes_MountImm
+        [3]=x86Bytes_MountSIB,
+        [4]=x86Bytes_MountDisp,
+        [5]=x86Bytes_MountImm,
     },
-    .count = 4
+    .count = 6
 };
 
 bool X86_MountCodeBytes(x86Instruction_t* instr, size_t* offset, uint8_t* buffer, size_t buffer_size)

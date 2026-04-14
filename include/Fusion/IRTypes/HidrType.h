@@ -36,6 +36,8 @@ typedef int16_t FusHidrVirtualReg_t;
  * @brief Hidr Opcode Types
 */
 typedef enum {
+    HIDR_INSTR_NONE = 0,
+
     HIDR_INSTR_MOV,
     HIDR_INSTR_ADD,
     HIDR_INSTR_RET
@@ -44,6 +46,8 @@ typedef enum {
  * @brief Hidr Operand Types
 */
 typedef enum {
+    HIDR_OPERAND_TYPE_NONE = 0,
+
     HIDR_OPERAND_TYPE_REG,
     HIDR_OPERAND_TYPE_IMM,
     HIDR_OPERAND_TYPE_MEM_REF,
@@ -54,6 +58,8 @@ typedef enum {
  * @note Future Remove
 */
 typedef enum {
+    HIDR_IMM_NONE = 0,
+
     HIDR_IMM8,
     HIDR_IMM16,
     HIDR_IMM32,
@@ -88,16 +94,25 @@ typedef struct {
 */
 typedef enum {
     HIDR_MODE_NONE = 0,
+
     HIDR_MODE64,
     HIDR_MODE32,
     HIDR_MODE16,
 } FusHidrOpcodeMode_t;
+typedef enum {
+    HIDR_OP_SIZE_NONE = 0,
+    HIDR_OP_SIZE_8,
+    HIDR_OP_SIZE_16,
+    HIDR_OP_SIZE_32,
+    HIDR_OP_SIZE_64
+} FusHidrOpcodeSize_t;
 
 /*
  * @brief Hidr Node Struct
 */
 typedef struct {
     FusHidrOpcodeMode_t mode;
+    FusHidrOpcodeSize_t op_size;
 
     FusHidrNodeKind_t opcode;
     FusHidrOperand_t src;
