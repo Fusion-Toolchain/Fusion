@@ -1,7 +1,7 @@
 #ifndef FUSION_INTERFACE_H
 #define FUSION_INTERFACE_H
 #include "IRTypes/HidrType.h"
-#include "FusionFile.h"
+#include "FileFdb/FusionFileInterface.h"
 #include "FusionTypes.h"
 
 /*

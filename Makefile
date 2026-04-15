@@ -8,7 +8,7 @@ OBJ := $(SRC_DIR)/main.c \
   $(SRC_DIR)/Backend/X86/x86_pipeline.c \
   $(SRC_DIR)/Backend/X86/x86_interface.c \
   $(SRC_DIR)/Core/fusion_core.c \
-  $(SRC_DIR)/Core/fus_file.c \
+  $(SRC_DIR)/Core/Fdb_System/fus_file.c \
   $(SRC_DIR)/Memory/fus_arena.c \
   $(SRC_DIR)/Memory/fus_handle.c
 

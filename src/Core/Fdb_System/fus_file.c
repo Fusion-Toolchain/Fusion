@@ -1,5 +1,4 @@
-#include <Fusion/FusionFile.h>
-#include <Fusion/FusionTypes.h>
+#include <Fusion/FileFdb/FusionFileInterface.h>
 
 #include <Internal/Memory/Fus_Arena.h>
 #include <Internal/Memory/Fus_Handle.h>

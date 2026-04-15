@@ -7,10 +7,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define FUS_FILE_SECTION_TYPE_READ  (1 << 0)
-#define FUS_FILE_SECTION_TYPE_WRITE (1 << 1)
-#define FUS_FILE_SECTION_TYPE_EXEC  (1 << 2)
 typedef uint32_t FusFileManagerSectionType_t;
+enum {
+    FUS_FILE_SECTION_TYPE_READ =  (1 << 0),
+    FUS_FILE_SECTION_TYPE_WRITE = (1 << 1),
+    FUS_FILE_SECTION_TYPE_EXEC =  (1 << 2),
+};
 
 typedef struct {
     const char* name;
@@ -32,9 +34,6 @@ typedef struct {
     size_t offset;
 } FusFileManagerReloc_t;
 
-/*
- * @brief Section Define
-*/
 typedef struct {
     const char* name;
     size_t size;
