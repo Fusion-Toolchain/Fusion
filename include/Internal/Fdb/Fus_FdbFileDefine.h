@@ -29,14 +29,13 @@ enum {
     FUSION_FDB_SECTION_KIND_TYPE_CUSTOM = 5,
 };
 
-#pragma pack(push, 1)
-typedef struct {
+
+typedef struct __attribute__((packed)) {
     FusFdbFileMagic_t magic;
     FusFdbFileVersion_t version;
     FusFdbFileMode_t mode;
     uint64_t file_size;
 
-    uint16_t header_size;
     uint8_t endianness;
 
     char target_triple[32];
@@ -56,7 +55,7 @@ typedef struct {
     uint64_t entry_point; // EXECUTABLE
 } FusFdbFileHeader_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint32_t name_offset;
 
     uint32_t offset;
@@ -69,5 +68,4 @@ typedef struct {
     uint32_t alignment;
 } FusFdbFileSection_t;
 
-#pragma pack(pop)
 #endif
