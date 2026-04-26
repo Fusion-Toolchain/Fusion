@@ -29,6 +29,7 @@ void* FUSI_AllocArena(FusMemoryArena_t* arena, size_t size);
  * @brief Clear/Reset Arena
  * @param FusMemoryArena_t* Arena
 */
+char* FUSI_ArenaPushString(FusMemoryArena_t* arena, const char* str);
 void FUSI_ResetArena(FusMemoryArena_t* arena);
 /*
  * @brief Destroy Arena
