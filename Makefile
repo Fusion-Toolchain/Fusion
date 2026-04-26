@@ -1,19 +1,91 @@
 INCLUDE_DIR := include
 SRC_DIR := src
-CFLAG := -I$(INCLUDE_DIR) -O1
-LINKER_LD := -Wl,-T,$(SRC_DIR)/linker.ld
+BUILD_DIR := .build
+
+CC := gcc
+AR := ar
+CFLAGS := -I$(INCLUDE_DIR) -O2 -MMD -MP
+LDFLAGS := -Wl,-T,$(SRC_DIR)/linker.ld
+
 OUT_FILE := main
 
-OBJ := $(SRC_DIR)/main.c \
+# ========================
+# CORE
+# ========================
+CORE_SRC := \
+  $(SRC_DIR)/Core/fusion_core.c \
+  $(SRC_DIR)/Core/fusion_compiler.c \
+  $(SRC_DIR)/Core/fusion_buffer.c \
+  $(SRC_DIR)/Core/fusion_erro.c \
+  $(SRC_DIR)/Core/Backend_System/backend_loader.c \
+  $(SRC_DIR)/Core/IO_Sytem/io_interface.c \
+  $(SRC_DIR)/Core/IO_Sytem/io_file.c \
+  $(SRC_DIR)/Core/Fdb_System/fdb_filemount.c \
+  $(SRC_DIR)/Core/Linker_System/linker_hashtable.c \
+  $(SRC_DIR)/Core/Linker_System/linker_interface.c \
+  $(SRC_DIR)/Core/Linker_System/linker_pipeline.c \
+  $(SRC_DIR)/Core/Memory/fus_arena.c \
+  $(SRC_DIR)/Core/Memory/fus_handle.c
+
+CORE_OBJ := $(CORE_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+CORE_LIB := $(BUILD_DIR)/libcore.a
+
+# ========================
+# BACKEND
+# ========================
+BACKEND_SRC := \
   $(SRC_DIR)/Backend/X86/x86_pipeline.c \
   $(SRC_DIR)/Backend/X86/x86_interface.c \
-  $(SRC_DIR)/Core/fusion_core.c \
-  $(SRC_DIR)/Core/Fdb_System/fus_file.c \
-  $(SRC_DIR)/Memory/fus_arena.c \
-  $(SRC_DIR)/Memory/fus_handle.c
+  $(SRC_DIR)/Backend/X86/x86_helpers.c \
+  $(SRC_DIR)/Backend/X86/InstructionSets/x86_mov.c \
+  $(SRC_DIR)/Backend/X86/InstructionSets/x86_add.c \
+  $(SRC_DIR)/Backend/X86/InstructionSets/x86_call.c \
+  $(SRC_DIR)/Backend/X86/InstructionSets/x86_ret.c \
+  $(SRC_DIR)/Backend/X86/InstructionSets/x86_lea.c
 
-all:
-	gcc $(LINKER_LD) $(CFLAG) $(OBJ) -o $(OUT_FILE)
+BACKEND_OBJ := $(BACKEND_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+BACKEND_LIB := $(BUILD_DIR)/libbackend.a
 
+# ========================
+# MAIN
+# ========================
+MAIN_SRC := $(SRC_DIR)/main.c
+MAIN_OBJ := $(BUILD_DIR)/main.o
+
+# ========================
+# BUILD FINAL
+# ========================
+all: $(OUT_FILE)
+
+$(OUT_FILE): $(MAIN_OBJ) $(BACKEND_LIB) $(CORE_LIB)
+	$(CC) $(LDFLAGS) $(MAIN_OBJ) \
+	-Wl,--whole-archive $(BACKEND_LIB) $(CORE_LIB) -Wl,--no-whole-archive \
+	-o $@
+
+# ========================
+# LIBS
+# ========================
+$(CORE_LIB): $(CORE_OBJ)
+	$(AR) rcs $@ $^
+
+$(BACKEND_LIB): $(BACKEND_OBJ)
+	$(AR) rcs $@ $^
+
+# ========================
+# COMPILAÇÃO
+# ========================
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ========================
+# CLEAN
+# ========================
 clean:
-	rm -rf $(OUT_FILE)
+	rm -rf $(BUILD_DIR) $(OUT_FILE)
+
+# ========================
+# DEPENDÊNCIAS
+# ========================
+DEP := $(CORE_OBJ:.o=.d) $(BACKEND_OBJ:.o=.d) $(MAIN_OBJ:.o=.d)
+-include $(DEP)
