@@ -1,3 +1,5 @@
+// TODO: Verficar Componente!!
+
 #ifndef FUSION_HIDR_HELPER_H
 #define FUSION_HIDR_HELPER_H
 
@@ -23,13 +25,6 @@ static inline FusHidrVirtualReg_t FusMirGetMemRefBase(FusHidrNode_t* n, bool src
 static inline uint16_t FusMirGetMemRefOffset(FusHidrNode_t* n, bool src)
 {
     return src ? n->src.data.memory_ref.offset : n->dst.data.memory_ref.offset;
-}
-static inline FusHidrRegClass_t FusHidrGetRegClass(FusHidrVirtualReg_t reg)
-{
-    if (reg < 0)                        return HIDR_VREG_CLASS_VIRTUAL;
-    if (reg < HIDR_VREG_SPECIAL_BASE)    return HIDR_VREG_CLASS_GENERAL;
-    if (reg < HIDR_VREG_STACK_BASE)      return HIDR_VREG_CLASS_SPECIAL;
-    return                                     HIDR_VREG_CLASS_STACK;
 }
 
 #endif

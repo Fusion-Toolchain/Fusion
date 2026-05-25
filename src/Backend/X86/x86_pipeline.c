@@ -108,16 +108,34 @@ static bool x86Bytes_MountDisp(x86Instruction_t* instr, struct CopyPartMemory* m
     return CopyOffsetData(mounter);
 }
 
+static bool x86Bytes_MountRex(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+{
+    if (!instr->has_rex) return true;
+
+    x86Rex_t* rex = &instr->rex;
+    uint8_t rex_bytes = 0x40 |
+        (rex->w << 3) |
+        (rex->r << 2) |
+        (rex->x << 1) |
+        (rex->b << 0);
+    
+    mounter->src = &rex_bytes;
+    mounter->src_size = 1;
+
+    return CopyOffsetData(mounter);
+}
+
 static EncodePipeline pipeline_funcs = {
     .steps = {
         [0]=x86Bytes_MountPrefix,
-        [1]=x86Bytes_MountOpcode,
-        [2]=x86Bytes_MountModRM,
-        [3]=x86Bytes_MountSIB,
-        [4]=x86Bytes_MountDisp,
-        [5]=x86Bytes_MountImm,
+        [1]=x86Bytes_MountRex,
+        [2]=x86Bytes_MountOpcode,
+        [3]=x86Bytes_MountModRM,
+        [4]=x86Bytes_MountSIB,
+        [5]=x86Bytes_MountDisp,
+        [6]=x86Bytes_MountImm,
     },
-    .count = 6
+    .count = 7 // 0 .. 6
 };
 
 bool X86_MountCodeBytes(x86Instruction_t* instr, size_t* offset, uint8_t* buffer, size_t buffer_size)

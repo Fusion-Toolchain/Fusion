@@ -5,23 +5,34 @@
 
 typedef struct {
     const char* name;
-    FusBackendInterface_t* (*fn)(void);
+    FusBackendInterface_t* (*fn)(FusBackendApi_t*);
 } ModuleStaticEntry_t;
 
 #define REGISTER_BACKEND(mod_name, mod_fn) \
     static const ModuleStaticEntry_t __entry_##mod_name \
-    __attribute__((used, section(".static_modules_backend"))) = { \
+    __attribute__((used, section(".static_modules_backend"), aligned(8))) = { \
         .name = #mod_name, \
         .fn   = mod_fn \
     };
 
 static inline ModuleStaticEntry_t* FUS_GetStaticBackend(const char* name)
 {
+    if (!name) return NULL;
+
     extern ModuleStaticEntry_t __start_static_modules_backend[];
     extern ModuleStaticEntry_t __stop_static_modules_backend[];
 
-    for (ModuleStaticEntry_t* e = __start_static_modules_backend; e < __stop_static_modules_backend; e++) {
-        if (strcmp(e->name, name) == 0) return e;
+    if (__start_static_modules_backend >= __stop_static_modules_backend)
+        return NULL;
+
+    for (ModuleStaticEntry_t* e = __start_static_modules_backend;
+         e < __stop_static_modules_backend;
+         e++)
+    {
+        if (!e->name) continue;
+
+        if (strcmp(e->name, name) == 0)
+            return e;
     }
 
     return NULL;

@@ -4,32 +4,20 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define HIDR_VREG_FRAME_PTR (int16_t)-1
-#define HIDR_VREG_STACK_PTR (int16_t)-2
-#define HIDR_VREG_PC (int16_t)-3
-
-#define HIDR_VREG_GENERAL_BASE   0    // 0  a 23
-#define HIDR_VREG_SPECIAL_BASE   24   // 24 a 31
-#define HIDR_VREG_STACK_BASE     32   // 32 a 35
-
-#define HIDR_VREG_GENERAL_COUNT  24
-#define HIDR_VREG_SPECIAL_COUNT  8
-#define HIDR_VREG_STACK_COUNT    4
-
-typedef enum {
-    HIDR_VREG_CLASS_VIRTUAL,
-    HIDR_VREG_CLASS_GENERAL,
-    HIDR_VREG_CLASS_SPECIAL,
-    HIDR_VREG_CLASS_STACK,
-} FusHidrRegClass_t;
-
 /*
  * @brief Hidr Virtual/Fisical Registre Represent (HIDR)
- * 
- * Negativos - Registradores universais.
- * Possitivos - Especificos da arquitetura.
+ * Negativo: Especial nao devem entrar no alocador.
+ * Positivo: Entram no alocador.
 */
+
+#define FUS_IS_SPECIAL(r) ((r) < 0)
+#define FUS_IS_VREG(r)    ((r) >= 0)
+
 typedef int16_t FusHidrVirtualReg_t;
+enum {
+    HIDR_REG_STACK_PTR = -1,
+    HIDR_REG_BASE_PTR  = -2,
+};
 
 
 /*
@@ -40,7 +28,9 @@ typedef enum {
 
     HIDR_INSTR_MOV,
     HIDR_INSTR_ADD,
-    HIDR_INSTR_RET
+    HIDR_INSTR_RET,
+    HIDR_INSTR_CALL,
+    HIDR_INSTR_ADDR,
 } FusHidrNodeKind_t;
 /*
  * @brief Hidr Operand Types
@@ -51,6 +41,7 @@ typedef enum {
     HIDR_OPERAND_TYPE_REG,
     HIDR_OPERAND_TYPE_IMM,
     HIDR_OPERAND_TYPE_MEM_REF,
+    HIDR_OPERAND_TYPE_SYM,
 } FusHidrOperandType_t;
 
 /*
@@ -76,6 +67,9 @@ typedef struct {
     FusHidrVirtualReg_t base;
     uint16_t offset;
 } FusHidrMemRef_t;
+typedef struct {
+    const char* name;
+} FusHidrSysm_t;
 
 /*
  * @brief Hidr Operand Struct Type
@@ -86,6 +80,7 @@ typedef struct {
         FusHidrVirtualReg_t reg;
         FusHidrMemRef_t memory_ref;
         FusHidrImm_t imm;
+        FusHidrSysm_t sym;
     } data;
 } FusHidrOperand_t;
 

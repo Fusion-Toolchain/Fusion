@@ -1,9 +1,66 @@
 #ifndef FUSION_INTERNAL_BACKEND_H
 #define FUSION_INTERNAL_BACKEND_H
-#include "Fusion/IRTypes/HidrType.h"
+#include <Internal/Memory/Fus_Arena.h>
+
+#include <Fusion/IRTypes/HidrType.h>
+#include <Fusion/Backend/FusionBackend.h>
 #include <Fusion/FusionTypes.h>
 
+#include <stddef.h>
+#include <stdint.h>
+
+typedef struct FusBackendApi {
+    void* (*FusAlloc)(struct FusBackendApi*,size_t);
+    void  (*FusFree)(struct FusBackendApi*, void*);
+
+    FusInstance* Instance;
+} FusBackendApi_t;
+
 typedef struct {
-    FusStatusFlag_t (*FUSI_BackendMountMir)(FusBufferContext_t*,FusHidrNode_t*);
+    FusBufferContext_t* buffer;          // buffer de bytes pra patchear
+    size_t    offset;                   // onde patchear
+    uint64_t  sym_addr;                // endereço do símbolo
+    uint64_t  patch_addr;             // endereço do próprio patch (pra REL32)
+} FusBackendRelocContext_t;
+typedef uint32_t FusBackendRealocOpaqueType_t;
+
+typedef struct {
+    const char* name;
+    FusBackendRealocOpaqueType_t type;
+    size_t offset;
+} FusBackendReallocNeed_t;
+typedef struct {
+    FusBufferContext_t* buffer;
+
+    FusMemoryArena_t* arena;
+    FusBackendReallocNeed_t* realoc;
+    size_t realoc_count;
+    size_t realoc_capacity;
+
+    FusStatusFlag_t flag;
+} FusBackendGenereteDataBlock_t;
+typedef struct {
+    const void* data;
+    void (*free)(const void* data);
+} FusBackendTrasferLifeTime_t;
+
+typedef struct {
+    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
+    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidrArry)(const FusHidrNode_t*,size_t);
+    FusStatusFlag_t (*FUSI_BackendLinkerRealloc)(FusBackendRealocOpaqueType_t,FusBackendRelocContext_t*);
 } FusBackendInterface_t;
+
+struct FusBackendReturn {
+    FusBackendTrasferLifeTime_t* transfer_data;
+    FusBackendApi_t* api;
+};
+struct FusModuleBackend_T {
+    FusModuleBackendType_t type;
+    const char* name;
+    FusBackendInterface_t* interface; // INTERFACE INTERNA
+    FusBackendApi_t* api; // ONCE FOR MODULE
+};
+
+void* FUSI_BackendHookMalloc(FusBackendApi_t* api, size_t size); // DENTRO DE API
+void FUSI_BackendHookFree(FusBackendApi_t* api, void* ptr); // DENTRO DE API
 #endif

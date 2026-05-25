@@ -1,0 +1,94 @@
+digraph G {
+    compound=true;
+    rankdir=LR;
+    node [shape=box, style=rounded, fontname="Arial"];
+
+    subgraph cluster_backend {
+        label="Backend";
+        style="rounded,filled";
+        fillcolor=lightcyan;
+        node [style="rounded,filled", fillcolor=white];
+        
+        BackendEntry;
+        BackendOut [shape=box, style="bold,filled", fillcolor=gold];
+
+        BackendEntry -> BackendLinkerHelpers [minlen=1, label="Linker Get THIS"];
+        BackendEntry -> BackendHIDRValidator [minlen=1, label="Validate HIDR"];
+        BackendEntry -> BackendHIDRMounter [minlen=1, label="Compiler-Step"];
+
+        // COMPILER STEP FOR BYTES
+        BackendHIDRMounter -> BackendHIDRValidator [minlen=1, label="Check HIDR in ISA"];
+        BackendHIDRMounter -> BackendCodeBlock [minlen=1, label="Compiler HIDR for Blocks"];
+        BackendCodeBlock -> BackendOut [minlen=1, label="Bytes"];
+
+        // BACKEND HIDR VALID
+        BackendHIDRValidator -> BackendHIDRMetadata [minlen=1, label="Check possible suporte in ISA"];
+        BackendHIDRValidator -> BackendHIDROperands [minlen=1, label="Check Operands in ISA"];
+        BackendHIDRValidator -> BackendMeaningISA [minlen=1, label="Validate Meaning HIDR"];
+        BackendHIDRValidator -> BackendRegisterChecker [minlen=1, label="Check Registre Suport"];
+        
+        BackendHIDROperands -> BackendTraceData;
+        BackendHIDRMetadata -> BackendTraceData;
+        BackendMeaningISA -> BackendTraceData;
+        BackendRegisterChecker -> BackendTraceData;
+        
+        BackendTraceData -> BackendOut [minlen=1, label="Fusion Trace Context"];
+
+        // BACKEND LINKER HELPERS
+        BackendLinkerHelpers -> BackendLinkerRelocationHelper [minlen=1, label="Helpers For Reallocation"];
+        BackendLinkerHelpers -> BackendISALimits [minlen=1, label="ISA values MAX"];
+        
+        { rank=max; BackendOut; }
+    }
+
+    subgraph cluster_linker {
+        label="Linker";
+        style="rounded,filled";
+        fillcolor=bisque;
+        node [style="rounded,filled", fillcolor=white];
+        
+        LinkerEntry;
+        
+        LinkerEntry -> LinkerResolverReallocation [minlen=1, label="Linker Resolver Reallocation"];
+        LinkerEntry -> LinkerResolverContext [minlen=1, label="Linker Context"];
+        
+        LinkerResolverReallocation -> BackendLinkerHelpers [minlen=1, label="Request Backend ISA Helpers"];
+    }
+
+    subgraph cluster_fdb {
+        label="Fdb File";
+        style="rounded,filled";
+        fillcolor=honeydew;
+        node [style="rounded,filled", fillcolor=white];
+        
+        FdbEntry;
+        
+        FdbEntry -> FdbSymbols;
+        FdbEntry -> FdbRealloc;
+        FdbEntry -> FdbSection;
+        
+        FdbSymbols -> FdbFileGenerate;
+        FdbRealloc -> FdbFileGenerate;
+        FdbSection -> FdbFileGenerate;
+    }
+
+    subgraph cluster_fusion {
+        label="Fusion Core";
+        style="rounded,filled";
+        fillcolor=aliceblue;
+        node [style="rounded,filled", fillcolor=lightgrey];
+        
+        FusionCoreEntry [style="bold,filled", fillcolor=ghostwhite];
+        
+        FusionCoreEntry -> FusionCoreCompilerHIDR;
+        
+        // BACKEND -> LINKER
+        FusionCoreCompilerHIDR -> BackendEntry [minlen=2, label="Compiler Step"];
+        FusionCoreCompilerHIDR -> FusionCoreLinkerData;
+        FusionCoreLinkerData -> LinkerEntry [minlen=2, label="Linker Step"];
+
+        // LINKER -> SAIDAS
+        FusionCoreLinkerData -> FusCoreMemoryExecutable [minlen=2, label="Memory"];
+        FusionCoreLinkerData -> FdbEntry [minlen=2, label="Fdb File"];
+    }
+}

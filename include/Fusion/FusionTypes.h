@@ -4,12 +4,22 @@
 
 typedef enum {
     FUSION_OK = 0,
-    FUSION_ERRO = 1,
-    FUSION_INVALID_OPCODE,
-    FUSION_INVALID_OPERAND,
-    FUSION_BUFFER_OVERFLOW,
-    FUSION_NOT_IMPLEMENTED
+    FUSION_ERRO = 1
 } FusStatusFlag_t;
+typedef struct {
+    void* (*Alloc)(void*,size_t);
+    void (*Free)(void*,void*);
+    void* (*Realloc)(
+        void* userdata,
+        void* old_ptr,
+        size_t old_size,
+        size_t new_size
+    );
+
+    void* userdata;
+} FusInstanceMyAllocation_t;
+typedef struct FusInstance_T* FusInstance;
+
 typedef struct {
     unsigned char* buffer;
     size_t buffer_size;

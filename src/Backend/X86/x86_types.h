@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum {
+    X86_REL32,
+    X86_ABS64
+} X86ReallocTypes_t;
+
 // REGISTERS (único source of truth)
 #define X86_REG_RAX 0
 #define X86_REG_RCX 1
@@ -67,9 +72,16 @@ typedef struct {
     int32_t value;
     uint8_t size;
 } x86Disp_t;
+typedef struct {
+    uint8_t w : 1;
+    uint8_t r : 1;
+    uint8_t x : 1;
+    uint8_t b : 1;
+} x86Rex_t;
 
 typedef struct {
     x86Prefix_t prefix;
+    x86Rex_t rex;
     x86Opcode_t opcode;
     x86ModRm_t modrm;
     x86Imm_t imm;
@@ -81,6 +93,7 @@ typedef struct {
     bool has_imm;
     bool has_sib;
     bool has_disp;
+    bool has_rex;
 } x86Instruction_t;
 
 #endif
