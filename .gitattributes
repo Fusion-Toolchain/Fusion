@@ -1,0 +1,4 @@
+*.h linguist-language=C
+
+Documentation/* linguist-documentation
+*.drawio linguist-vendored
