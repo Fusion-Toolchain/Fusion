@@ -1,14 +1,18 @@
-#include "Fusion/FusionTypes.h"
-#include "Internal/Linker/Fus_Hashtable.h"
-#include "Internal/Memory/Fus_Arena.h"
-#include <Fusion/Linker/FusionLinkerInterface.h>
-#include <Internal/Linker/Fus_Linker.h>
+// HELPERS
+#include <Internal/Helpers/Fus_Helper_Allocation.h>
 
-#include <fcntl.h>
+#include <Fusion/Linker/FusionLinkerInterface.h>
+
+#include <Internal/Linker/Fus_Linker.h>
+#include <Internal/Fus_Instance.h>
+#include <Internal/Memory/Fus_Slab.h>
+
+#include <stdatomic.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <stdlib.h>
+
+#include <stdio.h>
 
 #define FUSION_FILE_MAX_SECTIONS 200
 
@@ -31,17 +35,17 @@ static inline void DestroyConfigureFileBasic(FusLinkerContext_t* ctx)
     if (!ctx) return;
 
     if (ctx->arena) FUSI_DestroyArena(ctx->arena);
-    free(ctx);
 }
-static inline FusStatusFlag_t ConfigureSection(FusLinkerContext_t* ctx)
+static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
 {
+    if (!allocator) return FUSION_ERRO;
     if (!ctx) return FUSION_ERRO;
 
-    FusLinkerContextSection_t* sections = malloc(sizeof(FusLinkerContextSection_t)*FUSION_FILE_MAX_SECTIONS);
+    FusLinkerContextSection_t* sections = FUSIH_ALLOC(allocator,sizeof(FusLinkerContextSection_t)*FUSION_FILE_MAX_SECTIONS);
     if (!sections) return FUSION_ERRO;
     FdbHashTable_t* section_table = FDBI_HashTableCreate(256);
     if (!section_table) {
-        free(sections);
+        FUSIH_FREE(allocator,sections);
         return FUSION_ERRO;
     }
     ctx->sections = sections;
@@ -50,24 +54,27 @@ static inline FusStatusFlag_t ConfigureSection(FusLinkerContext_t* ctx)
 
     return FUSION_OK;
 }
-static inline void DestroyConfigureSection(FusLinkerContext_t* ctx)
+static inline void DestroyConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
 {
+    if (!allocator) return;
     if (!ctx) return;
 
-    if (ctx->sections) free(ctx->sections);
+    if (ctx->sections) FUSIH_FREE(allocator,ctx->sections);
     if (ctx->section_table) FDBI_HashTableDestroy(ctx->section_table);
 }
 
 #define FUSION_LINKER_MAX_SYMBOLS 20
-static inline FusStatusFlag_t ConfigureSymbols(FusLinkerContext_t* ctx)
+static inline FusStatusFlag_t ConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
 {
+    if (!allocator) return FUSION_ERRO;
     if (!ctx) return FUSION_ERRO;
 
-    FusLinkerContextSymbol_t* symbols = malloc(sizeof(FusLinkerContextSymbol_t)*FUSION_LINKER_MAX_SYMBOLS);
+
+    FusLinkerContextSymbol_t* symbols = FUSIH_ALLOC(allocator,sizeof(FusLinkerContextSymbol_t)*FUSION_LINKER_MAX_SYMBOLS);
     if (!symbols) return FUSION_ERRO;
     FdbHashTable_t* symbols_table = FDBI_HashTableCreate(256);
     if (!symbols_table) {
-        free(symbols);
+        FUSIH_FREE(allocator,symbols);
         return FUSION_ERRO;
     }
     ctx->symbols = symbols;
@@ -76,34 +83,41 @@ static inline FusStatusFlag_t ConfigureSymbols(FusLinkerContext_t* ctx)
 
     return FUSION_OK;
 }
-static inline void DestroyConfigureSymbols(FusLinkerContext_t* ctx)
+static inline void DestroyConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
 {
+    if (!allocator) return;
     if (!ctx) return;
-    if (ctx->symbols) free(ctx->symbols);
+
+    if (ctx->symbols) FUSIH_FREE(allocator,ctx->symbols);
     if (ctx->symbols_table) FDBI_HashTableDestroy(ctx->symbols_table);
 }
 
 
-FusLinkerContext_t* FUS_CreateLinkerContext()
+FusLinkerContext_t* FUS_CreateLinkerContext(FusInstance* instance)
 {
-    FusLinkerContext_t* ctx = malloc(sizeof(FusLinkerContext_t));
+    if (!instance) return NULL;
+    struct FusInstance_T* instance_real = *instance;
+    FusInstanceMyAllocation_t* allocator = instance_real->allocation;
+    FusSlab_t* slab = instance_real->slab;
+
+    FusLinkerContext_t* ctx = FUSI_AllocSlab(slab,sizeof(FusLinkerContext_t));
     if (!ctx) return NULL;
 
     if (ConfigureFileBasic(ctx) != FUSION_OK) {
-        free(ctx);
+        FUSI_FreeSlab(slab,ctx);
         return NULL;
     }
 
-    if (ConfigureSection(ctx) != FUSION_OK) {
+    if (ConfigureSection(allocator,ctx) != FUSION_OK) {
         DestroyConfigureFileBasic(ctx);
-        free(ctx);
+        FUSI_FreeSlab(slab,ctx);
         return NULL;
     }
     
-    if (ConfigureSymbols(ctx) != FUSION_OK) {
+    if (ConfigureSymbols(allocator,ctx) != FUSION_OK) {
         DestroyConfigureFileBasic(ctx);
-        DestroyConfigureSection(ctx);
-        free(ctx);
+        DestroyConfigureSection(allocator,ctx);
+        FUSI_FreeSlab(slab,ctx);
         return NULL;
     }
 
@@ -175,11 +189,15 @@ FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext_t* ctx, const cha
     return &ctx->symbols[idx];
 }
 
-void FUS_DestroyLinkerContext(FusLinkerContext_t* ctx)
+void FUS_DestroyLinkerContext(FusInstance instance,FusLinkerContext_t* ctx)
 {
+    if (!instance) return;
     if (!ctx) return;
+    struct FusInstance_T* instance_real = instance;
 
-    DestroyConfigureSymbols(ctx);
-    DestroyConfigureSection(ctx);
+    DestroyConfigureSymbols(instance_real->allocation,ctx);
+    DestroyConfigureSection(instance_real->allocation,ctx);
     DestroyConfigureFileBasic(ctx);
+
+    FUSI_FreeSlab(instance_real->slab,ctx);
 }

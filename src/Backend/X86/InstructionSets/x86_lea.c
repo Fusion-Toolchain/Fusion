@@ -6,7 +6,6 @@ bool X86_CaseMountLeaRegMem(X86BackendContext* backend_ctx)
 {
     const FusHidrNode_t* mir_node = backend_ctx->hidr;
     x86Instruction_t* mount_instr = backend_ctx->encoder;
-    FusTracedErro_t* trace = backend_ctx->traced;
 
     /* Validação de operands */
     if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG)
@@ -23,10 +22,6 @@ bool X86_CaseMountLeaRegMem(X86BackendContext* backend_ctx)
      * Quando HIDR_OPERAND_TYPE_MEM_REF tiver index/scale, resolve aqui.
      */
     if ((base_reg & 0x7) == 0x4) { /* RSP ou R12 — ambos rm=100 */
-        trace->msg = "Ainda nao implementado!";
-        trace->type = FUS_TRACED_TYPE_ERRO;
-        trace->local = FUS_TRACED_LOCAL_COMPILER;
-
         return false;
     }
 

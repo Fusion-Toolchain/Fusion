@@ -1,7 +1,6 @@
 #ifndef X86_INTERNAL_FAMILYS_H
 #define X86_INTERNAL_FAMILYS_H
 #include <Fusion/IRTypes/HidrType.h>
-#include <Internal/Fus_Error.h>
 #include <Internal/Fus_Backend.h>
 
 #include "x86_types.h"
@@ -9,7 +8,6 @@
 typedef struct {
     x86Instruction_t* encoder;
     const FusHidrNode_t* hidr;
-    FusTracedErro_t* traced;
     FusBackendGenereteDataBlock_t* block;
 } X86BackendContext;
 

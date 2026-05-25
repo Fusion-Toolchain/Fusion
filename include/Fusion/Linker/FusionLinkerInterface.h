@@ -1,7 +1,6 @@
 #ifndef FUSION_PUBLIC_LINKER_INTERFACE_H
 #define FUSION_PUBLIC_LINKER_INTERFACE_H
 
-#include <Internal/Fus_Backend.h> // TODO: Internal Vazamento!
 #include <Fusion/FusionTypes.h>
 #include <Fusion/FusionRule.h>
 
@@ -44,7 +43,7 @@ typedef struct {
 
 typedef struct FusLinkerContext FusLinkerContext_t;
 
-FusLinkerContext_t* FUS_CreateLinkerContext();
+FusLinkerContext_t* FUS_CreateLinkerContext(FusInstance* instance);
 
 FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext_t* ctx,FusLinkerContextSectionDefine_t* define);
 FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext_t* ctx, const char* name);
@@ -52,5 +51,5 @@ FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext_t* ctx, const char* name,ui
 FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext_t* ctx, const char* name);
 
 FusStatusFlag_t FUS_LinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext_t* linker_ctx, FusBackendReturn_t* backend_data);
-void FUS_DestroyLinkerContext(FusLinkerContext_t* ctx);
+void FUS_DestroyLinkerContext(FusInstance instance,FusLinkerContext_t* ctx);
 #endif

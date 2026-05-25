@@ -1,14 +1,15 @@
 #ifndef FUSION_BACKEND_MODULE_H
 #define FUSION_BACKEND_MODULE_H
+#include <Fusion/FusionTypes.h>
 
 typedef enum {
     FUS_BACKEND_TYPE_NONE,
     FUS_BACKEND_TYPE_STATIC,
     FUS_BACKEND_TYPE_DINAMIC, // AINDA NAO EXISTE
 } FusModuleBackendType_t;
-typedef struct FusModuleBackend FusModuleBackend_t;
+typedef struct FusModuleBackend_T* FusModuleBackend_t;
 typedef struct FusBackendReturn FusBackendReturn_t;
 
-FusModuleBackend_t* FUS_LoaderBackend(const char* name, FusModuleBackendType_t type);
-void FUS_DestroyBackend(FusModuleBackend_t* backend);
+FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend_t* ctx, const char* name, FusModuleBackendType_t type);
+void FUS_DestroyBackend(FusModuleBackend_t backend);
 #endif

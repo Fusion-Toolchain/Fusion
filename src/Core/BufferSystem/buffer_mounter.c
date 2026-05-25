@@ -1,10 +1,13 @@
 #include <Fusion/FusionTypes.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 
 FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 {
+    if (buffer_size == 0) return NULL;
+
     FusBufferContext_t* ctx = malloc(sizeof(FusBufferContext_t));
     if (!ctx) return NULL;
     unsigned char* buffer = mmap(

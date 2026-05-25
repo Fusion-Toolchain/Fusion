@@ -63,33 +63,36 @@ static inline uint8_t FUSI_HandleGetGen(FusMemoryId_t h)
 {
     return (uint8_t)((h & FUSION_GEN_MASK) >> FUSION_GEN_SHIFT);
 }
+
+typedef struct FusTable_T* FusTable_t;
+
 /*
  * @brief Init Handle System
  * @return Return Flag Status
 */
-FusStatusFlag_t FUSI_InitHandleSystem();
+FusStatusFlag_t FUSI_InitHandleSystem(FusTable_t* table);
 /*
  * @brief Create Handle to Data
  * @param void* data
  * @param uint8_t type
  * @return Return Handle
 */
-FusMemoryId_t FUSI_AllocHandle(void* data, uint8_t type,FusDestroyFn_t destroy);
+FusMemoryId_t FUSI_AllocHandle(FusTable_t* table,void* data, uint8_t type,FusDestroyFn_t destroy);
 /*
  * @brief Get Handle Data
  * @param FusMemoryId_t handle
  * @return Handle Data
 */
-void* FUSI_GetDataHandle(FusMemoryId_t handle);
+void* FUSI_GetDataHandle(FusTable_t* table,FusMemoryId_t handle);
 /*
  * @brief Free Handle
  * @param FusMemoryId_t handle
  * @note Trasform Handle in Invalid!
 */
-void FUSI_FreeHandle(FusMemoryId_t handle);
+void FUSI_FreeHandle(FusTable_t* table,FusMemoryId_t handle);
 /*
  * @brief Close Handle System
 */
-void FUSI_CloseHandleSystem();
+void FUSI_CloseHandleSystem(FusTable_t* table);
 
 #endif

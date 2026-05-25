@@ -2,7 +2,6 @@
  *  !!! TEST FILE!!!
 */
 
-#include "Fusion/IRTypes/HidrType.h"
 #include <Fusion/Fusion.h>
 
 #include <stdio.h>
@@ -19,7 +18,7 @@ static const FusHidrNode_t hidr_mov_func = {
     .mode = HIDR_MODE64,
     .src = {
         .type = HIDR_OPERAND_TYPE_SYM,
-        .data.sym.name = "Hello"
+        .data.sym.name = "Hello" // RESOLVER EM REALOCAÇÂO! LINKER
     },
     .dst = {
         .type = HIDR_OPERAND_TYPE_REG,
@@ -64,14 +63,24 @@ static FusHidrNode_t hidr_arry[] = {
 
 int main()
 {
-    FusBufferContext_t* buffer = FUS_CreateBufferCode(1024);
-    FusLinkerContext_t* linker = FUS_CreateLinkerContext();
+    FusInstance fus_instance;
+    if (FUS_CreateInstance(&fus_instance,NULL) != FUSION_OK) {
+        printf("Init Fusion System Erro!\n");
+        return 1;
+    }
+
+    FusLinkerContext_t* linker = FUS_CreateLinkerContext(&fus_instance);
+    if (!linker) {
+        printf("Linker Ctx Failed\n");
+        FUS_DestroyInstance(&fus_instance);
+        return 1;
+    }
 
     printf("Endereço do Hello: %p \n",&Hello);
     FUS_AddSymbolLinker(linker,"Hello",(uintptr_t)&Hello);
 
-    FusTracedErro_t* erro = FUS_CreateTracedErro();
-    FusModuleBackend_t* x86 = FUS_LoaderBackend("X86_Backend", FUS_BACKEND_TYPE_STATIC);
+    FusModuleBackend_t x86;
+    FUS_LoaderBackend(&fus_instance,&x86, "X86_Backend", FUS_BACKEND_TYPE_STATIC);
 
     FusCommandBackend backend_define_backend = {
         .sType = FUS_COMMAND_SEND_BACKEND,
@@ -84,46 +93,38 @@ int main()
         .hidr_arry = hidr_arry,
         .hidr_count = 4
     };
-    FusCommandTraceContext backend_define_trace = {
-        .sType = FUS_COMMAND_SEND_TRACE,
-        .pNext = (FusCommandRuleBase_t*)&backend_define_hidr,
-        .trace_data = erro
-    };
 
-    FusBackendReturn_t* backend_data = FUS_MountHidrsBytes((FusCommandRuleBase_t*)&backend_define_trace);
+    FusBackendReturn_t* backend_data = FUS_MountHidrsBytes(&fus_instance, (FusCommandRuleBase_t*)&backend_define_hidr);
     if (!backend_data) {
-        printf("Erro ao Copilar: %s\n", FUS_GetTracedErroMsg(erro));
-        FUS_DestroyBufferCode(buffer);
-        FUS_DestroyTracedErro(erro);
+        printf("Erro ao Copilar\n");
+
         FUS_DestroyBackend(x86);
-        FUS_DestroyLinkerContext(linker);
+        FUS_DestroyLinkerContext(fus_instance,linker);
+        FUS_DestroyInstance(&fus_instance);
         return 1;
     }
 
-    FusCommandTraceContext linker_define_trace = {
-        .sType = FUS_COMMAND_SEND_TRACE,
-        .pNext = NULL,
-        .trace_data = erro
-    };
     FusCommandBackend linker_define_backend = {
         .sType = FUS_COMMAND_SEND_BACKEND,
-        .pNext = (FusCommandRuleBase_t*)&linker_define_trace,
+        .pNext = NULL,
         .backend = x86
     };
 
     if (FUS_LinkerResolver((FusCommandRuleBase_t*)&linker_define_backend,linker,backend_data) != FUSION_OK) {
-        printf("Erro ao Linker: %s\n",FUS_GetTracedErroMsg(erro));
-        FUS_DestroyBufferCode(buffer);
-        FUS_DestroyTracedErro(erro);
+        printf("Erro ao Linker\n");
+
+        FUS_DestroyCompiler(fus_instance,backend_data);
         FUS_DestroyBackend(x86);
-        FUS_DestroyLinkerContext(linker);
+        FUS_DestroyLinkerContext(fus_instance,linker);
+        FUS_DestroyInstance(&fus_instance);
         return 1;
     }
+    printf("Pipeline Linker\n");
 
-    FUS_DestroyBufferCode(buffer);
-    FUS_DestroyTracedErro(erro);
+    FUS_DestroyCompiler(fus_instance,backend_data);
     FUS_DestroyBackend(x86);
-    FUS_DestroyLinkerContext(linker);
+    FUS_DestroyLinkerContext(fus_instance,linker);
+    FUS_DestroyInstance(&fus_instance);
 
     return 0;
 }

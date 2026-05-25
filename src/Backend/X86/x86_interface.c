@@ -99,7 +99,7 @@ static inline bool X86_SelectFamily(X86BackendContext* backend_ctx)
  * Internal Once Processor
 */
 #include <string.h>
-static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,FusTracedErro_t* trace,FusBufferContext_t* buffer, const FusHidrNode_t* element)
+static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,FusBufferContext_t* buffer, const FusHidrNode_t* element)
 {
     if (!buffer || !element) return FUSION_ERRO;
 
@@ -109,7 +109,6 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,
     X86BackendContext backend_ctx = {
         .encoder = &out_instr,
         .hidr = element,
-        .traced = trace,
         .block = block
     };
 
@@ -117,18 +116,7 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,
     X86_MountRex(element,&out_instr);
 
     if (!X86_MountCodeBytes(&out_instr, &buffer->offset, buffer->buffer, buffer->buffer_size)) {
-        if (trace) {
-            trace->type  = FUS_TRACED_TYPE_ERRO;
-            trace->local = FUS_TRACED_LOCAL_COMPILER;
-            trace->msg   = "Falha ao emitir bytes da instrução";
-        }
         return FUSION_ERRO;
-    }
-
-    if (trace) {
-        trace->type = FUS_TRACED_TYPE_OK;
-        trace->local = FUS_TRACED_LOCAL_COMPILER;
-        trace->msg = "Normal Pipeline!";
     }
 
     return FUSION_OK;
@@ -141,23 +129,23 @@ static inline FusBackendGenereteDataBlock_t* X86_MountBlockReturned(size_t needs
     FusMemoryArena_t* arena = FUSI_CreateArena(X86_DEFAULT_ARENA_BLOCK);
     if (!arena) return NULL;
 
-    FusBackendGenereteDataBlock_t* block = FUS->FusAlloc(sizeof(FusBackendGenereteDataBlock_t));
+    FusBackendGenereteDataBlock_t* block = FUS->FusAlloc(FUS,sizeof(FusBackendGenereteDataBlock_t));
     if (!block) {
         FUSI_DestroyArena(arena);
         return NULL;
     }
 
-    FusBackendReallocNeed_t* block_needs = FUS->FusAlloc(sizeof(FusBackendReallocNeed_t) * needs);
+    FusBackendReallocNeed_t* block_needs = FUS->FusAlloc(FUS,sizeof(FusBackendReallocNeed_t) * needs);
     if (!block_needs) {
-        FUS->FusFree(block);
+        FUS->FusFree(FUS,block);
         FUSI_DestroyArena(arena);
         return NULL;
     }
     size_t size_buffer = X86_MAX_INSTR_BYTES*instr_count;
     FusBufferContext_t* buffer = FUS_CreateBufferCode(size_buffer);
     if (!buffer) {
-        FUS->FusFree(block);
-        FUS->FusFree(block_needs);
+        FUS->FusFree(FUS,block);
+        FUS->FusFree(FUS,block_needs);
         FUSI_DestroyArena(arena);
         return NULL;
     }
@@ -177,17 +165,17 @@ static void FreeBlock(const void* data)
 
     FUSI_DestroyArena(block->arena);
     FUS_DestroyBufferCode(block->buffer);
-    FUS->FusFree(block->realoc);
-    FUS->FusFree(block);
+    FUS->FusFree(FUS,block->realoc);
+    FUS->FusFree(FUS,block);
 }
 
-static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(FusTracedErro_t* trace, const FusHidrNode_t* mir_node)
+static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(const FusHidrNode_t* mir_node)
 {
     if (!mir_node) return NULL;
 
     FusBackendGenereteDataBlock_t* block = X86_MountBlockReturned(23,1);
     if (!block) return NULL;
-    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusAlloc(sizeof(FusBackendTrasferLifeTime_t));
+    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusAlloc(FUS,sizeof(FusBackendTrasferLifeTime_t));
     if (!block_trasfer) {
         FreeBlock(block);
         return NULL;
@@ -195,7 +183,7 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(FusTracedErro_t* trace,
     block_trasfer->data = block;
     block_trasfer->free = FreeBlock;
 
-    FusStatusFlag_t flag = X86_ProcessOnceHidr(block,trace,block->buffer, mir_node);
+    FusStatusFlag_t flag = X86_ProcessOnceHidr(block,block->buffer, mir_node);
     if (flag != FUSION_OK) {
         block->flag = flag;
         return block_trasfer;
@@ -203,13 +191,13 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(FusTracedErro_t* trace,
 
     return block_trasfer;
 }
-static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(FusTracedErro_t* trace, const FusHidrNode_t* hidr, const size_t count)
+static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(const FusHidrNode_t* hidr, const size_t count)
 {
     if (!hidr || count == 0) return NULL;
 
     FusBackendGenereteDataBlock_t* block = X86_MountBlockReturned(23,count);
     if (!block) return NULL;
-    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusAlloc(sizeof(FusBackendTrasferLifeTime_t));
+    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusAlloc(FUS,sizeof(FusBackendTrasferLifeTime_t));
     if (!block_trasfer) {
         FreeBlock(block);
         return NULL;
@@ -218,7 +206,7 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(FusTracedErro_t* tr
     block_trasfer->free = FreeBlock;
 
     for (size_t i = 0; i < count; i++) {
-        FusStatusFlag_t flag = X86_ProcessOnceHidr(block,trace,block->buffer,&hidr[i]);
+        FusStatusFlag_t flag = X86_ProcessOnceHidr(block,block->buffer,&hidr[i]);
         if (flag != FUSION_OK) {
             block->flag = flag;
             return block_trasfer;
@@ -228,7 +216,7 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(FusTracedErro_t* tr
     return block_trasfer;
 }
 
-static FusStatusFlag_t X86_LinkerHelper(FusTracedErro_t* trace, FusBackendRealocOpaqueType_t opaque_type,FusBackendRelocContext_t* realoc)
+static FusStatusFlag_t X86_LinkerHelper(FusBackendRealocOpaqueType_t opaque_type,FusBackendRelocContext_t* realoc)
 {
     if (!realoc) return FUSION_ERRO;
     X86ReallocTypes_t type = (X86ReallocTypes_t)opaque_type;
@@ -247,7 +235,9 @@ static FusStatusFlag_t X86_LinkerHelper(FusTracedErro_t* trace, FusBackendRealoc
             *(uint64_t*)local = (uint64_t)realoc->sym_addr;
             return FUSION_OK;
         }
-        default: return FUSION_ERRO;
+        default: {
+            return FUSION_ERRO;
+        }
     }
 
     return FUSION_OK;

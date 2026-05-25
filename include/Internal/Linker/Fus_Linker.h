@@ -2,6 +2,8 @@
 #define FUSION_INTERNAL_LINKER_H
 #include <Fusion/Linker/FusionLinkerInterface.h>
 
+#include <Internal/Fus_Backend.h>
+
 #include "Fus_Hashtable.h"
 
 

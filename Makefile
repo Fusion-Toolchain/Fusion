@@ -4,7 +4,7 @@ BUILD_DIR := .build
 
 CC := gcc
 AR := ar
-CFLAGS := -I$(INCLUDE_DIR) -O2 -MMD -MP
+CFLAGS := -DFUSION_DEBUG -g -I$(INCLUDE_DIR) -O2 -MMD -MP
 LDFLAGS := -Wl,-T,$(SRC_DIR)/linker.ld
 
 OUT_FILE := main
@@ -13,10 +13,9 @@ OUT_FILE := main
 # CORE
 # ========================
 CORE_SRC := \
-  $(SRC_DIR)/Core/fusion_core.c \
-  $(SRC_DIR)/Core/fusion_compiler.c \
-  $(SRC_DIR)/Core/fusion_buffer.c \
-  $(SRC_DIR)/Core/fusion_erro.c \
+  $(SRC_DIR)/Core/instance_controller.c \
+  $(SRC_DIR)/Core/Compiler/compiler_pipeline.c \
+  $(SRC_DIR)/Core/BufferSystem/buffer_mounter.c \
   $(SRC_DIR)/Core/Backend_System/backend_loader.c \
   $(SRC_DIR)/Core/IO_Sytem/io_interface.c \
   $(SRC_DIR)/Core/IO_Sytem/io_file.c \
@@ -25,7 +24,9 @@ CORE_SRC := \
   $(SRC_DIR)/Core/Linker_System/linker_interface.c \
   $(SRC_DIR)/Core/Linker_System/linker_pipeline.c \
   $(SRC_DIR)/Core/Memory/fus_arena.c \
-  $(SRC_DIR)/Core/Memory/fus_handle.c
+  $(SRC_DIR)/Core/Memory/fus_slab.c \
+  $(SRC_DIR)/Core/Memory/fus_handle.c \
+  $(SRC_DIR)/Core/Memory/fus_larger_block.c
 
 CORE_OBJ := $(CORE_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 CORE_LIB := $(BUILD_DIR)/libcore.a
@@ -51,6 +52,9 @@ BACKEND_LIB := $(BUILD_DIR)/libbackend.a
 # ========================
 MAIN_SRC := $(SRC_DIR)/main.c
 MAIN_OBJ := $(BUILD_DIR)/main.o
+
+TEST_SRC := \
+ $(SRC_DIR)/Test/slab_test.c
 
 # ========================
 # BUILD FINAL

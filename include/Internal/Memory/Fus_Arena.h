@@ -1,6 +1,5 @@
 #ifndef FUSION_INTERNAL_ARENA_H
 #define FUSION_INTERNAL_ARENA_H
-
 #include <stddef.h>
 
 /*
@@ -30,6 +29,7 @@ void* FUSI_AllocArena(FusMemoryArena_t* arena, size_t size);
  * @param FusMemoryArena_t* Arena
 */
 char* FUSI_ArenaPushString(FusMemoryArena_t* arena, const char* str);
+char* FUSI_ArenaPrintf(FusMemoryArena_t* arena, const char* fmt, ...);
 void FUSI_ResetArena(FusMemoryArena_t* arena);
 /*
  * @brief Destroy Arena

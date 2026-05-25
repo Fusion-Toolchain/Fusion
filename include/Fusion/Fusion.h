@@ -7,6 +7,10 @@
 #include "FusionRule.h"
 #include "FusionTypes.h"
 
+#include <stddef.h>
+
+FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx,FusInstanceMyAllocation_t* allocation);
+FusStatusFlag_t FUS_DestroyInstance(FusInstance* ctx);
 /*
  * @breif Create Buffer
  * @param size_t Buffer Size
@@ -24,7 +28,8 @@ void FUS_DestroyBufferCode(FusBufferContext_t* buffer);
  * @param FusMirNode_t* Mir Node
  * @return FusStatusFlag_t Build Flag
 */
-FusBackendReturn_t* FUS_MountHidrsBytes(FusCommandRuleBase_t* compiler_rule);
+FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule);
+void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn_t* ctx_backend);
 /*
  * @brief Status By String
  * @param FusStatusFlag_t Status Code

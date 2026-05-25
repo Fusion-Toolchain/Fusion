@@ -2,7 +2,6 @@
 #define FUSION_INTERNAL_BACKEND_H
 #include <Internal/Memory/Fus_Arena.h>
 
-#include <Fusion/FusionErro.h>
 #include <Fusion/IRTypes/HidrType.h>
 #include <Fusion/Backend/FusionBackend.h>
 #include <Fusion/FusionTypes.h>
@@ -10,9 +9,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct {
-    void* (*FusAlloc)(size_t);
-    void  (*FusFree)(void*);
+typedef struct FusBackendApi {
+    void* (*FusAlloc)(struct FusBackendApi*,size_t);
+    void  (*FusFree)(struct FusBackendApi*, void*);
+
+    FusInstance* Instance;
 } FusBackendApi_t;
 
 typedef struct {
@@ -44,18 +45,22 @@ typedef struct {
 } FusBackendTrasferLifeTime_t;
 
 typedef struct {
-    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidr)(FusTracedErro_t*,const FusHidrNode_t*);
-    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidrArry)(FusTracedErro_t*,const FusHidrNode_t*,size_t);
-    FusStatusFlag_t (*FUSI_BackendLinkerRealloc)(FusTracedErro_t*,FusBackendRealocOpaqueType_t,FusBackendRelocContext_t*);
+    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
+    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidrArry)(const FusHidrNode_t*,size_t);
+    FusStatusFlag_t (*FUSI_BackendLinkerRealloc)(FusBackendRealocOpaqueType_t,FusBackendRelocContext_t*);
 } FusBackendInterface_t;
 
 struct FusBackendReturn {
     FusBackendTrasferLifeTime_t* transfer_data;
+    FusBackendApi_t* api;
 };
-struct FusModuleBackend {
+struct FusModuleBackend_T {
     FusModuleBackendType_t type;
     const char* name;
     FusBackendInterface_t* interface; // INTERFACE INTERNA
     FusBackendApi_t* api; // ONCE FOR MODULE
 };
+
+void* FUSI_BackendHookMalloc(FusBackendApi_t* api, size_t size); // DENTRO DE API
+void FUSI_BackendHookFree(FusBackendApi_t* api, void* ptr); // DENTRO DE API
 #endif

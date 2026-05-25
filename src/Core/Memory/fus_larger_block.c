@@ -1,0 +1,112 @@
+// HELPER
+#include <Internal/Helpers/Fus_Helper_Allocation.h>
+
+#include <Internal/Fus_Instance.h>
+#include <Internal/Memory/Fus_LargerBlocks.h>
+
+#include <stddef.h>
+
+
+typedef struct block_t {
+    size_t          size;   // tamanho do bloco (sem o header)
+    int             free;   // 1 = livre, 0 = ocupado
+    struct block_t* next;   // próximo bloco na lista
+} block_t;
+struct FusLargerBlock_T {
+    block_t* blocks;
+    size_t pool_size;
+};
+
+#define LARGE_BLOCK_MIN_SPLIT 64
+#define ALIGN_UP(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
+
+FusStatusFlag_t FUSI_InitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx ,size_t pool_size)
+{
+    if (!alloc) return FUSION_ERRO;
+    if (!ctx) return FUSION_ERRO;
+
+    struct FusLargerBlock_T* ctx_real = FUSIH_ALLOC(alloc,sizeof(struct FusLargerBlock_T));
+    if (!ctx_real) return FUSION_ERRO;
+
+    block_t* g_head = ctx_real->blocks;
+
+    void* pool = FUSIH_ALLOC(alloc, pool_size);
+    if (!pool) {
+        FUSIH_FREE(alloc,ctx_real);
+        return FUSION_ERRO;
+    }
+
+    g_head = (block_t*)pool;
+    g_head->size = pool_size - sizeof(block_t);
+    g_head->free = 1;
+    g_head->next = NULL;
+
+    ctx_real->blocks = g_head;
+    ctx_real->pool_size = pool_size;
+
+    *ctx = ctx_real;
+    return FUSION_OK;
+}
+
+void* FUSI_AllocLargerBlocks(FusLargerBlock_t* ctx,size_t size)
+{
+    if (!ctx || size == 0) return NULL;
+    struct FusLargerBlock_T* ctx_real = *ctx;
+
+    size = ALIGN_UP(size, 8);
+
+    block_t* g_head = ctx_real->blocks;
+    block_t* current = g_head;
+
+    while (current) {
+        if (current->free && current->size >= size) {
+            if (current->size >= size + sizeof(block_t) + LARGE_BLOCK_MIN_SPLIT) {
+                block_t* split = (block_t*)((char*)current + sizeof(block_t) + size);
+                split->size = current->size - size - sizeof(block_t);
+                split->free = 1;
+                split->next = current->next;
+
+                current->size = size;
+                current->next = split;
+            }
+            current->free = 0;
+            return (void*)(current + 1);
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+void FUSI_FreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr)
+{
+    if (!ctx || !ptr) return;
+
+    struct FusLargerBlock_T* ctx_real = *ctx;
+
+    block_t* g_head = ctx_real->blocks;
+
+    block_t* block = (block_t*)ptr - 1;
+    block->free = 1;
+
+    block_t* current = g_head;
+    while (current && current->next) {
+        if (current->free && current->next->free) {
+            current->size += sizeof(block_t) + current->next->size;
+            current->next = current->next->next;
+        } else {
+            current = current->next;
+        }
+    }
+}
+
+void FUSI_CloseLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx)
+{
+    if (!ctx) return;
+    struct FusLargerBlock_T* ctx_real = *ctx;
+
+    block_t* g_head = ctx_real->blocks;
+
+    FUSIH_FREE(alloc,g_head);
+    FUSIH_FREE(alloc,ctx_real);
+
+    *ctx = NULL;
+}

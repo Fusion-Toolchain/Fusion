@@ -1,7 +1,6 @@
 #ifndef FUSION_PUBLIC_RULE_H
 #define FUSION_PUBLIC_RULE_H
 #include "Backend/FusionBackend.h"
-#include "FusionErro.h"
 #include "IRTypes/HidrType.h"
 #include "FusionTypes.h"
 
@@ -11,7 +10,6 @@ typedef enum {
     FUS_COMMAND_SEND_BUFFER,
     FUS_COMMAND_SEND_HIDR,
     FUS_COMMAND_SEND_BACKEND,
-    FUS_COMMAND_SEND_TRACE,
     FUS_COMMAND_SEND_LINKER,
 } FusCommandRuleType_t;
 typedef struct FusCommandRuleBase {
@@ -36,12 +34,6 @@ typedef struct {
     FusCommandRuleType_t sType;
     const FusCommandRuleBase_t* pNext;
 
-    FusModuleBackend_t* backend;
+    FusModuleBackend_t backend;
 } FusCommandBackend;
-typedef struct {
-    FusCommandRuleType_t sType;
-    const FusCommandRuleBase_t* pNext;
-
-    FusTracedErro_t* trace_data;
-} FusCommandTraceContext;
 #endif
