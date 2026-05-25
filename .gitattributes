@@ -1,4 +1,9 @@
-*.h linguist-language=C
 
-Documentation/* linguist-documentation
+* linguist-language=C
+
+*.md linguist-documentation
+*.png binary
 *.drawio linguist-vendored
+*.dot linguist-documentation
+Makefile linguist-language=Makefile
+.gitignore linguist-language=Ignore-List
