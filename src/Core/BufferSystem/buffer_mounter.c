@@ -1,15 +1,19 @@
 #include <Fusion/FusionTypes.h>
 
+// HELPER
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 
 FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 {
-    if (buffer_size == 0) return NULL;
+    if (unlikely(buffer_size == 0)) return NULL;
 
     FusBufferContext_t* ctx = malloc(sizeof(FusBufferContext_t));
-    if (!ctx) return NULL;
+    if (unlikely(!ctx)) return NULL;
+
     unsigned char* buffer = mmap(
         NULL,
         buffer_size,
@@ -19,7 +23,7 @@ FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
         0
     );
 
-    if (buffer == MAP_FAILED) {
+    if (unlikely(buffer == MAP_FAILED)) {
         free(ctx);
         return NULL;
     }
@@ -32,11 +36,12 @@ FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 }
 void FUS_ExecutableBuffer(FusBufferContext_t* buffer)
 {
+    if (unlikely(!buffer)) return;
     mprotect(buffer->buffer,buffer->buffer_size,PROT_READ | PROT_EXEC);
 }
 void FUS_DestroyBufferCode(FusBufferContext_t* buffer)
 {
-    if (!buffer) return;
+    if (unlikely(!buffer)) return;
 
     munmap(buffer->buffer,buffer->buffer_size);
     free(buffer);
