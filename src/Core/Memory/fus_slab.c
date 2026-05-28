@@ -1,10 +1,10 @@
-// HELPERS
-#include "Fusion/FusionTypes.h"
-#include "Internal/Helpers/Fus_Helper_Codebase.h"
-#include <Internal/Helpers/Fus_Helper_Allocation.h>
-
 #include <Internal/Memory/Fus_Slab.h>
 
+// HELPERS
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
+#include <Internal/Helpers/Fus_Helper_Allocation.h>
+
+// TYPES
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -223,16 +223,24 @@ void FUSI_FreeSlab(FusSlab_t* ctx, void* ptr)
     }
 }
 
-void FUSI_DestroySlab(FusSlab_t* ctx)
+void FUSI_SlabTrace(FusSlab_t* ctx)
 {
     if (unlikely(!ctx)) return;
 
-    printf("\n\nDestroy Slab Called!\n");
+    printf("\n\nTrace Slab Called!\n");
     for (size_t i = 0; i < ctx->pools_num; i++) {
         printf(
             "Pool[%ld]: Pool Slot Size: %d, Slots Total: %d, Slots Used End: %d, Slots Used All Life: %d\n"
             ,i,ctx->pools[i]->slot_size,ctx->pools[i]->slot_count,ctx->pools[i]->used_count,ctx->pools[i]->used_slots
         );
+    }
+}
+
+void FUSI_DestroySlab(FusSlab_t* ctx)
+{
+    if (unlikely(!ctx)) return;
+
+    for (size_t i = 0; i < ctx->pools_num; i++) {
         FUSI_DestroyPool(ctx->pools[i]);
     }
 

@@ -15,6 +15,7 @@ FusSlab_t* FUSI_CreateSlab(
 );
 void* FUSI_AllocSlab(FusSlab_t* ctx, size_t size);
 void FUSI_FreeSlab(FusSlab_t* ctx, void* ptr);
+void FUSI_SlabTrace(FusSlab_t* ctx);
 void FUSI_DestroySlab(FusSlab_t* ctx);
 
 #endif

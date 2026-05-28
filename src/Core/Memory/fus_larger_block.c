@@ -1,3 +1,8 @@
+/**
+ * @file fus_larger_block.c
+ * @brief Implementação do Larger Block System.
+ */
+
 #include <Internal/Fus_Instance.h>
 #include <Internal/Memory/Fus_LargerBlocks.h>
 
