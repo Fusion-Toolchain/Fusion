@@ -1,5 +1,8 @@
 #include <Internal/Linker/Fus_Linker.h>
 
+// HELPER
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -13,17 +16,18 @@ static inline uint32_t HashSectionTableGenHash(const char* str)
     uint32_t hash = 5381;
     int c;
 
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c;
-
+    while ((c = *str++))hash = ((hash << 5) + hash) + c;
     return hash;
 }
 
-static void HashTableResize(FdbHashTable_t* ht)
+static bool HashTableResize(FdbHashTable_t* ht)
 {
+    if (unlikely(!ht)) return false;
+
     size_t new_cap = ht->capacity * 2;
     FdbHashEntry_t* new_entries = calloc(new_cap, sizeof(FdbHashEntry_t));
-
+    if (unlikely(!new_entries)) return false;
+    
     for (size_t j = 0; j < ht->capacity; j++) {
         if (!ht->entries[j].used) continue;
 
@@ -35,27 +39,31 @@ static void HashTableResize(FdbHashTable_t* ht)
         }
         new_entries[i] = e;
     }
+
     free(ht->entries);
     ht->entries = new_entries;
     ht->capacity = new_cap;
+
+    return true;
 }
 
 FdbHashTable_t* FDBI_HashTableCreate(size_t capacity)
 {
-    if (capacity == 0) return NULL;
+    if (unlikely(capacity == 0)) return NULL;
 
     FdbHashTable_t* ht = malloc(sizeof(FdbHashTable_t));
-    if (!ht) return NULL;
+    if (unlikely(!ht)) return NULL;
+
     ht->capacity = capacity;
     ht->entries_count = 0;
     ht->arena = FUSI_CreateArena(1*1024*1024);
-    if (!ht->arena) {
+    if (unlikely(!ht->arena)) {
         free(ht);
         return NULL;
     }
 
     ht->entries = calloc(capacity,sizeof(FdbHashEntry_t));
-    if (!ht->entries) {
+    if (unlikely(!ht->entries)) {
         FUSI_DestroyArena(ht->arena);
         free(ht);
         return NULL;
@@ -63,13 +71,11 @@ FdbHashTable_t* FDBI_HashTableCreate(size_t capacity)
     return ht;
 }
 
-void FDBI_HashTableInsert(FdbHashTable_t* ht, const char* key, size_t idx)
+FusStatusFlag_t FDBI_HashTableInsert(FdbHashTable_t* ht, const char* key, size_t idx)
 {
-    if (ht->entries_count >= ht->capacity * HT_LOAD_FACTOR) {
-        HashTableResize(ht);
-    }
-
+    if (unlikely(!ht || !key)) goto err;
     uint32_t hash = HashSectionTableGenHash(key);
+
     size_t i = hash % ht->capacity;
     size_t start = i;
 
@@ -77,18 +83,24 @@ void FDBI_HashTableInsert(FdbHashTable_t* ht, const char* key, size_t idx)
         if (ht->entries[i].hash == hash &&
             strcmp(ht->entries[i].key, key) == 0)
         {
-            ht->entries[i].idx = idx;
-            return;
+            return FUSION_OK;
         }
 
         i = (i + 1) % ht->capacity;
-        if (i == start) {
-            return;
+        if (unlikely(i == start)) goto err;
+    }
+
+    if (ht->entries_count >= ht->capacity * HT_LOAD_FACTOR) {
+        if (unlikely(!HashTableResize(ht))) goto err;
+
+        i = hash % ht->capacity;
+        while (ht->entries[i].used) {
+            i = (i + 1) % ht->capacity;
         }
     }
 
     const char* k = FUSI_ArenaPushString(ht->arena, key);
-    if (!k) return;
+    if (unlikely(!k)) goto err;
 
     ht->entries[i].key = k;
     ht->entries[i].idx = idx;
@@ -96,11 +108,16 @@ void FDBI_HashTableInsert(FdbHashTable_t* ht, const char* key, size_t idx)
     ht->entries[i].used = true;
 
     ht->entries_count++;
+    return FUSION_OK;
+
+err:
+    return FUSION_ERRO;
 }
+
 bool FDBI_HashTableGet(FdbHashTable_t* hash_table, const char* key, size_t* idx)
 {
-    if (!hash_table || !key || !idx) return false;
-    if (hash_table->capacity == 0) return false;
+    if (unlikely(!hash_table || !key || !idx)) return false;
+    if (unlikely(hash_table->capacity == 0)) return false;
 
     uint32_t hash = HashSectionTableGenHash(key);
     size_t idx_table = hash % hash_table->capacity;
@@ -115,14 +132,15 @@ bool FDBI_HashTableGet(FdbHashTable_t* hash_table, const char* key, size_t* idx)
 
         if (idx_table == start) return false;
     }
+
     return false;
 }
 
 void FDBI_HashTableDestroy(FdbHashTable_t* ht)
 {
-    if (!ht) return;
+    if (unlikely(!ht)) return;
 
-    if (ht->entries) free(ht->entries);
+    if (likely(ht->entries)) free(ht->entries);
     FUSI_DestroyArena(ht->arena);
     free(ht);
 }

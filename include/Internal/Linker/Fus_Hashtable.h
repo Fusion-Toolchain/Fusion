@@ -1,5 +1,6 @@
 #ifndef FUSION_INTERNAL_FDB_HASHTABLE_H
 #define FUSION_INTERNAL_FDB_HASHTABLE_H
+#include "Fusion/FusionTypes.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -20,7 +21,7 @@ typedef struct {
 } FdbHashTable_t;
 
 FdbHashTable_t* FDBI_HashTableCreate(size_t capacity);
-void FDBI_HashTableInsert(FdbHashTable_t* hash_table, const char* key, size_t idx);
+FusStatusFlag_t FDBI_HashTableInsert(FdbHashTable_t* hash_table, const char* key, size_t idx);
 bool FDBI_HashTableGet(FdbHashTable_t* hash_table, const char* key, size_t* idx);
 void FDBI_HashTableDestroy(FdbHashTable_t* ht);
 #endif

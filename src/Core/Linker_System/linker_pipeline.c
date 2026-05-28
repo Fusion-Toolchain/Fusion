@@ -2,6 +2,9 @@
 #include <Internal/Linker/Fus_Hashtable.h>
 #include <Internal/Fus_Backend.h>
 
+// HELPER
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
+
 #include <Fusion/FusionRule.h>
 
 #include <stddef.h>
@@ -9,12 +12,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-static inline bool _LinkerGetCommandsRequire(
+static inline bool LinkerGetCommandsRequire(
     FusCommandRuleBase_t*  compiler_rule,
     FusModuleBackend_t** backend
 )
 {
-   if (!compiler_rule) return false;
+   if (unlikely(!compiler_rule)) return false;
 
    FusCommandRuleBase_t* node = compiler_rule;
    while (node) {
@@ -32,7 +35,7 @@ static inline bool _LinkerGetCommandsRequire(
 
 static inline void LinkerBackendRealloc(FusModuleBackend_t* backend, FusBackendRelocContext_t* context_realoc ,FusBackendRealocOpaqueType_t type)
 {
-    if (!backend) return;
+    if (unlikely(!backend)) return;
 
     struct FusModuleBackend_T* backend_real = *backend;
     backend_real->interface->FUSI_BackendLinkerRealloc(type,context_realoc);
@@ -46,7 +49,7 @@ static inline bool LinkerCodeResolver(FusLinkerContext_t* linker,FusModuleBacken
         FusBackendReallocNeed_t* realoc_backend = &block->realoc[i];
 
         FusLinkerContextSymbol_t* symbol = FUS_GetSymbolLinker(linker,realoc_backend->name);
-        if (!symbol) {
+        if (unlikely(!symbol)) { // NOT FOUND SYMBOL
             return false;
         }
 
@@ -59,6 +62,7 @@ static inline bool LinkerCodeResolver(FusLinkerContext_t* linker,FusModuleBacken
         LinkerBackendRealloc(backend,&context,realoc_backend->type);
     }
 
+    // DEBUG, REMOVE PLS
     for (size_t i = 0; i < block->buffer->offset; i++) {
         printf(" %02X",block->buffer->buffer[i]);
     }
@@ -68,16 +72,18 @@ static inline bool LinkerCodeResolver(FusLinkerContext_t* linker,FusModuleBacken
 }
 FusStatusFlag_t FUS_LinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext_t* linker_ctx, FusBackendReturn_t* backend_data)
 {
-    if (!compiler_rule || !backend_data || !linker_ctx) return FUSION_ERRO;
-
+    if (unlikely(!compiler_rule || !backend_data || !linker_ctx)) return FUSION_ERRO;
     FusModuleBackend_t* backend = NULL;
-    if (!_LinkerGetCommandsRequire(compiler_rule,&backend)) {
-        return FUSION_ERRO;
-    }
-    if (!backend) return FUSION_ERRO;
 
-    if(!LinkerCodeResolver(linker_ctx,backend,backend_data)) {
+    if (unlikely(!LinkerGetCommandsRequire(compiler_rule,&backend))) { // REQUIRE CHAIN ARGUMENTS!
         return FUSION_ERRO;
     }
+
+    if (unlikely(!backend)) return FUSION_ERRO;
+
+    if(unlikely(!LinkerCodeResolver(linker_ctx,backend,backend_data))) { // PROCESS!
+        return FUSION_ERRO;
+    }
+
     return FUSION_OK;
 }
