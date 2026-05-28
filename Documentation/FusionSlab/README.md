@@ -50,5 +50,5 @@ void ToMyExempleConsumer()
 
 ## - Review Files
 
-- **Core/Memory/fus_slab.c**, , Version: a0.0.01
+- **Core/Memory/fus_slab.c**, Version: a0.0.01
 - **Internal/Memory/Fus_Slab.h**, Version: a0.0.01
