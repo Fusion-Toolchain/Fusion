@@ -35,5 +35,5 @@ void ToMyExempleConsumer()
 
 ## - Review Files
 
-- **Core/Memmory/fus_larger_block.c**, Version: a0.0.01
-- **Internal/Memory/Fus_LargerBlock.h**, Version: a0.0.01
+- **Core/Memory/fus_larger_block.c**, Version: a0.0.01
+- **Internal/Memory/Fus_LargerBlocks.h**, Version: a0.0.01
