@@ -1,0 +1,21 @@
+PROJECT_NAME           = "Fusion"
+PROJECT_NUMBER         = "a0.0.01"
+
+# Onde estão os seus códigos fonte (.c e .h)
+INPUT                  = src/Core/ src/Backend/ include/
+
+# Incluir subpastas recursivamente
+RECURSIVE              = YES
+
+# Otimizar a saída para a linguagem C
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+# Onde a documentação gerada vai ser salva
+OUTPUT_DIRECTORY       = doc_code/
+
+# Desative o LaTeX se você quiser apenas o HTML (gera mais rápido)
+GENERATE_LATEX         = NO
+GENERATE_HTML          = YES
+
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
