@@ -3,10 +3,12 @@ SRC_DIR := src
 BUILD_DIR := .build
 
 CC := gcc
-AR := ar
-CFLAGS := -DFUSION_DEBUG -g -I$(INCLUDE_DIR) -O2 -MMD -MP
-LDFLAGS := -Wl,-T,$(SRC_DIR)/linker.ld
+CFLAGS := -DFUSION_DEBUG -g -I$(INCLUDE_DIR) -O3 -MMD -MP -fPIC
+CFLAGS += -Wextra -Wall
 
+SO_LDFLAGS := -shared -Wl,-T,$(SRC_DIR)/linker.ld
+
+FUSION_SO := libfusion.so
 OUT_FILE := main
 
 # ========================
@@ -17,6 +19,7 @@ CORE_SRC := \
   $(SRC_DIR)/Core/Compiler/compiler_pipeline.c \
   $(SRC_DIR)/Core/BufferSystem/buffer_mounter.c \
   $(SRC_DIR)/Core/Backend_System/backend_loader.c \
+  $(SRC_DIR)/Core/Backend_System/backend_inject.c \
   $(SRC_DIR)/Core/IO_Sytem/io_interface.c \
   $(SRC_DIR)/Core/IO_Sytem/io_file.c \
   $(SRC_DIR)/Core/Fdb_System/fdb_filemount.c \
@@ -29,7 +32,6 @@ CORE_SRC := \
   $(SRC_DIR)/Core/Memory/fus_larger_block.c
 
 CORE_OBJ := $(CORE_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-CORE_LIB := $(BUILD_DIR)/libcore.a
 
 # ========================
 # BACKEND
@@ -45,7 +47,8 @@ BACKEND_SRC := \
   $(SRC_DIR)/Backend/X86/InstructionSets/x86_lea.c
 
 BACKEND_OBJ := $(BACKEND_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-BACKEND_LIB := $(BUILD_DIR)/libbackend.a
+
+ALL_SO_OBJS := $(CORE_OBJ) $(BACKEND_OBJ)
 
 # ========================
 # MAIN
@@ -59,21 +62,13 @@ TEST_SRC := \
 # ========================
 # BUILD FINAL
 # ========================
-all: $(OUT_FILE)
+all: $(FUSION_SO) $(OUT_FILE)
 
-$(OUT_FILE): $(MAIN_OBJ) $(BACKEND_LIB) $(CORE_LIB)
-	$(CC) $(LDFLAGS) $(MAIN_OBJ) \
-	-Wl,--whole-archive $(BACKEND_LIB) $(CORE_LIB) -Wl,--no-whole-archive \
-	-o $@
+$(OUT_FILE): $(MAIN_OBJ) $(FUSION_SO)
+	$(CC) $(MAIN_OBJ) -L. -lfusion -Wl,-rpath,'$$ORIGIN' -o $@
 
-# ========================
-# LIBS
-# ========================
-$(CORE_LIB): $(CORE_OBJ)
-	$(AR) rcs $@ $^
-
-$(BACKEND_LIB): $(BACKEND_OBJ)
-	$(AR) rcs $@ $^
+$(FUSION_SO): $(ALL_SO_OBJS)
+	$(CC) $(SO_LDFLAGS) -o $@ $(ALL_SO_OBJS)
 
 # ========================
 # COMPILAÇÃO
@@ -86,10 +81,10 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 # CLEAN
 # ========================
 clean:
-	rm -rf $(BUILD_DIR) $(OUT_FILE)
+	rm -rf $(BUILD_DIR) $(OUT_FILE) $(FUSION_SO)
 
 # ========================
 # DEPENDÊNCIAS
 # ========================
-DEP := $(CORE_OBJ:.o=.d) $(BACKEND_OBJ:.o=.d) $(MAIN_OBJ:.o=.d)
+DEP := $(ALL_SO_OBJS:.o=.d) $(MAIN_OBJ:.o=.d)
 -include $(DEP)
