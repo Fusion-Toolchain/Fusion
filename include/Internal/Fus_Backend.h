@@ -9,12 +9,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct FusBackendApi {
-    void* (*FusAlloc)(struct FusBackendApi*,size_t);
-    void  (*FusFree)(struct FusBackendApi*, void*);
-
-    FusInstance* Instance;
-} FusBackendApi_t;
 
 typedef struct {
     FusBufferContext_t* buffer;          // buffer de bytes pra patchear
@@ -44,6 +38,19 @@ typedef struct {
     void (*free)(const void* data);
 } FusBackendTrasferLifeTime_t;
 
+typedef struct FusBackendApi {
+    void* (*FusAlloc)(struct FusBackendApi*,size_t);
+    void  (*FusFree)(struct FusBackendApi*, void*);
+    FusBackendTrasferLifeTime_t* (*FusCreateTrasfer)(
+        struct FusBackendApi*, void* data,void (*free)(const void* data)
+    );
+    void (*FusDestroyTrasfer)(
+        struct FusBackendApi*, FusBackendTrasferLifeTime_t*
+    );
+
+    FusInstance* Instance;
+} FusBackendApi_t;
+
 typedef struct {
     FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
     FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidrArry)(const FusHidrNode_t*,size_t);
@@ -61,6 +68,4 @@ struct FusModuleBackend_T {
     FusBackendApi_t* api; // ONCE FOR MODULE
 };
 
-void* FUSI_BackendHookMalloc(FusBackendApi_t* api, size_t size); // DENTRO DE API
-void FUSI_BackendHookFree(FusBackendApi_t* api, void* ptr); // DENTRO DE API
 #endif

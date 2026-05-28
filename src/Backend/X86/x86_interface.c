@@ -124,6 +124,14 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,
 
 #define X86_DEFAULT_ARENA_BLOCK (1*1024)
 #define X86_MAX_INSTR_BYTES 15
+#define X86_MIN_INSTR_BYTES 6
+
+static inline size_t X86DraticCase(FusHidrNode_t* node)
+{
+    if (node->op_size == HIDR_OP_SIZE_64) return X86_MAX_INSTR_BYTES;
+    return X86_MIN_INSTR_BYTES;
+}
+
 static inline FusBackendGenereteDataBlock_t* X86_MountBlockReturned(size_t needs, size_t instr_count)
 {
     FusMemoryArena_t* arena = FUSI_CreateArena(X86_DEFAULT_ARENA_BLOCK);
@@ -141,7 +149,8 @@ static inline FusBackendGenereteDataBlock_t* X86_MountBlockReturned(size_t needs
         FUSI_DestroyArena(arena);
         return NULL;
     }
-    size_t size_buffer = X86_MAX_INSTR_BYTES*instr_count;
+
+    size_t size_buffer = X86_MAX_INSTR_BYTES * instr_count;
     FusBufferContext_t* buffer = FUS_CreateBufferCode(size_buffer);
     if (!buffer) {
         FUS->FusFree(FUS,block);
@@ -175,13 +184,11 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(const FusHidrNode_t* mi
 
     FusBackendGenereteDataBlock_t* block = X86_MountBlockReturned(23,1);
     if (!block) return NULL;
-    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusAlloc(FUS,sizeof(FusBackendTrasferLifeTime_t));
+    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusCreateTrasfer(FUS,block,FreeBlock);
     if (!block_trasfer) {
         FreeBlock(block);
         return NULL;
     }
-    block_trasfer->data = block;
-    block_trasfer->free = FreeBlock;
 
     FusStatusFlag_t flag = X86_ProcessOnceHidr(block,block->buffer, mir_node);
     if (flag != FUSION_OK) {
@@ -197,13 +204,11 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(const FusHidrNode_t
 
     FusBackendGenereteDataBlock_t* block = X86_MountBlockReturned(23,count);
     if (!block) return NULL;
-    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusAlloc(FUS,sizeof(FusBackendTrasferLifeTime_t));
+    FusBackendTrasferLifeTime_t* block_trasfer = FUS->FusCreateTrasfer(FUS,block,FreeBlock);
     if (!block_trasfer) {
         FreeBlock(block);
         return NULL;
     }
-    block_trasfer->data = block;
-    block_trasfer->free = FreeBlock;
 
     for (size_t i = 0; i < count; i++) {
         FusStatusFlag_t flag = X86_ProcessOnceHidr(block,block->buffer,&hidr[i]);

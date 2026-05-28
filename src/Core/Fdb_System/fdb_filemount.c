@@ -43,7 +43,7 @@ static FusStatusFlag_t FDBFile_MountHeader(FDBWriter_t* buffer)
 static inline FusStatusFlag_t WriteAll(int fd,FDBWriter_t* buffer)
 {
     ssize_t total = 0;
-    while (total < buffer->offset) {
+    while ((size_t)total < buffer->offset) {
         ssize_t w = write(fd, buffer->buffer + total, buffer->offset - total);
         if (w <= 0) return FUSION_ERRO;
         total += w;

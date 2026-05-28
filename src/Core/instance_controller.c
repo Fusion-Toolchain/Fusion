@@ -1,17 +1,21 @@
-// HELPERS
-#include <Internal/Helpers/Fus_Helper_Instance.h>
-#include <Internal/Helpers/Fus_Helper_Allocation.h>
-
 #include <Internal/Memory/Fus_Slab.h>
 #include <Internal/Memory/Fus_LargerBlocks.h>
 #include <Internal/Fus_Instance.h>
 
+// HELPERS
+#include <Internal/Helpers/Fus_Helper_Instance.h>
+#include <Internal/Helpers/Fus_Helper_Allocation.h>
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
+
+// TYPES
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static void* _Default_Malloc(void* data, size_t size)
 {
+    FUS_UNUSED(data);
+
     if (size == 0) return NULL;
 
     void* ptr = malloc(size);
@@ -23,6 +27,8 @@ static void* _Default_Malloc(void* data, size_t size)
 }
 static void _Default_Free(void* data, void* ptr)
 {
+    FUS_UNUSED(data);
+
     if (!ptr) return;
 
     #ifdef FUSION_DEBUG

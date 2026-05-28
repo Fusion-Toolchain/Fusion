@@ -9,7 +9,9 @@
 // TODO: Função requer stack-protect para ABI, implementa sub e add(Existe, ainda implicito) para RSP, pois libc usa SSE!
 static void Hello(int valor_jit)
 {
-   puts("Jit chamou isso, ainda fragil!");
+    (void)valor_jit;
+
+    puts("Jit chamou isso, ainda fragil!");
 }
 
 static const FusHidrNode_t hidr_mov_func = {

@@ -22,7 +22,7 @@ static inline ModuleStaticEntry_t* FUS_GetStaticBackend(const char* name)
     extern ModuleStaticEntry_t __start_static_modules_backend[];
     extern ModuleStaticEntry_t __stop_static_modules_backend[];
 
-    if (__start_static_modules_backend >= __stop_static_modules_backend)
+    if (&__start_static_modules_backend[0] >= &__stop_static_modules_backend[0])
         return NULL;
 
     for (ModuleStaticEntry_t* e = __start_static_modules_backend;
