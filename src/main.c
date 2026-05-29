@@ -137,7 +137,7 @@ int main()
 
     FUS_ExecutableBuffer(buffer_gen);
     void(*run)(void) = (void(*)(void))buffer_gen->buffer;
-    run();
+    run(); // RUN
 
 err:
 
@@ -148,7 +148,7 @@ err:
 
     long long nanoseconds = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
     double microseconds = (double)nanoseconds / 1000.0;
-    printf("\n Tempo de Execução do JIT: %lld ns (%.3f us)\n", nanoseconds, microseconds);
+    printf("\n Execute Time: %lld ns (%.3f us)\n", nanoseconds, microseconds);
 
     return 0;
 }
