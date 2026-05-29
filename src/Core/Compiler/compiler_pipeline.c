@@ -1,3 +1,5 @@
+#include "Fusion/Backend/FusionBackend.h"
+#include "Fusion/FusionTypes.h"
 #include <Fusion/Fusion.h>
 
 #include <Internal/Fus_Backend.h>
@@ -85,6 +87,15 @@ FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase
         FUSIH_INSTANCE_FREE(instance,ctx);
     }
     return NULL; // RETURN ERROR
+}
+
+FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn_t* ctx_backend)
+{
+    if (unlikely(!ctx_backend)) return NULL;
+
+    FusBackendGenereteDataBlock_t* data_block = (FusBackendGenereteDataBlock_t*)ctx_backend->transfer_data->data;
+
+    return data_block->buffer;
 }
 
 void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn_t* ctx_backend)

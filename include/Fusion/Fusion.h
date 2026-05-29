@@ -29,6 +29,7 @@ void FUS_DestroyBufferCode(FusBufferContext_t* buffer);
  * @return FusStatusFlag_t Build Flag
 */
 FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule);
+FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn_t* ctx_backend);
 void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn_t* ctx_backend);
 /*
  * @brief Status By String

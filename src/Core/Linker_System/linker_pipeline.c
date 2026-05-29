@@ -7,6 +7,7 @@
 
 #include <Fusion/FusionRule.h>
 
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -62,11 +63,13 @@ static inline bool LinkerCodeResolver(FusLinkerContext_t* linker,FusModuleBacken
         LinkerBackendRealloc(backend,&context,realoc_backend->type);
     }
 
-    // DEBUG, REMOVE PLS
-    for (size_t i = 0; i < block->buffer->offset; i++) {
-        printf(" %02X",block->buffer->buffer[i]);
+    // DEBUG BUFFER
+    #ifdef FUSION_DEBUG
+    for (size_t i = 0; i < block->buffer->buffer_size; i++) {
+        printf(" %X", block->buffer->buffer[i]);
     }
     printf("\n");
+    #endif
 
     return true;
 }

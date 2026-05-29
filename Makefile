@@ -3,8 +3,12 @@ SRC_DIR := src
 BUILD_DIR := .build
 
 CC := gcc
-CFLAGS := -DFUSION_DEBUG -g -I$(INCLUDE_DIR) -O3 -MMD -MP -fPIC
+CFLAGS := -g -I$(INCLUDE_DIR) -O3 -MMD -MP -fPIC
 CFLAGS += -Wextra -Wall
+
+ifeq ($(DEBUG),Y)
+  CFLAGS += -DFUSION_DEBUG
+endif
 
 SO_LDFLAGS := -shared -Wl,-T,$(SRC_DIR)/linker.ld
 

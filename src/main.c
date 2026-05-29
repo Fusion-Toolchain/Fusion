@@ -2,9 +2,12 @@
  *  !!! TEST FILE!!!
 */
 
+#include "Fusion/FusionTypes.h"
 #include <Fusion/Fusion.h>
 
+#include <bits/time.h>
 #include <stdio.h>
+#include <time.h>
 
 // TODO: Função requer stack-protect para ABI, implementa sub e add(Existe, ainda implicito) para RSP, pois libc usa SSE!
 static void Hello(int valor_jit)
@@ -14,62 +17,64 @@ static void Hello(int valor_jit)
     puts("Jit chamou isso, ainda fragil!");
 }
 
-static const FusHidrNode_t hidr_mov_func = {
-    .opcode = HIDR_INSTR_MOV,
-    .op_size = HIDR_OP_SIZE_64,
-    .mode = HIDR_MODE64,
-    .src = {
-        .type = HIDR_OPERAND_TYPE_SYM,
-        .data.sym.name = "Hello" // RESOLVER EM REALOCAÇÂO! LINKER
-    },
-    .dst = {
-        .type = HIDR_OPERAND_TYPE_REG,
-        .data.reg = 1
-    }
-};
-static const FusHidrNode_t hidr_call = {
-    .opcode = HIDR_INSTR_CALL,
-    .op_size = HIDR_OP_SIZE_64,
-    .mode = HIDR_MODE64,
-    .src = {
-        .type = HIDR_OPERAND_TYPE_REG,
-        .data.reg = 1
-    },
-};
-static const FusHidrNode_t mir_exemple2 = {
-    .opcode = HIDR_INSTR_RET,
-};
-static const FusHidrNode_t hidr_addr = {
-    .opcode = HIDR_INSTR_ADDR,
-    .op_size = HIDR_OP_SIZE_64,
-    .mode = HIDR_MODE64,
-    .src = {
-        .type = HIDR_OPERAND_TYPE_MEM_REF,
-        .data.memory_ref = {
-            .base = 1,
-            .offset = 5
-        }
-    },
-    .dst = {
-        .type = HIDR_OPERAND_TYPE_REG,
-        .data.reg = 1
-    }
-};
+// 1. Bloco Abstrato para MOV (Símbolo para Registrador)
+FusHidrNode_t NewMovSym(const char* sym_name, int dst_reg) {
+    return (FusHidrNode_t){
+        .opcode = HIDR_INSTR_MOV,
+        .op_size = HIDR_OP_SIZE_64,
+        .mode = HIDR_MODE64,
+        .src = { .type = HIDR_OPERAND_TYPE_SYM, .data.sym.name = sym_name },
+        .dst = { .type = HIDR_OPERAND_TYPE_REG, .data.reg = dst_reg }
+    };
+}
 
-static FusHidrNode_t hidr_arry[] = {
-    [0]=hidr_mov_func,
-    [1]=hidr_call,
-    [2]=mir_exemple2,
-    [3]=hidr_addr
-};
+// 2. Bloco Abstrato para CALL (Via Registrador)
+FusHidrNode_t NewCallReg(int src_reg) {
+    return (FusHidrNode_t){
+        .opcode = HIDR_INSTR_CALL,
+        .op_size = HIDR_OP_SIZE_64,
+        .mode = HIDR_MODE64,
+        .src = { .type = HIDR_OPERAND_TYPE_REG, .data.reg = src_reg }
+    };
+}
+
+// 3. Bloco Abstrato para RET
+FusHidrNode_t NewRet(void) {
+    return (FusHidrNode_t){
+        .opcode = HIDR_INSTR_RET
+    };
+}
+
+// 4. Bloco Abstrato para ADDR (Referência de Memória para Registrador)
+FusHidrNode_t NewAddrMem(int base_reg, int offset, int dst_reg) {
+    return (FusHidrNode_t){
+        .opcode = HIDR_INSTR_ADDR,
+        .op_size = HIDR_OP_SIZE_64,
+        .mode = HIDR_MODE64,
+        .src = {
+            .type = HIDR_OPERAND_TYPE_MEM_REF,
+            .data.memory_ref = { .base = base_reg, .offset = offset }
+        },
+        .dst = { .type = HIDR_OPERAND_TYPE_REG, .data.reg = dst_reg }
+    };
+}
 
 int main()
 {
+    FusHidrNode_t hidr_arry[] = {
+        [0] = NewMovSym("Hello", 1),  // Move o símbolo "Hello" para o Reg 1
+        [1] = NewCallReg(1),          // Chama a função apontada pelo Reg 1
+        [2] = NewRet(),               // Retorna
+    };
+
     FusInstance fus_instance;
     if (FUS_CreateInstance(&fus_instance,NULL) != FUSION_OK) {
         printf("Init Fusion System Erro!\n");
         return 1;
     }
+
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     FusLinkerContext_t* linker = FUS_CreateLinkerContext(&fus_instance);
     if (!linker) {
@@ -78,7 +83,7 @@ int main()
         return 1;
     }
 
-    printf("Endereço do Hello: %p \n",&Hello);
+    //printf("Endereço do Hello: %p \n",&Hello);
     FUS_AddSymbolLinker(linker,"Hello",(uintptr_t)&Hello);
 
     FusModuleBackend_t x86;
@@ -121,12 +126,29 @@ int main()
         FUS_DestroyInstance(&fus_instance);
         return 1;
     }
-    printf("Pipeline Linker\n");
+
+    clock_gettime(CLOCK_MONOTONIC,&end);
+
+    FusBufferContext_t* buffer_gen = FUS_GetStreamBufferCompiler(backend_data);
+    if (!buffer_gen) {
+        printf("Nenhum buffer attatch!\n");
+        goto err;
+    }
+
+    FUS_ExecutableBuffer(buffer_gen);
+    void(*run)(void) = (void(*)(void))buffer_gen->buffer;
+    run();
+
+err:
 
     FUS_DestroyCompiler(fus_instance,backend_data);
     FUS_DestroyBackend(x86);
     FUS_DestroyLinkerContext(fus_instance,linker);
     FUS_DestroyInstance(&fus_instance);
+
+    long long nanoseconds = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
+    double microseconds = (double)nanoseconds / 1000.0;
+    printf("\n Tempo de Execução do JIT: %lld ns (%.3f us)\n", nanoseconds, microseconds);
 
     return 0;
 }
