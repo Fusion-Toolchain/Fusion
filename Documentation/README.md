@@ -2,11 +2,13 @@
 
 ![Logo](img/FusionLogo.png)
 
+## - UserInterface API
+
 ## - Internal API
 
-- [Fusion Handle System](FusionHandles/README.md)
-- [Fusion Slab Allocator](FusionSlab/README.md)
-- [Fusion Larger Block System](FusionLargerBlock/README.md)
+- [Fusion Handle System](InternalDocumentation/FusionHandles/README.md)
+- [Fusion Slab Allocator](InternalDocumentation/FusionSlab/README.md)
+- [Fusion Larger Block System](InternalDocumentation/FusionLargerBlock/README.md)
 
 ## - Sobre
 
