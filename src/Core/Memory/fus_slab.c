@@ -229,10 +229,10 @@ void FUSI_SlabTrace(FusSlab_t* ctx)
 
     printf("\n\nTrace Slab Called!\n");
     for (size_t i = 0; i < ctx->pools_num; i++) {
+        FusPool_t* current_pool = ctx->pools[i];
         printf(
             "Pool[%ld]: Pool Slot Size: %d, Slots Total: %d, Slots Used End: %d, Slots Used All Life: %d\n"
-            ,i,ctx->pools[i]->slot_size,ctx->pools[i]->slot_count,ctx->pools[i]->used_count,ctx->pools[i]->used_slots
-        );
+            ,i,current_pool->slot_size,current_pool->slot_count,current_pool->used_count,current_pool->used_slots);
     }
 }
 
@@ -240,9 +240,7 @@ void FUSI_DestroySlab(FusSlab_t* ctx)
 {
     if (unlikely(!ctx)) return;
 
-    for (size_t i = 0; i < ctx->pools_num; i++) {
-        FUSI_DestroyPool(ctx->pools[i]);
-    }
+    for (size_t i = 0; i < ctx->pools_num; i++) FUSI_DestroyPool(ctx->pools[i]);
 
     FUSIH_FREE(ctx->allocation,ctx->pools);
     FUSIH_FREE(ctx->allocation,ctx);

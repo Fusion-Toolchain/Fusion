@@ -3,6 +3,7 @@
  * @brief Implementação do Larger Block System.
  */
 
+#include "Fusion/FusionTypes.h"
 #include <Internal/Fus_Instance.h>
 #include <Internal/Memory/Fus_LargerBlocks.h>
 
@@ -89,6 +90,10 @@ void FUSI_FreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr)
 {
     if (unlikely(!ctx || !ptr)) return;
     struct FusLargerBlock_T* ctx_real = *ctx;
+
+    char* pool_start = (char*)ctx_real->blocks;
+    char* pool_end = pool_start + ctx_real->pool_size;
+    if (unlikely((char*)ptr < pool_start + sizeof(block_t) || (char*)ptr >= pool_end)) return;
 
     block_t* block = (block_t*)ptr - 1;
     block->free = 1;

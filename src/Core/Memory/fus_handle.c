@@ -55,6 +55,11 @@ void FUSI_CloseHandleSystem(FusTable_t* table)
     if (unlikely(!table)) return;
     struct FusTable_T* handle_table = *table;
 
+    for (size_t i = 0; i < FUSION_MAX_SLOTS; i++) {
+        FusSlot_t* slot = &handle_table->slots[i];
+        if (slot->destroy && slot->ptr) slot->destroy(slot->ptr); // ELIMINA TUDO!
+    }
+
     free(handle_table);
     *table = NULL;
 }
