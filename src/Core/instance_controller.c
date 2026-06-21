@@ -1,4 +1,6 @@
+#include <Internal/Memory/Fus_Handle.h>
 #include <Internal/Memory/Fus_Slab.h>
+#include <Internal/Fus_TraceTree.h>
 #include <Internal/Memory/Fus_LargerBlocks.h>
 #include <Internal/Fus_Instance.h>
 
@@ -8,6 +10,7 @@
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
 
 // TYPES
+#include <Fusion/FusionTypes.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,6 +40,21 @@ static void _Default_Free(void* data, void* ptr)
 
     free(ptr);
 }
+static void* _Default_Realloc(
+    void* userdata,
+    void* old_ptr,
+    size_t new_size
+)
+{
+    FUS_UNUSED(userdata);
+    if (!old_ptr) return NULL;
+
+    #ifdef FUSION_DEBUG
+    printf("Global Realloc: %p for size: %lu\n",old_ptr,new_size);
+    #endif
+
+    return realloc(old_ptr,new_size);
+}
 
 FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* allocation)
 {
@@ -48,6 +66,7 @@ FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* 
     static FusInstanceMyAllocation_t default_alloc = {
         .Alloc = _Default_Malloc,
         .Free  = _Default_Free,
+        .Realloc = _Default_Realloc,
         .userdata = NULL
     };
 
@@ -78,6 +97,15 @@ FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* 
         return FUSION_ERRO;
     }
 
+    if (unlikely(FUSI_CreateTraceContext(alloc,&ctx_real->trace) != FUSION_OK)) {
+        FUSIH_FREE(alloc,ctx_real);
+        FUSI_DestroySlab(slab);
+        FUSI_CloseLargerBlocks(alloc,&larger_blocks);
+        FUSI_CloseHandleSystem(&ctx_real->table);
+        
+        return FUSION_ERRO;
+    }
+
     ctx_real->allocation = alloc;
     ctx_real->slab = slab;
     ctx_real->larger_alloc = larger_blocks;
@@ -95,6 +123,7 @@ FusStatusFlag_t FUS_DestroyInstance(FusInstance* ctx)
     FUSI_SlabTrace(ctx_real->slab);
     #endif
 
+    FUSI_DestrotTraceContext(allocation,&ctx_real->trace);
     FUSI_CloseHandleSystem(&ctx_real->table);
     FUSI_DestroySlab(ctx_real->slab);
     FUSI_CloseLargerBlocks(allocation,&ctx_real->larger_alloc);
