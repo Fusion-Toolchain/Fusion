@@ -9,13 +9,15 @@
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
 
 // TYPES
+#include <Fusion/FusionTypes.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 
-#define FUSION_FILE_MAX_SECTIONS 200
+#define FUSION_FILE_INITIAL_SECTIONS 200
 
 /*
  * ------------------ CONFIGURES BASIC INITS --------------------
@@ -42,7 +44,10 @@ static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* alloca
     if (unlikely(!allocator)) return FUSION_ERRO;
     if (unlikely(!ctx)) return FUSION_ERRO;
 
-    FusLinkerContextSection_t* sections = FUSIH_ALLOC(allocator,sizeof(FusLinkerContextSection_t)*FUSION_FILE_MAX_SECTIONS);
+    FusLinkerContextSection_t* sections = FUSIH_ALLOC(
+        allocator,
+        sizeof(FusLinkerContextSection_t)*FUSION_FILE_INITIAL_SECTIONS
+    );
     if (unlikely(!sections)) return FUSION_ERRO;
 
     FdbHashTable_t* section_table = FDBI_HashTableCreate(256);
@@ -53,6 +58,7 @@ static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* alloca
     ctx->sections = sections;
     ctx->section_table = section_table;
     ctx->sections_count = 0;
+    ctx->sections_capacity = FUSION_FILE_INITIAL_SECTIONS;
 
     return FUSION_OK;
 }
@@ -65,14 +71,17 @@ static inline void DestroyConfigureSection(FusInstanceMyAllocation_t* allocator,
     if (likely(ctx->section_table)) FDBI_HashTableDestroy(ctx->section_table);
 }
 
-#define FUSION_LINKER_MAX_SYMBOLS 20
+#define FUSION_LINKER_INITIAL_SYMBOLS 20
 static inline FusStatusFlag_t ConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
 {
     if (unlikely(!allocator)) return FUSION_ERRO;
     if (unlikely(!ctx)) return FUSION_ERRO;
 
 
-    FusLinkerContextSymbol_t* symbols = FUSIH_ALLOC(allocator,sizeof(FusLinkerContextSymbol_t)*FUSION_LINKER_MAX_SYMBOLS);
+    FusLinkerContextSymbol_t* symbols = FUSIH_ALLOC(
+        allocator,
+        sizeof(FusLinkerContextSymbol_t)*FUSION_LINKER_INITIAL_SYMBOLS
+    );
     if (unlikely(!symbols)) return FUSION_ERRO;
 
     FdbHashTable_t* symbols_table = FDBI_HashTableCreate(256);
@@ -84,6 +93,7 @@ static inline FusStatusFlag_t ConfigureSymbols(FusInstanceMyAllocation_t* alloca
     ctx->symbols = symbols;
     ctx->symbols_table = symbols_table;
     ctx->symbols_count = 0;
+    ctx->symbols_capacity = FUSION_LINKER_INITIAL_SYMBOLS;
 
     return FUSION_OK;
 }
@@ -111,13 +121,11 @@ FusLinkerContext_t* FUS_CreateLinkerContext(FusInstance* instance)
         FUSI_FreeSlab(slab,ctx);
         return NULL;
     }
-
     if (unlikely(ConfigureSection(allocator,ctx) != FUSION_OK)) {
         DestroyConfigureFileBasic(ctx);
         FUSI_FreeSlab(slab,ctx);
         return NULL;
     }
-    
     if (unlikely(ConfigureSymbols(allocator,ctx) != FUSION_OK)) {
         DestroyConfigureFileBasic(ctx);
         DestroyConfigureSection(allocator,ctx);
@@ -127,15 +135,36 @@ FusLinkerContext_t* FUS_CreateLinkerContext(FusInstance* instance)
 
     ctx->realocs = NULL;
     ctx->realocs_count = 0;
+    ctx->inst_ref = instance;
 
     return ctx;
 }
 
+static inline bool SectionArryGrow(FusLinkerContext_t* ctx)
+{
+    if (unlikely(!ctx)) return false;
+    struct FusInstance_T* instance_real = *ctx->inst_ref;
+    FusInstanceMyAllocation_t* allocator = instance_real->allocation;
+
+    size_t new_cap = ctx->sections_capacity * 2;
+    FusLinkerContextSection_t* new_section = FUSIH_REALLOC(
+        allocator,
+        ctx->sections,
+        new_cap * sizeof(FusLinkerContextSection_t)
+    );
+    if (unlikely(!new_section)) return false;
+
+    ctx->sections = new_section;
+    ctx->sections_capacity = new_cap;
+
+    return true;
+}
 FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext_t* ctx,FusLinkerContextSectionDefine_t* define)
 {
     if (unlikely(!define)) return FUSION_ERRO;
     if (unlikely(!define->name || define->size == 0)) return FUSION_ERRO;
-    if (unlikely(ctx->sections_count >= FUSION_FILE_MAX_SECTIONS)) return FUSION_ERRO;
+    if (unlikely(ctx->sections_count >= ctx->sections_capacity)) 
+        if (unlikely(!SectionArryGrow(ctx))) return FUSION_ERRO;
 
     size_t idx = ctx->sections_count;
 
@@ -164,14 +193,34 @@ FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext_t* ctx, const c
     return &ctx->sections[idx];
 }
 
+static inline bool SymbolsArryGrow(FusLinkerContext_t* ctx)
+{
+    if (unlikely(!ctx)) return false;
+
+    struct FusInstance_T* instance_real = *ctx->inst_ref;
+    FusInstanceMyAllocation_t* allocator = instance_real->allocation;
+
+    size_t new_cap = ctx->symbols_capacity * 2;
+    FusLinkerContextSymbol_t* new_symbols = FUSIH_REALLOC(
+        allocator,
+        ctx->symbols,
+        sizeof(FusLinkerContextSymbol_t) * new_cap
+    );
+    if (unlikely(!new_symbols)) return false;
+
+    ctx->symbols = new_symbols;
+    ctx->symbols_capacity = new_cap;
+
+    return true;
+}
 FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext_t* ctx, const char* name,uintptr_t addr)
 {
     if (unlikely(!ctx || !name)) return FUSION_ERRO;
     if (unlikely(addr == 0)) return FUSION_ERRO;
-    if (unlikely(ctx->symbols_count >= FUSION_LINKER_MAX_SYMBOLS)) return FUSION_ERRO;
+    if (unlikely(ctx->symbols_count >= ctx->symbols_capacity))
+        if (unlikely(!SymbolsArryGrow(ctx))) return FUSION_ERRO;
 
     size_t idx = ctx->symbols_count;
-
     FusLinkerContextSymbol_t* symbol = &ctx->symbols[idx];
     symbol->name = FUSI_ArenaPushString(ctx->arena,name);
     if (unlikely(!symbol->name)) return FUSION_ERRO;

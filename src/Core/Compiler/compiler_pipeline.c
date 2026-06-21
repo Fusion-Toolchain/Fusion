@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 
 static inline bool _ArgumentProcessMountHidrBytes(
     FusCommandRuleBase_t*  compiler_rule,
@@ -50,7 +51,6 @@ FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase
 {
     if (unlikely(!instance)) return NULL;
     if (unlikely(!compiler_rule)) return NULL;
-    //FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC(instance);
 
     FusBackendReturn_t* ctx = FUSIH_INSTANCE_ALLOC(instance, sizeof(FusBackendReturn_t));
     if (unlikely(!ctx)) {
@@ -78,7 +78,6 @@ FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase
 
     ctx->transfer_data = backend_data;
     ctx->api = backend->api;
-
     return ctx; // RETURN SUCCESS
 
     error:
@@ -95,7 +94,13 @@ FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn_t* ctx_backend)
 
     FusBackendGenereteDataBlock_t* data_block = (FusBackendGenereteDataBlock_t*)ctx_backend->transfer_data->data;
 
-    return data_block->buffer;
+    FusBufferContext_t* exec = FUS_CreateBufferCode(data_block->slab_size);
+    if (unlikely(!exec)) return NULL;
+
+    memcpy(exec->buffer, data_block->buffer_slab,data_block->slab_size);
+    exec->offset = data_block->slab_offset; // PASS OFFSET
+
+    return exec;
 }
 
 void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn_t* ctx_backend)

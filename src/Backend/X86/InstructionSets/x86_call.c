@@ -8,8 +8,7 @@ bool X86_CaseMountCallReg(X86BackendContext* backend_ctx)
     const FusHidrNode_t* mir_node = backend_ctx->hidr;
     x86Instruction_t* mount_instr = backend_ctx->encoder; 
 
-    if (mir_node->src.type != HIDR_OPERAND_TYPE_REG)
-        return false;
+    if (mir_node->src.type != HIDR_OPERAND_TYPE_REG) return false;
 
     FusHidrVirtualReg_t src_reg = X86_MapVirtualReg(mir_node->src.data.reg);
 

@@ -84,20 +84,18 @@ bool X86_CaseMountMovMemImm(X86BackendContext* backend_ctx)
 
 bool X86_CaseMountMovSymReg(X86BackendContext* backend_ctx)
 {
-    const FusHidrNode_t* mir_node = backend_ctx->hidr;
-    x86Instruction_t* mount_instr = backend_ctx->encoder;
+    const FusHidrNode_t* mir_node   = backend_ctx->hidr;
+    x86Instruction_t*    mount_instr = backend_ctx->encoder;
+    const char*          symbol_name = mir_node->src.data.sym.name;
 
-    const char* symbol_name = mir_node->src.data.sym.name;
-
-    mount_instr->opcode.opcode[0] = 0xB8 + X86_MapVirtualReg(mir_node->dst.data.reg);
+    mount_instr->opcode.opcode[0]  = 0xB8 + X86_MapVirtualReg(mir_node->dst.data.reg);
     mount_instr->opcode.opcode_size = 1;
+    mount_instr->imm.value          = 0xFFFFFFFFFFFFFFFF;
+    mount_instr->imm.size           = 8;
+    mount_instr->has_imm            = true;
 
-    mount_instr->imm.value = 0xFFFFFFFFFFFFFFFF;
-    mount_instr->imm.size = 8;
-    mount_instr->has_imm = true;
+    size_t offset = backend_ctx->block->slab_offset + 2; // aponta pro IMM
+    X86RegistreRealloc(backend_ctx->block, symbol_name, X86_ABS64, offset);
 
-    FusBufferContext_t* buffer = backend_ctx->block->buffer;
-    size_t offset = buffer->offset + 2; // APONTA PARA IMM
-    X86RegistreRealloc(backend_ctx->block,symbol_name,X86_ABS64,offset);
     return true;
 }

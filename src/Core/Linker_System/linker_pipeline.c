@@ -7,7 +7,6 @@
 
 #include <Fusion/FusionRule.h>
 
-#include <inttypes.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -41,35 +40,31 @@ static inline void LinkerBackendRealloc(FusModuleBackend_t* backend, FusBackendR
     struct FusModuleBackend_T* backend_real = *backend;
     backend_real->interface->FUSI_BackendLinkerRealloc(type,context_realoc);
 }
-static inline bool LinkerCodeResolver(FusLinkerContext_t* linker,FusModuleBackend_t* backend, FusBackendReturn_t* backend_data)
+static inline bool LinkerCodeResolver(FusLinkerContext_t* linker, FusModuleBackend_t* backend, FusBackendReturn_t* backend_data)
 {
-    FusBackendTrasferLifeTime_t* data = backend_data->transfer_data;
-
+    FusBackendTrasferLifeTime_t*   data  = backend_data->transfer_data;
     FusBackendGenereteDataBlock_t* block = (FusBackendGenereteDataBlock_t*)data->data;
-    for (size_t i = 0; i < block->realoc_count; i++) {
-        FusBackendReallocNeed_t* realoc_backend = &block->realoc[i];
 
-        FusLinkerContextSymbol_t* symbol = FUS_GetSymbolLinker(linker,realoc_backend->name);
-        if (unlikely(!symbol)) { // NOT FOUND SYMBOL
-            return false;
-        }
+    for (size_t i = 0; i < block->realoc_count; i++) {
+        FusBackendReallocNeed_t*  realoc_backend = &block->realoc[i];
+        FusLinkerContextSymbol_t* symbol = FUS_GetSymbolLinker(linker, realoc_backend->name);
+        if (unlikely(!symbol)) return false;
 
         FusBackendRelocContext_t context = {
-            .buffer = block->buffer,
-            .offset = realoc_backend->offset,
-            .sym_addr = symbol->local.addr,
-            .patch_addr = (uintptr_t)(block->buffer->buffer + realoc_backend->offset) // RESOLVIDO APOS A MONTAGEM
+            .buffer     = block->buffer_slab,                               // uint8_t* direto
+            .offset     = realoc_backend->offset,
+            .sym_addr   = symbol->local.addr,
+            .patch_addr = (uintptr_t)(block->buffer_slab + realoc_backend->offset)
         };
-        LinkerBackendRealloc(backend,&context,realoc_backend->type);
+        LinkerBackendRealloc(backend, &context, realoc_backend->type);
     }
 
-    // DEBUG BUFFER
-    #ifdef FUSION_DEBUG
-    for (size_t i = 0; i < block->buffer->buffer_size; i++) {
-        printf(" %X", block->buffer->buffer[i]);
+#ifdef FUSION_DEBUG
+    for (size_t i = 0; i < block->slab_offset; i++) {   // slab_offset = bytes escritos
+        printf(" %X", block->buffer_slab[i]);
     }
     printf("\n");
-    #endif
+#endif
 
     return true;
 }
