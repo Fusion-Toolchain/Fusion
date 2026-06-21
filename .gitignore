@@ -8,3 +8,4 @@ compile_commands.json
 .fdb
 .bkp
 doc_code/
+_dont_*
