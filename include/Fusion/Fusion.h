@@ -6,6 +6,7 @@
 #include "Linker/FusionLinkerInterface.h"
 #include "FusionRule.h"
 #include "FusionTypes.h"
+#include "IRTypes/HidrHelper.h"
 
 #include <stddef.h>
 
@@ -18,6 +19,7 @@ FusStatusFlag_t FUS_DestroyInstance(FusInstance* ctx);
 */
 FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size);
 void FUS_ExecutableBuffer(FusBufferContext_t* buffer);
+void FUS_ReUsedBuffer(FusBufferContext_t* buffer);
 /*
  * @brief Destroy Buffer Access
 */

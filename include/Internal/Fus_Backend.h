@@ -11,7 +11,7 @@
 
 
 typedef struct {
-    FusBufferContext_t* buffer;          // buffer de bytes pra patchear
+    uint8_t* buffer;          // buffer de bytes pra patchear
     size_t    offset;                   // onde patchear
     uint64_t  sym_addr;                // endereço do símbolo
     uint64_t  patch_addr;             // endereço do próprio patch (pra REL32)
@@ -23,20 +23,13 @@ typedef struct {
     FusBackendRealocOpaqueType_t type;
     size_t offset;
 } FusBackendReallocNeed_t;
-typedef struct {
-    FusBufferContext_t* buffer;
 
-    FusMemoryArena_t* arena;
-    FusBackendReallocNeed_t* realoc;
-    size_t realoc_count;
-    size_t realoc_capacity;
-
-    FusStatusFlag_t flag;
-} FusBackendGenereteDataBlock_t;
 typedef struct {
     const void* data;
     void (*free)(const void* data);
 } FusBackendTrasferLifeTime_t;
+
+typedef struct FusBackendGenereteDataBlock FusBackendGenereteDataBlock_t; // REF
 
 typedef struct FusBackendApi {
     void* (*FusAlloc)(struct FusBackendApi*,size_t);
@@ -47,9 +40,25 @@ typedef struct FusBackendApi {
     void (*FusDestroyTrasfer)(
         struct FusBackendApi*, FusBackendTrasferLifeTime_t*
     );
+    FusBackendGenereteDataBlock_t* (*FusCreateDataBlock)(struct FusBackendApi*, size_t, size_t);
+    void (*FusDestroyDataBlock)(struct FusBackendApi*, FusBackendGenereteDataBlock_t*);
 
     FusInstance* Instance;
 } FusBackendApi_t;
+typedef struct FusBackendGenereteDataBlock {
+    //FusBufferContext_t* buffer;
+    uint8_t* buffer_slab;
+    size_t slab_size;
+    size_t slab_offset;
+
+    FusMemoryArena_t* arena;
+    FusBackendReallocNeed_t* realoc;
+    size_t realoc_count;
+    size_t realoc_capacity;
+
+    FusStatusFlag_t flag;
+    FusBackendApi_t* api;
+} FusBackendGenereteDataBlock_t;
 
 typedef struct {
     FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
@@ -67,5 +76,6 @@ struct FusModuleBackend_T {
     FusBackendInterface_t* interface; // INTERFACE INTERNA
     FusBackendApi_t* api; // ONCE FOR MODULE
 };
+typedef FusBackendInterface_t* (*FusBackendInterfaceDefine_t)(FusBackendApi_t*);
 
 #endif

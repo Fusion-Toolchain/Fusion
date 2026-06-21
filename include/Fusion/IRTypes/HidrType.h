@@ -114,4 +114,36 @@ typedef struct {
     FusHidrOperand_t dst;
 } FusHidrNode_t;
 
+static inline FusHidrOperand_t FUS_NewRegistre(FusHidrVirtualReg_t reg_id)
+{
+    return (FusHidrOperand_t){
+        .type = HIDR_OPERAND_TYPE_REG,
+        .data.reg = reg_id
+    };
+}
+static inline FusHidrOperand_t FUS_NewSymbol(const char* sym_name)
+{
+    return (FusHidrOperand_t){
+        .type = HIDR_OPERAND_TYPE_SYM,
+        .data.sym.name = sym_name
+    };
+}
+static inline FusHidrOperand_t FUS_NewMemRef(FusHidrVirtualReg_t base_reg, int offset)
+{
+    return (FusHidrOperand_t){
+        .type = HIDR_OPERAND_TYPE_MEM_REF,
+        .data.memory_ref = { .base = base_reg, .offset = offset }
+    };
+}
+static inline FusHidrOperand_t FUS_NewImmValue(uint64_t imm,FusHidrImmSize_t size)
+{
+    return (FusHidrOperand_t){
+        .type = HIDR_OPERAND_TYPE_IMM,
+        .data.imm = {
+            .imm = imm,
+            .size = size
+        }
+    };
+}
+
 #endif

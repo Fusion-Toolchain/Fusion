@@ -1,0 +1,43 @@
+#ifndef BACKEND_INTERFACE_SETS_H
+#define BACKEND_INTERFACE_SETS_H
+#include <Internal/Fus_Backend.h>
+
+// HELPER
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
+
+// TYPES
+#include <stddef.h>
+#include <string.h>
+
+static inline void* FUSB_ALLOC(FusBackendApi_t* api, size_t size)
+{
+    if (unlikely(!api || size == 0)) return NULL;
+    return api->FusAlloc(api,size);
+}
+static inline void FUSB_FREE(FusBackendApi_t* api, void* ptr)
+{
+    if (unlikely(!api || !ptr)) return;
+    api->FusFree(api,ptr);
+}
+static inline FusBackendGenereteDataBlock_t* FUSB_CREATE_BLOCK(FusBackendApi_t* api,size_t need_realoc,size_t buffer_size)
+{
+    if (unlikely(!api || need_realoc == 0 || buffer_size == 0)) return NULL;
+    return api->FusCreateDataBlock(api,need_realoc,buffer_size);
+}
+static inline void FUSB_DESTROY_BLOCK(FusBackendApi_t* api, FusBackendGenereteDataBlock_t* block)
+{
+    if (unlikely(!api || !block)) return;
+    api->FusDestroyDataBlock(api,block);
+}
+static inline FusBackendTrasferLifeTime_t* FUSB_CREATE_TRASNFER(FusBackendApi_t* api,void* data,void (*free)(const void*))
+{
+    if (unlikely(!api || !data || !free)) return NULL;
+    return api->FusCreateTrasfer(api,data,free);
+}
+static inline void FUSB_DESTROY_TRASNFER(FusBackendApi_t* api, FusBackendTrasferLifeTime_t* lifetime)
+{
+    if (unlikely(!api || !lifetime)) return;
+    api->FusDestroyTrasfer(api,lifetime);
+}
+
+#endif

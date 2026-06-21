@@ -1,11 +1,11 @@
 #ifndef FUSION_INTERNAL_STATIC_BACKEND_H
 #define FUSION_INTERNAL_STATIC_BACKEND_H
-#include "Fus_Backend.h"
+#include <Internal/Fus_Backend.h>
 #include <string.h>
 
 typedef struct {
     const char* name;
-    FusBackendInterface_t* (*fn)(FusBackendApi_t*);
+    FusBackendInterfaceDefine_t fn;
 } ModuleStaticEntry_t;
 
 #define REGISTER_BACKEND(mod_name, mod_fn) \

@@ -12,7 +12,6 @@ typedef struct {
     void* (*Realloc)(
         void* userdata,
         void* old_ptr,
-        size_t old_size,
         size_t new_size
     );
 

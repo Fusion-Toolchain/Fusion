@@ -3,8 +3,10 @@
 #include <Fusion/Linker/FusionLinkerInterface.h>
 
 #include <Internal/Fus_Backend.h>
+#include <stddef.h>
 
 #include "Fus_Hashtable.h"
+#include "Fusion/FusionTypes.h"
 
 
 typedef struct {
@@ -18,14 +20,18 @@ typedef struct {
 struct FusLinkerContext {
     FusLinkerContextSection_t* sections;
     size_t sections_count;
+    size_t sections_capacity;
     FusLinkerContextSymbol_t* symbols;
     size_t symbols_count;
+    size_t symbols_capacity;
     FusLinkerContextReloc_t* realocs;
     size_t realocs_count;
 
     FdbHashTable_t* section_table;
     FdbHashTable_t* symbols_table;
     FusMemoryArena_t* arena;
+
+    FusInstance* inst_ref;
 };
 
 #endif
