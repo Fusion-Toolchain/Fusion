@@ -34,6 +34,11 @@ FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 
     return ctx;
 }
+void FUS_ReUsedBuffer(FusBufferContext_t* buffer)
+{
+    if (unlikely(!buffer)) return;
+    buffer->offset = 0;
+}
 void FUS_ExecutableBuffer(FusBufferContext_t* buffer)
 {
     if (unlikely(!buffer)) return;
