@@ -6,6 +6,8 @@
 #include <Internal/Memory/Fus_LargerBlocks.h>
 
 // LOCAL
+#include "Fusion/Backend/FusionBackend.h"
+#include "Fusion/FusionTypes.h"
 #include "backend_internal.h"
 
 // HELPERS
@@ -41,7 +43,7 @@ static inline FusBackendInterface_t* LoaderBackendInterfaceType(FusBackendApi_t*
 static inline void BackendDefineInterface(FusInstance* instance,FusBackendApi_t* api)
 {
     if (unlikely(!instance || !api)) return;
-    *api = FUSI_InterfaceDefine(); // backend interface define
+    *api = FUSI_InterfaceDefine(); // Backend Interface Define
     api->Instance = instance;
 }
 
