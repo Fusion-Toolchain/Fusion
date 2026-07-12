@@ -84,16 +84,6 @@ typedef struct {
     } data;
 } FusHidrOperand_t;
 
-/*
- * @brief Hidr Node Mode Types
-*/
-typedef enum {
-    HIDR_MODE_NONE = 0,
-
-    HIDR_MODE64,
-    HIDR_MODE32,
-    HIDR_MODE16,
-} FusHidrOpcodeMode_t;
 typedef enum {
     HIDR_OP_SIZE_NONE = 0,
     HIDR_OP_SIZE_8,
@@ -106,7 +96,6 @@ typedef enum {
  * @brief Hidr Node Struct
 */
 typedef struct {
-    FusHidrOpcodeMode_t mode;
     FusHidrOpcodeSize_t op_size;
 
     FusHidrNodeKind_t opcode;
@@ -114,36 +103,41 @@ typedef struct {
     FusHidrOperand_t dst;
 } FusHidrNode_t;
 
-static inline FusHidrOperand_t FUS_NewRegistre(FusHidrVirtualReg_t reg_id)
+static inline FusHidrOperand_t FUS_HIDR_Reg(FusHidrVirtualReg_t reg_id)
 {
     return (FusHidrOperand_t){
         .type = HIDR_OPERAND_TYPE_REG,
         .data.reg = reg_id
     };
 }
-static inline FusHidrOperand_t FUS_NewSymbol(const char* sym_name)
+
+static inline FusHidrOperand_t FUS_HIDR_Sym(const char* sym_name)
 {
     return (FusHidrOperand_t){
         .type = HIDR_OPERAND_TYPE_SYM,
         .data.sym.name = sym_name
     };
 }
-static inline FusHidrOperand_t FUS_NewMemRef(FusHidrVirtualReg_t base_reg, int offset)
+
+static inline FusHidrOperand_t FUS_HIDR_Mem(FusHidrVirtualReg_t base_reg, int offset)
 {
     return (FusHidrOperand_t){
         .type = HIDR_OPERAND_TYPE_MEM_REF,
         .data.memory_ref = { .base = base_reg, .offset = offset }
     };
 }
-static inline FusHidrOperand_t FUS_NewImmValue(uint64_t imm,FusHidrImmSize_t size)
+
+static inline FusHidrOperand_t FUS_HIDR_Imm(uint64_t imm, FusHidrImmSize_t size)
 {
     return (FusHidrOperand_t){
         .type = HIDR_OPERAND_TYPE_IMM,
         .data.imm = {
-            .imm = imm,
+            .imm  = imm,
             .size = size
         }
     };
 }
+#define FUS_HIDR_None() \
+    (FusHidrOperand_t){ .type = HIDR_OPERAND_TYPE_NONE }
 
 #endif

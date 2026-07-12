@@ -2,8 +2,8 @@
  *  !!! TEST FILE !!!
  */
 
-#include "Fusion/IRTypes/HidrHelper.h"
-#include "Fusion/IRTypes/HidrType.h"
+#include "Fusion/FusionTrace.h"
+#include "Fusion/FusionTypes.h"
 #include <Fusion/Fusion.h>
 
 #include <stddef.h>
@@ -31,10 +31,12 @@ int main(void)
     struct timespec start, end;
 
     FusInstance instance = NULL;
-    FusCodeMount_t mount = NULL;
-    FusLinkerContext_t* linker = NULL;
-    FusModuleBackend_t x86 = NULL;
-    FusBackendReturn_t* compiler = NULL;
+    FusCodeMount mount = NULL;
+    FusLinkerContext linker = NULL;
+    FusModuleBackend x86 = NULL;
+    FusBackendReturn compiler = NULL;
+    FusTraceTree_t trace = NULL;
+
     FusBufferContext_t* buffer = NULL;
 
     FILE* file = NULL;
@@ -45,22 +47,37 @@ int main(void)
         printf("Failed to create Fusion instance\n");
         return 1;
     }
+    if (FUS_InstanceGetTrace(instance,&trace) != FUSION_OK) {
+        printf("Erro to get trace instance\n");
+        FUS_DestroyInstance(&instance);
+        return 1;
+    }
 
     if (FUS_CreateCodeMount(&instance, &mount) != FUSION_OK) {
         printf("Failed to create code mount\n");
         goto cleanup;
     }
 
-    FUS_NewMov(
-        mount,
-        FUS_NewRegistre(1),
-        FUS_NewSymbol("Hello")
+    FUS_InsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64,
+            FUS_HIDR_Reg(1),
+            FUS_HIDR_Sym("Hello")
+        )
     );
-    FUS_NewCallReg(mount, 1);
-    FUS_NewRet(mount);
-    linker = FUS_CreateLinkerContext(&instance);
+    FUS_InsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_CALL, HIDR_OP_SIZE_64,
+            FUS_HIDR_Reg(1),
+            FUS_HIDR_None()
+        )
+    );
+    FUS_InsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_NONE,
+            FUS_HIDR_None(),
+            FUS_HIDR_None()
+        )
+    );
 
-    if (!linker) {
+    if (FUS_CreateLinkerContext(&instance,&linker) != FUSION_OK) {
         printf("Failed to create linker context\n");
         goto cleanup;
     }
@@ -87,14 +104,17 @@ int main(void)
     FusCommandHidr hidrCmd = {
         .sType = FUS_COMMAND_SEND_HIDR,
         .pNext = (FusCommandRuleBase_t*)&backendCmd,
-        .hidr_arry = FUS_GetArryCode(mount),
-        .hidr_count = FUS_GetCountCode(mount)
+        .code = mount
     };
 
-    compiler = FUS_MountHidrsBytes(
+    if (FUS_MountHidrsBytes(
         &instance,
-        (FusCommandRuleBase_t*)&hidrCmd
-    );
+        (FusCommandRuleBase_t*)&hidrCmd,
+        &compiler
+    ) != FUSION_OK) {
+        printf("Erro em copilar!\n");
+        goto cleanup;
+    }
 
     if (!compiler) {
         printf("Compilation failed\n");
@@ -129,21 +149,14 @@ int main(void)
     printf("\n");
     file = fopen("out.bin", "wb");
 
-    if (file) {
-        fwrite(
-            buffer->buffer,
-            buffer->offset,
-            1,
-            file
-        );
-        fclose(file);
-        file = NULL;
+    if (FUS_ExecutableBuffer(buffer) == FUSION_OK) {
+        FusionEntryPoint entry = (FusionEntryPoint)buffer->buffer;
+        entry();
+    } else {
+        printf("Execução Falhou!\n");
     }
-    FUS_ExecutableBuffer(buffer);
 
-    FusionEntryPoint entry = (FusionEntryPoint)buffer->buffer;
-    entry();
-
+    FUS_DumpTrace(trace);
     clock_gettime(CLOCK_MONOTONIC, &end);
 
 cleanup:

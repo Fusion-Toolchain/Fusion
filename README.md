@@ -226,7 +226,6 @@ typedef struct {
 | Backend | Status |
 |---|---|
 | x86 | ✅ Active — `mov`, `add`, `call`, `lea`, `ret` |
-| GPU / SPIR-V / PTX | 🔮 Planned |
 
 ---
 

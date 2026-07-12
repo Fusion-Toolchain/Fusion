@@ -1,19 +1,19 @@
 #ifndef FUSION_INTERNAL_HELPER_BACKEND_H
 #define FUSION_INTERNAL_HELPER_BACKEND_H
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
 
 // HELPER AGENT
 #include "Fus_Helper_Codebase.h"
 
 // ─── Backend Helpers ────────────────────────────────────────────
-static inline FusBackendApi_t* FUSIH_BACKEND_GET_API(FusModuleBackend_t* backend)
+static inline FusBackendApi_t* FUSIH_BACKEND_GET_API(FusModuleBackend* backend)
 {
     if (unlikely(!backend)) return NULL;
     struct FusModuleBackend_T* real = *backend;
     if (unlikely(!real)) return NULL;
     return real->api;
 }
-static inline FusBackendInterface_t* FUSIH_BACKEND_GET_INTERFACE(FusModuleBackend_t* backend)
+static inline FusBackendInterface_t* FUSIH_BACKEND_GET_INTERFACE(FusModuleBackend* backend)
 {
     if (unlikely(!backend)) return NULL;
     struct FusModuleBackend_T* real = *backend;
@@ -21,7 +21,7 @@ static inline FusBackendInterface_t* FUSIH_BACKEND_GET_INTERFACE(FusModuleBacken
     if (unlikely(!real)) return NULL;
     return real->interface;
 }
-static inline const char* FUSIH_BACKEND_GET_NAME(FusModuleBackend_t* backend)
+static inline const char* FUSIH_BACKEND_GET_NAME(FusModuleBackend* backend)
 {
     if (unlikely(!backend)) return NULL;
     struct FusModuleBackend_T* real = *backend;

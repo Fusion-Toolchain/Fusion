@@ -1,4 +1,4 @@
-#include "Fusion/IRTypes/HidrType.h"
+#include <Fusion/IRTypes/HidrType.h>
 #include <Internal/IRTypes/Fus_CodeBuffer.h>
 #include <Internal/Fus_Instance.h>
 
@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount_t* out)
+FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount* out)
 {
     if (unlikely(!ctx || !out)) return FUSION_ERRO;
     struct FusInstance_T* instance_real = *ctx;
@@ -57,7 +57,7 @@ static inline bool ExpansiveCodeBuffer(struct FusCodeMount_T* mount)
 
     return true;
 }
-static inline FusStatusFlag_t InsertHidrArryHelper(struct FusCodeMount_T* mount, FusHidrNode_t node)
+FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node)
 {
     if (unlikely(!mount)) return FUSION_ERRO;
     if (unlikely(!ExpansiveCodeBuffer(mount))) return FUSION_ERRO;
@@ -68,88 +68,7 @@ static inline FusStatusFlag_t InsertHidrArryHelper(struct FusCodeMount_T* mount,
     return FUSION_OK;
 }
 
-FusStatusFlag_t FUS_NewMovSym(FusCodeMount_t mount, const char* sym_name, int dst_reg)
-{
-    if (unlikely(!mount)) return FUSION_ERRO;
-
-    FusHidrNode_t node = {
-        .opcode = HIDR_INSTR_MOV,
-        .op_size = HIDR_OP_SIZE_64,
-        .mode = HIDR_MODE64,
-        .src = { .type = HIDR_OPERAND_TYPE_SYM, .data.sym.name = sym_name },
-        .dst = { .type = HIDR_OPERAND_TYPE_REG, .data.reg = dst_reg }
-    };
-
-    return InsertHidrArryHelper(mount,node);
-}
-FusStatusFlag_t FUS_NewCallReg(FusCodeMount_t mount, int src_reg)
-{
-    if (unlikely(!mount)) return FUSION_ERRO;
-
-    FusHidrNode_t node = {
-        .opcode = HIDR_INSTR_CALL,
-        .op_size = HIDR_OP_SIZE_32,
-        .src = { .type = HIDR_OPERAND_TYPE_REG, .data.reg = src_reg }
-    };
-
-    return InsertHidrArryHelper(mount,node);
-}
-FusStatusFlag_t FUS_NewRet(FusCodeMount_t mount)
-{
-    if (unlikely(!mount)) return FUSION_ERRO;
-
-    FusHidrNode_t node = {
-        .opcode = HIDR_INSTR_RET
-    };
-
-    return InsertHidrArryHelper(mount,node);
-}
-FusStatusFlag_t FUS_NewAddrMem(FusCodeMount_t mount,int base_reg, int offset, int dst_reg)
-{
-    if (unlikely(!mount)) return FUSION_ERRO;
-
-    FusHidrNode_t node = {
-        .opcode = HIDR_INSTR_ADDR,
-        .op_size = HIDR_OP_SIZE_64,
-        .mode = HIDR_MODE64,
-        .src = {
-            .type = HIDR_OPERAND_TYPE_MEM_REF,
-            .data.memory_ref = { .base = base_reg, .offset = offset }
-        },
-        .dst = { .type = HIDR_OPERAND_TYPE_REG, .data.reg = dst_reg }
-    };
-
-    return InsertHidrArryHelper(mount,node);
-}
-FusStatusFlag_t FUS_NewMov(FusCodeMount_t mount, FusHidrOperand_t dst, FusHidrOperand_t src)
-{
-    if (unlikely(!mount)) return FUSION_ERRO;
-
-    FusHidrNode_t node = {
-        .opcode = HIDR_INSTR_MOV,
-        .op_size = HIDR_OP_SIZE_64,
-        .mode = HIDR_MODE64,
-        .dst = dst,
-        .src = src
-    };
-
-    return InsertHidrArryHelper(mount, node);
-}
-
-
-// FUNÇOES DE REMENDAGEM, temporario!
-size_t FUS_GetCountCode(FusCodeMount_t mount)
-{
-    if (unlikely(!mount)) return 0;
-    return mount->code_count;
-}
-FusHidrNode_t* FUS_GetArryCode(FusCodeMount_t mount)
-{
-    if (unlikely(!mount)) return NULL;
-    return mount->code_arry;
-}
-
-void FUS_DestroyCodeMount(FusInstance* ctx, FusCodeMount_t code)
+void FUS_DestroyCodeMount(FusInstance* ctx, FusCodeMount code)
 {
     if (unlikely(!ctx || !code)) return;
     struct FusInstance_T* instance_real = *ctx;

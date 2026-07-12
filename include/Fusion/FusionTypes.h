@@ -2,6 +2,8 @@
 #define FUSION_CORE_TYPES_H
 #include <stddef.h>
 
+#define FUS_DEFINE_HANDLE(object) typedef struct object##_T* object;
+
 typedef enum {
     FUSION_OK = 0,
     FUSION_ERRO = 1

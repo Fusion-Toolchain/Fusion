@@ -1,6 +1,6 @@
 #ifndef BACKEND_INTERNAL_DEFINES_H
 #define BACKEND_INTERNAL_DEFINES_H
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
 
 typedef struct {
     void* handle;

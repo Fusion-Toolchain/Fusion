@@ -1,6 +1,6 @@
+#include "Internal/Backend/Fus_Backend.h"
 #include <Internal/Linker/Fus_Linker.h>
 #include <Internal/Linker/Fus_Hashtable.h>
-#include <Internal/Fus_Backend.h>
 
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
@@ -14,7 +14,7 @@
 
 static inline bool LinkerGetCommandsRequire(
     FusCommandRuleBase_t*  compiler_rule,
-    FusModuleBackend_t** backend
+    FusModuleBackend** backend
 )
 {
    if (unlikely(!compiler_rule)) return false;
@@ -33,14 +33,14 @@ static inline bool LinkerGetCommandsRequire(
    return (*backend);
 }
 
-static inline void LinkerBackendRealloc(FusModuleBackend_t* backend, FusBackendRelocContext_t* context_realoc ,FusBackendRealocOpaqueType_t type)
+static inline void LinkerBackendRealloc(FusModuleBackend* backend, FusBackendRelocContext_t* context_realoc ,FusBackendRealocOpaqueType_t type)
 {
     if (unlikely(!backend)) return;
 
     struct FusModuleBackend_T* backend_real = *backend;
     backend_real->interface->FUSI_BackendLinkerRealloc(type,context_realoc);
 }
-static inline bool LinkerCodeResolver(FusLinkerContext_t* linker, FusModuleBackend_t* backend, FusBackendReturn_t* backend_data)
+static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend* backend, FusBackendReturn backend_data)
 {
     FusBackendTrasferLifeTime_t*   data  = backend_data->transfer_data;
     FusBackendGenereteDataBlock_t* block = (FusBackendGenereteDataBlock_t*)data->data;
@@ -51,7 +51,7 @@ static inline bool LinkerCodeResolver(FusLinkerContext_t* linker, FusModuleBacke
         if (unlikely(!symbol)) return false;
 
         FusBackendRelocContext_t context = {
-            .buffer     = block->buffer_slab,                               // uint8_t* direto
+            .buffer     = block->buffer_slab,
             .offset     = realoc_backend->offset,
             .sym_addr   = symbol->local.addr,
             .patch_addr = (uintptr_t)(block->buffer_slab + realoc_backend->offset)
@@ -60,23 +60,23 @@ static inline bool LinkerCodeResolver(FusLinkerContext_t* linker, FusModuleBacke
     }
 
 #ifdef FUSION_DEBUG
-    for (size_t i = 0; i < block->slab_offset; i++) {   // slab_offset = bytes escritos
+    for (size_t i = 0; i < block->slab_offset; i++) {
         printf(" %X", block->buffer_slab[i]);
     }
     printf("\n");
 #endif
-
     return true;
 }
-FusStatusFlag_t FUS_LinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext_t* linker_ctx, FusBackendReturn_t* backend_data)
+
+
+FusStatusFlag_t FUS_LinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext linker_ctx, FusBackendReturn backend_data)
 {
     if (unlikely(!compiler_rule || !backend_data || !linker_ctx)) return FUSION_ERRO;
-    FusModuleBackend_t* backend = NULL;
+    FusModuleBackend* backend = NULL;
 
     if (unlikely(!LinkerGetCommandsRequire(compiler_rule,&backend))) { // REQUIRE CHAIN ARGUMENTS!
         return FUSION_ERRO;
     }
-
     if (unlikely(!backend)) return FUSION_ERRO;
 
     if(unlikely(!LinkerCodeResolver(linker_ctx,backend,backend_data))) { // PROCESS!

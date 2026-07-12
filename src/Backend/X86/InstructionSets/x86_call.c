@@ -8,9 +8,9 @@ bool X86_CaseMountCallReg(X86BackendContext* backend_ctx)
     const FusHidrNode_t* mir_node = backend_ctx->hidr;
     x86Instruction_t* mount_instr = backend_ctx->encoder; 
 
-    if (mir_node->src.type != HIDR_OPERAND_TYPE_REG) return false;
+    if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
 
-    FusHidrVirtualReg_t src_reg = X86_MapVirtualReg(mir_node->src.data.reg);
+    FusHidrVirtualReg_t src_reg = X86_MapVirtualReg(mir_node->dst.data.reg);
 
     /* Opcode: FF */
     mount_instr->opcode.opcode[0] = 0xFF;
@@ -26,12 +26,9 @@ bool X86_CaseMountCallReg(X86BackendContext* backend_ctx)
     mount_instr->modrm.rm  = (uint8_t)(src_reg & 0x7);
     mount_instr->has_modrm = true;
 
-    /* REX só se registrador >= R8 (precisa REX.B) */
-    if (src_reg > 7) {
-        mount_instr->rex.w    = 0;
-        mount_instr->rex.b    = 1;
-        mount_instr->has_rex  = true;
-    }
+    mount_instr->rex.w   = 0;
+    mount_instr->rex.b   = (src_reg > 7) ? 1 : 0;
+    mount_instr->has_rex = (src_reg > 7);
 
     return true;
 }

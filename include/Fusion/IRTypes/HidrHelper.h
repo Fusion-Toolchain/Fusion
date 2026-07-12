@@ -3,17 +3,30 @@
 #include <Fusion/FusionTypes.h>
 #include "HidrType.h"
 
-typedef struct FusCodeMount_T* FusCodeMount_t;;
+FUS_DEFINE_HANDLE(FusCodeMount);
 
-FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount_t* out);
+FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount* out);
+void FUS_DestroyCodeMount(FusInstance* ctx, FusCodeMount code);
 
-FusStatusFlag_t FUS_NewCallReg(FusCodeMount_t mount, int src_reg);
-FusStatusFlag_t FUS_NewRet(FusCodeMount_t mount);
-FusStatusFlag_t FUS_NewAddrMem(FusCodeMount_t mount,int base_reg, int offset, int dst_reg);
-FusStatusFlag_t FUS_NewMov(FusCodeMount_t mount, FusHidrOperand_t dst, FusHidrOperand_t src);
+FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node);
 
-size_t FUS_GetCountCode(FusCodeMount_t mount);
-FusHidrNode_t* FUS_GetArryCode(FusCodeMount_t mount);
-void FUS_DestroyCodeMount(FusInstance* ctx, FusCodeMount_t code);
+static inline FusHidrNode_t FUS_HIDRM(
+    FusHidrNodeKind_t   op,
+    FusHidrOpcodeSize_t size,
+    FusHidrOperand_t    dst,
+    FusHidrOperand_t    src)
+{
+    return (FusHidrNode_t){
+        .opcode  = op,
+        .op_size = size,
+        .dst     = dst,
+        .src     = src
+    };
+}
+
+#define FUS_REG(r)      (FusHidrOperand_t){ .type = HIDR_OPERAND_TYPE_REG,     .data.reg = (r) }
+#define FUS_IMM(v, s)   (FusHidrOperand_t){ .type = HIDR_OPERAND_TYPE_IMM,     .data.imm = { .imm = (v), .size = (s) } }
+#define FUS_SYM(n)      (FusHidrOperand_t){ .type = HIDR_OPERAND_TYPE_SYM,     .data.sym.name = (n) }
+#define FUS_MEM(b, o)   (FusHidrOperand_t){ .type = HIDR_OPERAND_TYPE_MEM_REF, .data.memory_ref = { .base = (b), .offset = (o) } }
 
 #endif

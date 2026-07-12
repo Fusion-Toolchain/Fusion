@@ -1,8 +1,10 @@
-#include "Fusion/Backend/FusionBackend.h"
-#include "Fusion/FusionTypes.h"
+#include <Internal/Fus_TraceTree.h>
+#include <Fusion/Backend/FusionBackend.h>
+#include <Fusion/FusionTypes.h>
 #include <Fusion/Fusion.h>
 
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
+#include <Internal/IRTypes/Fus_CodeBuffer.h>
 #include <Internal/Fus_Instance.h>
 
 // HELPERS
@@ -35,8 +37,9 @@ static inline bool _ArgumentProcessMountHidrBytes(
             }
             case FUS_COMMAND_SEND_HIDR: {
                 FusCommandHidr* r = (FusCommandHidr*)node;
-                *hidr  = r->hidr_arry;
-                *count = r->hidr_count;
+                if (!r->code) return false;
+                *hidr  = r->code->code_arry; // PROVISORY SOLUTION
+                *count = r->code->code_count;
                 break;
             }
             default: break;
@@ -47,14 +50,16 @@ static inline bool _ArgumentProcessMountHidrBytes(
     return true;
 }
 
-FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule)
+FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out)
 {
-    if (unlikely(!instance)) return NULL;
-    if (unlikely(!compiler_rule)) return NULL;
+    if (unlikely(!instance)) return FUSION_ERRO;
+    if (unlikely(!compiler_rule)) return FUSION_ERRO;
+    if (unlikely(!out)) return FUSION_ERRO;
+    *out = NULL;
 
-    FusBackendReturn_t* ctx = FUSIH_INSTANCE_ALLOC(instance, sizeof(FusBackendReturn_t));
+    struct FusBackendReturn_T* ctx = FUSIH_INSTANCE_ALLOC(instance, sizeof(struct FusBackendReturn_T));
     if (unlikely(!ctx)) {
-        // LOG AQUI
+        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO);
         goto error;
     }
 
@@ -65,35 +70,37 @@ FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase
     if(!_ArgumentProcessMountHidrBytes(compiler_rule,&backend,&hidr,&count)) goto error;
     if (unlikely(!backend || !hidr || !count)) goto error;
     if (unlikely(count == 0)) {
-        // LOG AQUI
+        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO);
         goto error;
     }
 
     FusBackendInterface_t* interface = backend->interface;
     FusBackendTrasferLifeTime_t* backend_data = interface->FUSI_BackendMountHidrArry(hidr,count);
     if (unlikely(!backend_data)) {
-        // LOG AQUI
+        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO);
         goto error;
     }
 
     ctx->transfer_data = backend_data;
     ctx->api = backend->api;
-    return ctx; // RETURN SUCCESS
+    *out = ctx;
+
+    FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_OK);
+    return FUSION_OK;
 
     error:
     if (ctx) {
         FUSIH_API_DESTROY_TRANSFER_LIFETIME(ctx->api,ctx->transfer_data);
         FUSIH_INSTANCE_FREE(instance,ctx);
     }
-    return NULL; // RETURN ERROR
+    return FUSION_ERRO; // RETURN ERROR
 }
 
-FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn_t* ctx_backend)
+FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend)
 {
     if (unlikely(!ctx_backend)) return NULL;
 
     FusBackendGenereteDataBlock_t* data_block = (FusBackendGenereteDataBlock_t*)ctx_backend->transfer_data->data;
-
     FusBufferContext_t* exec = FUS_CreateBufferCode(data_block->slab_size);
     if (unlikely(!exec)) return NULL;
 
@@ -103,10 +110,9 @@ FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn_t* ctx_backend)
     return exec;
 }
 
-void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn_t* ctx_backend)
+void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn ctx_backend)
 {
     if (unlikely(!instance || !ctx_backend)) return;
-    //FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC(&instance);
 
     FUSIH_API_DESTROY_TRANSFER_LIFETIME(ctx_backend->api,ctx_backend->transfer_data);
     FUSIH_INSTANCE_FREE(&instance,ctx_backend);

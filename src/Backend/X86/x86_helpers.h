@@ -1,7 +1,7 @@
 #ifndef X86_INTERNAL_HELPERS_H
 #define X86_INTERNAL_HELPERS_H
 #include <Fusion/IRTypes/HidrType.h>
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
 
 //HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>

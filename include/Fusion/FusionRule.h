@@ -1,6 +1,7 @@
 #ifndef FUSION_PUBLIC_RULE_H
 #define FUSION_PUBLIC_RULE_H
 #include "Backend/FusionBackend.h"
+#include "Fusion/IRTypes/HidrHelper.h"
 #include "IRTypes/HidrType.h"
 #include "FusionTypes.h"
 
@@ -27,13 +28,12 @@ typedef struct {
     FusCommandRuleType_t sType;
     const FusCommandRuleBase_t* pNext;
 
-    FusHidrNode_t* hidr_arry;
-    size_t hidr_count;
+    FusCodeMount code;
 } FusCommandHidr;
 typedef struct {
     FusCommandRuleType_t sType;
     const FusCommandRuleBase_t* pNext;
 
-    FusModuleBackend_t backend;
+    FusModuleBackend backend;
 } FusCommandBackend;
 #endif

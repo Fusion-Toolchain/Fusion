@@ -118,11 +118,8 @@ static bool x86Bytes_MountRex(x86Instruction_t* instr, struct CopyPartMemory* mo
         (rex->r << 2) |
         (rex->x << 1) |
         (rex->b << 0);
-    
-    mounter->src = &rex_bytes;
-    mounter->src_size = 1;
 
-    return CopyOffsetData(mounter);
+    return CopyOffsetDataU8(mounter,rex_bytes);
 }
 
 static EncodePipeline pipeline_funcs = {

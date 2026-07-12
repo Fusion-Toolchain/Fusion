@@ -22,7 +22,7 @@
 /*
  * ------------------ CONFIGURES BASIC INITS --------------------
 */
-static inline FusStatusFlag_t ConfigureFileBasic(FusLinkerContext_t* ctx)
+static inline FusStatusFlag_t ConfigureFileBasic(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return FUSION_ERRO;
 
@@ -33,13 +33,13 @@ static inline FusStatusFlag_t ConfigureFileBasic(FusLinkerContext_t* ctx)
 
     return FUSION_OK;
 }
-static inline void DestroyConfigureFileBasic(FusLinkerContext_t* ctx)
+static inline void DestroyConfigureFileBasic(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return;
 
     if (unlikely(ctx->arena)) FUSI_DestroyArena(ctx->arena);
 }
-static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
+static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext ctx)
 {
     if (unlikely(!allocator)) return FUSION_ERRO;
     if (unlikely(!ctx)) return FUSION_ERRO;
@@ -62,7 +62,7 @@ static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* alloca
 
     return FUSION_OK;
 }
-static inline void DestroyConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
+static inline void DestroyConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext ctx)
 {
     if (unlikely(!allocator)) return;
     if (unlikely(!ctx)) return;
@@ -72,7 +72,7 @@ static inline void DestroyConfigureSection(FusInstanceMyAllocation_t* allocator,
 }
 
 #define FUSION_LINKER_INITIAL_SYMBOLS 20
-static inline FusStatusFlag_t ConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
+static inline FusStatusFlag_t ConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext ctx)
 {
     if (unlikely(!allocator)) return FUSION_ERRO;
     if (unlikely(!ctx)) return FUSION_ERRO;
@@ -97,7 +97,7 @@ static inline FusStatusFlag_t ConfigureSymbols(FusInstanceMyAllocation_t* alloca
 
     return FUSION_OK;
 }
-static inline void DestroyConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext_t* ctx)
+static inline void DestroyConfigureSymbols(FusInstanceMyAllocation_t* allocator,FusLinkerContext ctx)
 {
     if (unlikely(!allocator)) return;
     if (unlikely(!ctx)) return;
@@ -107,40 +107,45 @@ static inline void DestroyConfigureSymbols(FusInstanceMyAllocation_t* allocator,
 }
 
 
-FusLinkerContext_t* FUS_CreateLinkerContext(FusInstance* instance)
+FusStatusFlag_t FUS_CreateLinkerContext(FusInstance* instance, FusLinkerContext* out)
 {
-    if (unlikely(!instance)) return NULL;
+    if (unlikely(!instance || !out)) return FUSION_ERRO;
+    *out = NULL;
+
     struct FusInstance_T* instance_real = *instance;
     FusInstanceMyAllocation_t* allocator = instance_real->allocation;
     FusSlab_t* slab = instance_real->slab;
 
-    FusLinkerContext_t* ctx = FUSI_AllocSlab(slab,sizeof(FusLinkerContext_t));
-    if (unlikely(!ctx)) return NULL;
+    // sizeof do STRUCT real, não do ponteiro-typedef
+    struct FusLinkerContext_T* ctx = FUSI_AllocSlab(slab, sizeof(struct FusLinkerContext_T));
+    if (unlikely(!ctx)) return FUSION_ERRO;
 
     if (unlikely(ConfigureFileBasic(ctx) != FUSION_OK)) {
-        FUSI_FreeSlab(slab,ctx);
-        return NULL;
+        FUSI_FreeSlab(slab, ctx);
+        return FUSION_ERRO;
     }
-    if (unlikely(ConfigureSection(allocator,ctx) != FUSION_OK)) {
+    if (unlikely(ConfigureSection(allocator, ctx) != FUSION_OK)) {
         DestroyConfigureFileBasic(ctx);
-        FUSI_FreeSlab(slab,ctx);
-        return NULL;
+        FUSI_FreeSlab(slab, ctx);
+        return FUSION_ERRO;
     }
-    if (unlikely(ConfigureSymbols(allocator,ctx) != FUSION_OK)) {
+    if (unlikely(ConfigureSymbols(allocator, ctx) != FUSION_OK)) {
         DestroyConfigureFileBasic(ctx);
-        DestroyConfigureSection(allocator,ctx);
-        FUSI_FreeSlab(slab,ctx);
-        return NULL;
+        DestroyConfigureSection(allocator, ctx);
+        FUSI_FreeSlab(slab, ctx);
+        return FUSION_ERRO;
     }
 
     ctx->realocs = NULL;
     ctx->realocs_count = 0;
     ctx->inst_ref = instance;
 
-    return ctx;
+    *out = ctx;
+    return FUSION_OK;
 }
 
-static inline bool SectionArryGrow(FusLinkerContext_t* ctx)
+
+static inline bool SectionArryGrow(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return false;
     struct FusInstance_T* instance_real = *ctx->inst_ref;
@@ -159,7 +164,7 @@ static inline bool SectionArryGrow(FusLinkerContext_t* ctx)
 
     return true;
 }
-FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext_t* ctx,FusLinkerContextSectionDefine_t* define)
+FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectionDefine_t* define)
 {
     if (unlikely(!define)) return FUSION_ERRO;
     if (unlikely(!define->name || define->size == 0)) return FUSION_ERRO;
@@ -182,7 +187,7 @@ FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext_t* ctx,FusLinkerContextSec
 
     return FUSION_OK;
 }
-FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext_t* ctx, const char* name)
+FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext ctx, const char* name)
 {
     if (unlikely(!ctx || !name)) return NULL;
 
@@ -193,7 +198,7 @@ FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext_t* ctx, const c
     return &ctx->sections[idx];
 }
 
-static inline bool SymbolsArryGrow(FusLinkerContext_t* ctx)
+static inline bool SymbolsArryGrow(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return false;
 
@@ -213,7 +218,7 @@ static inline bool SymbolsArryGrow(FusLinkerContext_t* ctx)
 
     return true;
 }
-FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext_t* ctx, const char* name,uintptr_t addr)
+FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext ctx, const char* name,uintptr_t addr)
 {
     if (unlikely(!ctx || !name)) return FUSION_ERRO;
     if (unlikely(addr == 0)) return FUSION_ERRO;
@@ -231,7 +236,7 @@ FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext_t* ctx, const char* name,ui
     ctx->symbols_count++;
     return FUSION_OK;
 }
-FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext_t* ctx, const char* name)
+FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext ctx, const char* name)
 {
     if (unlikely(!ctx || !name)) return NULL;
 
@@ -242,14 +247,12 @@ FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext_t* ctx, const cha
     return &ctx->symbols[idx];
 }
 
-void FUS_DestroyLinkerContext(FusInstance instance,FusLinkerContext_t* ctx)
+void FUS_DestroyLinkerContext(FusInstance instance, FusLinkerContext ctx)
 {
     if (unlikely(!instance || !ctx)) return;
     struct FusInstance_T* instance_real = instance;
-
-    DestroyConfigureSymbols(instance_real->allocation,ctx);
-    DestroyConfigureSection(instance_real->allocation,ctx);
+    DestroyConfigureSymbols(instance_real->allocation, ctx);
+    DestroyConfigureSection(instance_real->allocation, ctx);
     DestroyConfigureFileBasic(ctx);
-
-    FUSI_FreeSlab(instance_real->slab,ctx);
+    FUSI_FreeSlab(instance_real->slab, ctx);
 }

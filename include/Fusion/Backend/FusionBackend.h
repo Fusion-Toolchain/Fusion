@@ -7,9 +7,10 @@ typedef enum {
     FUS_BACKEND_TYPE_STATIC,
     FUS_BACKEND_TYPE_DINAMIC, // AINDA NAO EXISTE
 } FusModuleBackendType_t;
-typedef struct FusModuleBackend_T* FusModuleBackend_t;
-typedef struct FusBackendReturn FusBackendReturn_t;
 
-FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend_t* ctx, const char* name, FusModuleBackendType_t type);
-void FUS_DestroyBackend(FusModuleBackend_t backend);
+FUS_DEFINE_HANDLE(FusModuleBackend)
+FUS_DEFINE_HANDLE(FusBackendReturn)
+
+FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend* ctx, const char* name, FusModuleBackendType_t type);
+void FUS_DestroyBackend(FusModuleBackend backend);
 #endif

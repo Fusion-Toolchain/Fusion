@@ -2,7 +2,7 @@
 #define FUSION_INTERNAL_LINKER_H
 #include <Fusion/Linker/FusionLinkerInterface.h>
 
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
 #include <stddef.h>
 
 #include "Fus_Hashtable.h"
@@ -17,7 +17,7 @@ typedef struct {
     size_t offset;
 } FusLinkerContextReloc_t;
 
-struct FusLinkerContext {
+struct FusLinkerContext_T {
     FusLinkerContextSection_t* sections;
     size_t sections_count;
     size_t sections_capacity;

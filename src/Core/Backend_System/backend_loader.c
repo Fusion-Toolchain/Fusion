@@ -1,13 +1,13 @@
-#include <Internal/Fus_Backend.h>
-#include <Internal/Fus_StaticBackend.h>
+#include <Internal/Backend/Fus_Backend.h>
+#include <Fusion/Backend/FusionBackend.h>
+#include <Fusion/FusionTypes.h>
+#include <Internal/Backend/Fus_StaticBackend.h>
 
 #include <Internal/Fus_Instance.h>
 #include <Internal/Memory/Fus_Slab.h>
 #include <Internal/Memory/Fus_LargerBlocks.h>
 
 // LOCAL
-#include "Fusion/Backend/FusionBackend.h"
-#include "Fusion/FusionTypes.h"
 #include "backend_internal.h"
 
 // HELPERS
@@ -48,7 +48,7 @@ static inline void BackendDefineInterface(FusInstance* instance,FusBackendApi_t*
 }
 
 
-FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend_t* ctx,const char* name, FusModuleBackendType_t type)
+FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type)
 {
     if (unlikely(!instance || !ctx || !name || type == FUS_BACKEND_TYPE_NONE)) return FUSION_ERRO;
     *ctx = NULL;
@@ -93,7 +93,7 @@ FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend_t* ctx
     return FUSION_OK;
 }
 
-void FUS_DestroyBackend(FusModuleBackend_t backend)
+void FUS_DestroyBackend(FusModuleBackend backend)
 {
     if (unlikely(!backend)) return;
     struct FusModuleBackend_T* backend_real = backend;

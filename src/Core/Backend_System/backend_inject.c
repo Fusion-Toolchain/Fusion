@@ -1,8 +1,8 @@
 // META: Fazer funçõe que seja passadas ao backend!
-#include "Fusion/FusionTypes.h"
+#include <Fusion/FusionTypes.h>
 #include "Internal/Memory/Fus_Arena.h"
 #include <Internal/Fus_Instance.h>
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
 #include <Internal/Memory/Fus_Slab.h>
 
 // HELPER
@@ -16,7 +16,7 @@
 
 typedef struct {
     uint8_t from_slab;
-} FusAllocTag_t;
+} __attribute__((aligned(16))) FusAllocTag_t;
 
 static void* FUSI_BackendHookMalloc(FusBackendApi_t* api, size_t size)
 {

@@ -2,6 +2,7 @@
 #define FUSION_INTERNAL_INSTANCE_H
 #include <Fusion/FusionTypes.h>
 
+// SUB-SYSTEM
 #include <Internal/Fus_TraceTree.h>
 #include <Internal/Memory/Fus_Handle.h>
 #include <Internal/Memory/Fus_Slab.h>

@@ -1,5 +1,4 @@
 #include "../x86_helpers.h"
-#include "Internal/Fus_Backend.h"
 #include "x86_instructions.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -11,7 +10,9 @@ bool X86_CaseMountMovImmReg(X86BackendContext* backend_ctx)
 
     FusHidrImmSize_t imm_type = mir_node->src.data.imm.size;
 
-    mount_instr->opcode.opcode[0] = (imm_type == HIDR_IMM8 ? 0xB0 : 0xB8) + X86_MapVirtualReg(mir_node->dst.data.reg);
+    mount_instr->opcode.opcode[0] = (imm_type == HIDR_IMM8 ? 0xB0 : 0xB8) + X86_MapVirtualReg(
+        mir_node->dst.data.reg
+    );
     mount_instr->opcode.opcode_size = 1;
     size_t imm_size = X86_CalMirImmSize(mir_node->src.data.imm.size);
 

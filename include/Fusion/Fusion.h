@@ -18,7 +18,7 @@ FusStatusFlag_t FUS_DestroyInstance(FusInstance* ctx);
  * @return FusBufferContext_t* Buffer Access
 */
 FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size);
-void FUS_ExecutableBuffer(FusBufferContext_t* buffer);
+FusStatusFlag_t FUS_ExecutableBuffer(FusBufferContext_t* buffer);
 void FUS_ReUsedBuffer(FusBufferContext_t* buffer);
 /*
  * @brief Destroy Buffer Access
@@ -30,9 +30,9 @@ void FUS_DestroyBufferCode(FusBufferContext_t* buffer);
  * @param FusMirNode_t* Mir Node
  * @return FusStatusFlag_t Build Flag
 */
-FusBackendReturn_t* FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule);
-FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn_t* ctx_backend);
-void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn_t* ctx_backend);
+FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out);
+FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend);
+void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn ctx_backend);
 /*
  * @brief Status By String
  * @param FusStatusFlag_t Status Code

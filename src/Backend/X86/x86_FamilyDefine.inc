@@ -35,14 +35,14 @@ static X86FamilyRule_t ret_rules[] = {
 };
 static X86FamilyRule_t add_rules[] = {
     {HIDR_OPERAND_TYPE_REG, HIDR_OPERAND_TYPE_REG, X86_CaseMountAddRegReg},
-    {HIDR_OPERAND_TYPE_IMM, HIDR_OPERAND_TYPE_REG, X86_CaseMountAddImmReg},
+    {HIDR_OPERAND_TYPE_REG, HIDR_OPERAND_TYPE_IMM, X86_CaseMountAddImmReg},
 };
 static X86FamilyRule_t lea_rules[] = {
-    {HIDR_OPERAND_TYPE_MEM_REF, HIDR_OPERAND_TYPE_REG, X86_CaseMountLeaRegMem},
+    {HIDR_OPERAND_TYPE_REG, HIDR_OPERAND_TYPE_MEM_REF, X86_CaseMountLeaRegMem},
 };
 static X86FamilyRule_t call_rules[] = {
-    {HIDR_OPERAND_TYPE_REG, HIDR_OPERAND_TYPE_NONE, X86_CaseMountCallReg},
-    {HIDR_OPERAND_TYPE_SYM, HIDR_OPERAND_TYPE_NONE, X86_CaseMountCallImm}
+    [0]={ .src_type=HIDR_OPERAND_TYPE_NONE, .dst_type=HIDR_OPERAND_TYPE_REG, .builder=X86_CaseMountCallReg },
+    [1]={ .src_type=HIDR_OPERAND_TYPE_NONE, .dst_type=HIDR_OPERAND_TYPE_SYM, .builder=X86_CaseMountCallImm }
 };
 static x86Familys_t familys[] = {
     [0]={

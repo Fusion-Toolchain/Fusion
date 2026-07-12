@@ -6,7 +6,7 @@
 
 #include <Fusion/IRTypes/HidrType.h>
 #include <Fusion/FusionTypes.h>
-#include <Internal/Fus_Backend.h>
+#include <Internal/Backend/Fus_Backend.h>
 #include <Internal/Memory/Fus_Arena.h>
 #include <Fusion/Fusion.h>
 
@@ -45,8 +45,6 @@ static inline void X86_MountRex(const FusHidrNode_t* mir_node, x86Instruction_t*
 {
     instr->has_rex = false;
 
-    if (mir_node->mode != HIDR_MODE64) return;
-
     // W: operação 64-bit
     if (mir_node->op_size == HIDR_OP_SIZE_64 &&
     !(mir_node->src.type == HIDR_OPERAND_TYPE_IMM && 
@@ -84,11 +82,11 @@ static inline bool X86_SelectFamily(X86BackendContext* backend_ctx)
 
     for (size_t i = 0; i < (sizeof(familys) / sizeof(familys[0])); i++) {
         if (familys[i].opcode != mir_node->opcode) continue;
+
         for (size_t j = 0; j < familys[i].rule_count; j++) {
             X86FamilyRule_t* rules = &familys[i].rules[j];
             if (rules->dst_type != mir_node->dst.type) continue;
             if (rules->src_type != mir_node->src.type) continue;
-
             if (rules->builder(backend_ctx)) return true;
         }
         return false;
@@ -112,8 +110,8 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,
         .block   = block
     };
 
-    if (!X86_SelectFamily(&backend_ctx)) return FUSION_ERRO;
     X86_MountRex(element, &out_instr);
+    if (!X86_SelectFamily(&backend_ctx)) return FUSION_ERRO;
 
     if (!X86_MountCodeBytes(&out_instr,
             &block->slab_offset,
@@ -223,7 +221,7 @@ static FusStatusFlag_t X86_LinkerHelper(FusBackendRealocOpaqueType_t opaque_type
 }
 
 //     INTERFACE DEFINE     //
-#include <Internal/Fus_StaticBackend.h>
+#include <Internal/Backend/Fus_StaticBackend.h>
 
 static FusBackendInterface_t interface = {
     .FUSI_BackendMountHidr = X86_BackendMountHidr,
