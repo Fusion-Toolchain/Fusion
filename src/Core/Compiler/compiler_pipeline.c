@@ -1,6 +1,5 @@
 #include <Internal/Fus_TraceTree.h>
 #include <Fusion/Backend/FusionBackend.h>
-#include <Fusion/FusionTypes.h>
 #include <Fusion/Fusion.h>
 
 #include <Internal/Backend/Fus_Backend.h>
@@ -13,6 +12,7 @@
 #include <Internal/Helpers/Fus_Helper_Backend.h>
 
 // TYPES
+#include <Fusion/FusionTypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -59,7 +59,8 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
 
     struct FusBackendReturn_T* ctx = FUSIH_INSTANCE_ALLOC(instance, sizeof(struct FusBackendReturn_T));
     if (unlikely(!ctx)) {
-        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO);
+        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO,
+            "Fail alloc Backend Return!");
         goto error;
     }
 
@@ -70,14 +71,18 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     if(!_ArgumentProcessMountHidrBytes(compiler_rule,&backend,&hidr,&count)) goto error;
     if (unlikely(!backend || !hidr || !count)) goto error;
     if (unlikely(count == 0)) {
-        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO);
+        FUS_PUSH_ERR(
+            FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO,
+            "Backend Compiler Argumento Failed!");
         goto error;
     }
 
     FusBackendInterface_t* interface = backend->interface;
     FusBackendTrasferLifeTime_t* backend_data = interface->FUSI_BackendMountHidrArry(hidr,count);
     if (unlikely(!backend_data)) {
-        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO);
+        FUS_PUSH_ERR(
+            FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO,
+            "Backend fail step mount Bytes, entry backend!");
         goto error;
     }
 
@@ -85,7 +90,8 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     ctx->api = backend->api;
     *out = ctx;
 
-    FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_OK);
+    FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_OK,
+        "Backend Mount Byte-Step OK!");
     return FUSION_OK;
 
     error:

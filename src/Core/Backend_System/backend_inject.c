@@ -1,6 +1,4 @@
-// META: Fazer funçõe que seja passadas ao backend!
-#include <Fusion/FusionTypes.h>
-#include "Internal/Memory/Fus_Arena.h"
+#include <Internal/Memory/Fus_Arena.h>
 #include <Internal/Fus_Instance.h>
 #include <Internal/Backend/Fus_Backend.h>
 #include <Internal/Memory/Fus_Slab.h>
@@ -9,8 +7,10 @@
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
 
 // TYPES
+#include <Fusion/FusionTypes.h>
 #include <stddef.h>
 #include <stdint.h>
+
 #include <stdlib.h>
 #include <string.h>
 

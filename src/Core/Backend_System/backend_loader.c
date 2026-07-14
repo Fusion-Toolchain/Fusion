@@ -1,6 +1,5 @@
 #include <Internal/Backend/Fus_Backend.h>
 #include <Fusion/Backend/FusionBackend.h>
-#include <Fusion/FusionTypes.h>
 #include <Internal/Backend/Fus_StaticBackend.h>
 
 #include <Internal/Fus_Instance.h>
@@ -17,8 +16,8 @@
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
 
 // TYPES
+#include <Fusion/FusionTypes.h>
 #include <stddef.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,6 +1,8 @@
 #ifndef BACKEND_INTERFACE_SETS_H
 #define BACKEND_INTERFACE_SETS_H
+#include <Internal/Fus_Instance.h>
 #include <Internal/Backend/Fus_Backend.h>
+#include <Internal/Fus_TraceTree.h>
 
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
@@ -38,6 +40,15 @@ static inline void FUSB_DESTROY_TRASNFER(FusBackendApi_t* api, FusBackendTrasfer
 {
     if (unlikely(!api || !lifetime)) return;
     api->FusDestroyTrasfer(api,lifetime);
+}
+static inline FusStatusFlag_t FUSB_GET_TRACE_FUSION(FusBackendApi_t* api, FusTraceTree_t* tree_out)
+{
+    if (unlikely(!api)) return FUSION_ERRO;
+    struct FusInstance_T* real_instance = *api->Instance;
+    if (!real_instance) return FUSION_ERRO;
+
+    *tree_out = real_instance->trace;
+    return FUSION_OK;
 }
 
 #endif

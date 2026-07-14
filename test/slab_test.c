@@ -31,12 +31,12 @@ static void ExempleFree(void* data, void* ptr)
     if (!ptr) return;
     free(ptr);
 }
-static void* ExempleRealloc(void* data, void* old_ptr, size_t old_size, size_t new_size)
+static void* ExempleRealloc(void* data, void* old_ptr, size_t size)
 {
     (void)data;
 
-    if (!old_size || old_size == 0 || new_size == 0) return NULL;
-    return realloc(old_ptr,new_size);
+    if (!old_ptr || size == 0) return NULL;
+    return realloc(old_ptr,size);
 }
 
 static FusInstanceMyAllocation_t allocation = {

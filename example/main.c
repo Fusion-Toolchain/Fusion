@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+
 #include <time.h>
 
 // TODO:
@@ -47,6 +48,7 @@ int main(void)
         printf("Failed to create Fusion instance\n");
         return 1;
     }
+
     if (FUS_InstanceGetTrace(instance,&trace) != FUSION_OK) {
         printf("Erro to get trace instance\n");
         FUS_DestroyInstance(&instance);

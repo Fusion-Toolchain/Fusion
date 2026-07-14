@@ -4,7 +4,7 @@ EXAMPLE_DIR := example
 BUILD_DIR   := .build
 CC          := gcc
 CFLAGS      := -g -I$(INCLUDE_DIR) -O3 -MMD -MP -fPIC
-CFLAGS      += -Wextra -Wall
+CFLAGS      += -Wextra -Wall -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 
 ifeq ($(DEBUG),Y)
 CFLAGS += -DFUSION_DEBUG

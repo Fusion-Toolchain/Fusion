@@ -1,7 +1,9 @@
 #include <Internal/Fdb/Fus_FdbFileDefine.h>
-#include <Fusion/FusionTypes.h>
 
+// TYPES
+#include <Fusion/FusionTypes.h>
 #include <stddef.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

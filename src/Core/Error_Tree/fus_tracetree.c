@@ -1,4 +1,3 @@
-#include <Fusion/FusionTrace.h>
 #include <Internal/Fus_TraceTree.h>
 
 // HELPER
@@ -12,10 +11,14 @@
 #include <stdint.h>
 
 #define FUS_ERROR_MAX_NODES 32
+#define FUS_ERROR_MSG_MAX 256
+
 typedef struct FusErrorNode_t {
     FusStatusFlag_t code;
     const char* file;
     uint32_t line;
+    char message[FUS_ERROR_MSG_MAX];
+
     struct FusErrorNode_t* parent;
 } FusErrorNode_t;
 struct FusTraceTree_T {
@@ -46,17 +49,28 @@ void FUSI_DestrotTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree
     *tree_ctx = NULL;
 }
 
-FusStatusFlag_t FUSI_PushError(FusTraceTree_t tree_ctx, FusStatusFlag_t code, const char* file, uint32_t line)
+FusStatusFlag_t FUSI_PushError(
+    FusTraceTree_t tree_ctx, FusStatusFlag_t code,
+    const char* file, uint32_t line, const char* message
+)
 {
     if (unlikely(!tree_ctx)) return FUSION_ERRO;
     struct FusTraceTree_T* tree = tree_ctx;   // sem *, já é o handle direto
     if (unlikely(tree->count >= FUS_ERROR_MAX_NODES)) return FUSION_ERRO;
+
     FusErrorNode_t* node = &tree->nodes[tree->count++];
     node->code = code;
     node->file = file;
     node->line = line;
     node->parent = tree->current;
     tree->current = node;
+
+    if (message) {
+        snprintf(node->message, FUS_ERROR_MSG_MAX, "%s", message);
+    } else {
+        node->message[0] = '\0';
+    }
+
     return FUSION_OK;
 }
 
@@ -70,34 +84,38 @@ void FUS_ClearErrors(FusTraceTree_t tree_ctx)
 
 static void FUSI_DumpTraceNode(FusErrorNode_t* node, int depth)
 {
-
     if (!node) return;
- 
-    // desce primeiro até a raiz (mais antigo)
-    FUSI_DumpTraceNode(node->parent, depth + 1);
- 
-    // imprime na volta -- raiz aparece primeiro, mais recente por último
+
     printf("%*s[%s:%u] code=%d\n",
            depth * 2, "",
            node->file ? node->file : "???",
            node->line,
            (int)node->code);
+    
+    if (node->message[0] != '\0') {
+        printf("%*s  └─ %s\n",
+               depth * 2, "",
+               node->message);
+    }
+
+    if (node->parent) {
+        FUSI_DumpTraceNode(node->parent, depth + 1);
+    }
 }
+
 void FUS_DumpTrace(FusTraceTree_t tree_ctx)
 {
     if (unlikely(!tree_ctx)) {
         printf("(sem trace context)\n");
         return;
     }
- 
     struct FusTraceTree_T* tree = tree_ctx;
- 
     if (!tree->current) {
         printf("(nenhum erro registrado)\n");
         return;
     }
- 
-    printf("=== Fusion Error Trace (raiz -> erro final) ===\n");
+    
+    printf("=== Fusion Error Trace (Raiz -> Saida Final) ===\n");
     FUSI_DumpTraceNode(tree->current, 0);
     printf("================================================\n");
 }

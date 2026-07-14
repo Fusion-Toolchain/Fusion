@@ -10,6 +10,8 @@
 #include <Internal/Memory/Fus_Arena.h>
 #include <Fusion/Fusion.h>
 
+#include <Internal/Fus_TraceTree.h>
+
 // BACKEND INTERFACE
 #include <BackendInterface/Backend.h>
 
@@ -99,11 +101,10 @@ static inline bool X86_SelectFamily(X86BackendContext* backend_ctx)
 */
 static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block, const FusHidrNode_t* element)
 {
-    if (!block || !element) return FUSION_ERRO;
+    if (unlikely(!block || !element)) return FUSION_ERRO;
 
     x86Instruction_t out_instr = {0};
     X86_MountPrefixHidr(element, &out_instr);
-
     X86BackendContext backend_ctx = {
         .encoder = &out_instr,
         .hidr    = element,
@@ -111,15 +112,13 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block,
     };
 
     X86_MountRex(element, &out_instr);
-    if (!X86_SelectFamily(&backend_ctx)) return FUSION_ERRO;
-
-    if (!X86_MountCodeBytes(&out_instr,
+    if (unlikely(!X86_SelectFamily(&backend_ctx))) return FUSION_ERRO;
+    if (unlikely(!X86_MountCodeBytes(&out_instr,
             &block->slab_offset,
             block->buffer_slab,
-            block->slab_size)) {
+            block->slab_size))) {
         return FUSION_ERRO;
     }
-
     return FUSION_OK;
 }
 
@@ -136,13 +135,12 @@ static inline size_t X86DraticCase(const FusHidrNode_t* node)
 static void DestroyLifetimeBlock(const void* data)
 {
     FusBackendGenereteDataBlock_t* block = (FusBackendGenereteDataBlock_t*)data; // EXPLICIT CAST
-
     FUSB_DESTROY_BLOCK(block->api,block);
 }
 
 static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(const FusHidrNode_t* mir_node)
 {
-    if (!mir_node) return NULL;
+    if (unlikely(!mir_node)) return NULL;
 
     size_t size_buffer = X86DraticCase(mir_node);
     FusBackendGenereteDataBlock_t* block = FUSB_CREATE_BLOCK(FUS, 23, size_buffer);
@@ -158,35 +156,32 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidr(const FusHidrNode_t* mi
     if (flag != FUSION_OK) {
         block->flag = flag;
     }
-
     return transfer;
 }
 
 static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(const FusHidrNode_t* hidr, const size_t count)
 {
-    if (!hidr || count == 0) return NULL;
+    if (unlikely(!hidr || count == 0)) return NULL;
 
     size_t size_buffer = 0;
-    for (size_t i = 0; i < count; i++)
-        size_buffer += X86DraticCase(&hidr[i]);
+    for (size_t i = 0; i < count; i++) size_buffer += X86DraticCase(&hidr[i]);
 
     FusBackendGenereteDataBlock_t* block = FUSB_CREATE_BLOCK(FUS, 23, size_buffer);
-    if (!block) return NULL;
-
+    if (unlikely(!block)) return NULL;
     FusBackendTrasferLifeTime_t* transfer = FUSB_CREATE_TRASNFER(FUS, block, DestroyLifetimeBlock);
-    if (!transfer) {
+    if (unlikely(!transfer)) {
         DestroyLifetimeBlock(block);
         return NULL;
     }
 
     for (size_t i = 0; i < count; i++) {
+        if (count > 32 && i + 8 < count) __builtin_prefetch(&hidr[i + 8], 0, 2);
         FusStatusFlag_t flag = X86_ProcessOnceHidr(block, &hidr[i]);
         if (flag != FUSION_OK) {
             block->flag = flag;
             return transfer;
         }
     }
-
     return transfer;
 }
 
@@ -194,10 +189,9 @@ static inline void X86_WriteInt32(uint8_t* base, size_t offset, int32_t value)
 {
     memcpy(base + offset, &value, sizeof(int32_t));
 }
-
 static FusStatusFlag_t X86_LinkerHelper(FusBackendRealocOpaqueType_t opaque_type, FusBackendRelocContext_t* realoc)
 {
-    if (!realoc) return FUSION_ERRO;
+    if (unlikely(!realoc)) return FUSION_ERRO;
     X86ReallocTypes_t type = (X86ReallocTypes_t)opaque_type;
 
     switch (type) {
