@@ -51,12 +51,12 @@ static void FUSI_BackendHookFree(FusBackendApi_t* api, void* ptr)
         FUSI_FreeLargerBlocks(&instance->larger_alloc, tag);
     }
 }
-static FusBackendTrasferLifeTime_t* FUSI_CreateTransferLifetime(FusBackendApi_t* api,void* data,void (*free)(const void*))
+static FusBackendTransferLifetime_t* FUSI_CreateTransferLifetime(FusBackendApi_t* api,void* data,void (*free)(const void*))
 {
     if (unlikely(!api || !data)) return NULL;
     struct FusInstance_T* instance = *api->Instance;
 
-    FusBackendTrasferLifeTime_t* trans = FUSI_AllocSlab(instance->slab,sizeof(FusBackendTrasferLifeTime_t));
+    FusBackendTransferLifetime_t* trans = FUSI_AllocSlab(instance->slab,sizeof(FusBackendTransferLifetime_t));
     if (unlikely(!trans)) return NULL;
 
     trans->data = data;
@@ -64,7 +64,7 @@ static FusBackendTrasferLifeTime_t* FUSI_CreateTransferLifetime(FusBackendApi_t*
 
     return trans;
 }
-static void FUSI_DestroyTransferLifetime(FusBackendApi_t* api, FusBackendTrasferLifeTime_t* transfer)
+static void FUSI_DestroyTransferLifetime(FusBackendApi_t* api, FusBackendTransferLifetime_t* transfer)
 {
     if (unlikely(!api || !transfer)) return;
     struct FusInstance_T* instance = *api->Instance;
@@ -72,14 +72,14 @@ static void FUSI_DestroyTransferLifetime(FusBackendApi_t* api, FusBackendTrasfer
     transfer->free(transfer->data);
     FUSI_FreeSlab(instance->slab,transfer);
 }
-static FusBackendGenereteDataBlock_t* FUSI_CreateGenereteDataBlock(FusBackendApi_t* api, size_t need_realoc, size_t buffer_size)
+static FusBackendGenerateDataBlock_t* FUSI_CreateGenereteDataBlock(FusBackendApi_t* api, size_t need_realoc, size_t buffer_size)
 {
     if (unlikely(!api || need_realoc == 0 || buffer_size == 0)) return NULL;
 
-    FusBackendGenereteDataBlock_t* block = api->FusAlloc(api,sizeof(FusBackendGenereteDataBlock_t));
+    FusBackendGenerateDataBlock_t* block = api->FusAlloc(api,sizeof(FusBackendGenerateDataBlock_t));
     if (unlikely(!block)) return NULL;
 
-    FusBackendReallocNeed_t* reallocs = api->FusAlloc(api,sizeof(FusBackendReallocNeed_t) * need_realoc);
+    FusBackendRelocationNeed_t* reallocs = api->FusAlloc(api,sizeof(FusBackendRelocationNeed_t) * need_realoc);
     if (unlikely(!reallocs)) {
         api->FusFree(api,block);
         return NULL;
@@ -98,9 +98,9 @@ static FusBackendGenereteDataBlock_t* FUSI_CreateGenereteDataBlock(FusBackendApi
         return NULL;
     }
 
-    block->realoc_capacity = need_realoc;
-    block->realoc_count = 0;
-    block->realoc = reallocs;
+    block->reloc_capacity = need_realoc;
+    block->reloc_count = 0;
+    block->reloc = reallocs;
 
     block->buffer_slab = buffer;
     block->arena = arena;
@@ -112,13 +112,13 @@ static FusBackendGenereteDataBlock_t* FUSI_CreateGenereteDataBlock(FusBackendApi
     block->api = api;
     return block;
 }
-static void FUSI_DestroyGenereteDataBlock(FusBackendApi_t* api, FusBackendGenereteDataBlock_t* block)
+static void FUSI_DestroyGenereteDataBlock(FusBackendApi_t* api, FusBackendGenerateDataBlock_t* block)
 {
     if (unlikely(!api || !block)) return;
 
     FUSI_DestroyArena(block->arena);
     api->FusFree(api,block->buffer_slab);
-    api->FusFree(api,block->realoc);
+    api->FusFree(api,block->reloc);
     api->FusFree(api,block);
 
 }
@@ -127,8 +127,8 @@ static void FUSI_DestroyGenereteDataBlock(FusBackendApi_t* api, FusBackendGenere
 static FusBackendApi_t interface_api = {
     .FusAlloc = FUSI_BackendHookMalloc,
     .FusFree = FUSI_BackendHookFree,
-    .FusCreateTrasfer = FUSI_CreateTransferLifetime,
-    .FusDestroyTrasfer = FUSI_DestroyTransferLifetime,
+    .FusCreateTransfer = FUSI_CreateTransferLifetime,
+    .FusDestroyTransfer = FUSI_DestroyTransferLifetime,
     .FusCreateDataBlock = FUSI_CreateGenereteDataBlock,
     .FusDestroyDataBlock = FUSI_DestroyGenereteDataBlock
 };

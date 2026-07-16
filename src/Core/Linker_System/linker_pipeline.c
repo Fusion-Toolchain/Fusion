@@ -36,23 +36,23 @@ static inline bool LinkerGetCommandsRequire(
    return (*backend);
 }
 
-static inline void LinkerBackendRealloc(FusModuleBackend* backend, FusBackendRelocContext_t* context_realoc ,FusBackendRealocOpaqueType_t type)
+static inline void LinkerBackendRealloc(FusModuleBackend* backend, FusBackendRelocContext_t* context_realoc ,FusBackendRelocationOpaqueType_t type)
 {
     if (unlikely(!backend)) return;
 
     struct FusModuleBackend_T* backend_real = *backend;
-    backend_real->interface->FUSI_BackendLinkerRealloc(type,context_realoc);
+    backend_real->interface->FUSI_BackendLinkerRelocation(type,context_realoc);
 }
 static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend* backend, FusBackendReturn backend_data)
 {
     FusTraceTree trace = NULL;
     FUSIH_INSTANCE_GET_TRACE(linker->inst_ref,&trace);
 
-    FusBackendTrasferLifeTime_t*   data  = backend_data->transfer_data;
-    FusBackendGenereteDataBlock_t* block = (FusBackendGenereteDataBlock_t*)data->data;
+    FusBackendTransferLifetime_t*   data  = backend_data->transfer_data;
+    FusBackendGenerateDataBlock_t* block = (FusBackendGenerateDataBlock_t*)data->data;
 
-    for (size_t i = 0; i < block->realoc_count; i++) {
-        FusBackendReallocNeed_t*  realoc_backend = &block->realoc[i];
+    for (size_t i = 0; i < block->reloc_count; i++) {
+        FusBackendRelocationNeed_t*  realoc_backend = &block->reloc[i];
         FusLinkerContextSymbol_t* symbol = FUS_GetSymbolLinker(linker, realoc_backend->name);
         if (unlikely(!symbol)) {
             FUS_PUSH_ERR(trace,FUSION_ERRO,"Linker Resolver Relocation Step-Failed");

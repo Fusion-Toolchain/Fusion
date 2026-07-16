@@ -52,7 +52,7 @@ FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend* ctx,c
     if (unlikely(!instance || !ctx || !name || type == FUS_BACKEND_TYPE_NONE)) return FUSION_ERRO;
     *ctx = NULL;
 
-    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC(instance);
+    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC_PTR(instance);
     if (unlikely(!alloc)) return FUSION_ERRO;
 
     struct FusModuleBackend_T* ctx_real = FUSIH_ALLOC(alloc, sizeof(struct FusModuleBackend_T));
@@ -98,7 +98,7 @@ void FUS_DestroyBackend(FusModuleBackend backend)
     struct FusModuleBackend_T* backend_real = backend;
 
     FusInstance* instance              = FUSIH_BACKEND_GET_API(&backend)->Instance;
-    FusInstanceMyAllocation_t* alloc   = FUSIH_INSTANCE_GET_ALLOC(instance);
+    FusInstanceMyAllocation_t* alloc   = FUSIH_INSTANCE_GET_ALLOC_PTR(instance);
 
     FUSIH_FREE(alloc, (void*)backend_real->name);
     FUSIH_FREE(alloc, backend_real->api);
