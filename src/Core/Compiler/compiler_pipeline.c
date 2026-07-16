@@ -79,7 +79,7 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     }
 
     FusBackendInterface_t* interface = backend->interface;
-    FusBackendTrasferLifeTime_t* backend_data = interface->FUSI_BackendMountHidrArry(hidr,count);
+    FusBackendTransferLifetime_t* backend_data = interface->FUSI_BackendMountHidrArray(hidr,count);
     if (unlikely(!backend_data)) {
         FUS_PUSH_ERR(
             trace,FUSION_ERRO,
@@ -108,7 +108,7 @@ FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend)
 {
     if (unlikely(!ctx_backend)) return NULL;
 
-    FusBackendGenereteDataBlock_t* data_block = (FusBackendGenereteDataBlock_t*)ctx_backend->transfer_data->data;
+    FusBackendGenerateDataBlock_t* data_block = (FusBackendGenerateDataBlock_t*)ctx_backend->transfer_data->data;
     FusBufferContext_t* exec = FUS_CreateBufferCode(data_block->slab_size);
     if (unlikely(!exec)) return NULL;
 

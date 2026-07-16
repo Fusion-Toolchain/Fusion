@@ -117,7 +117,7 @@ FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* 
 FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx)
 {
     if (unlikely(!ctx)) return FUSION_ERRO;
-    FusInstanceMyAllocation_t* allocation = FUSIH_INSTANCE_GET_ALLOC(&ctx);
+    FusInstanceMyAllocation_t* allocation = FUSIH_INSTANCE_GET_ALLOC(ctx);
 
     #ifdef FUSION_DEBUG
     FUSI_SlabTrace(ctx_real->slab);

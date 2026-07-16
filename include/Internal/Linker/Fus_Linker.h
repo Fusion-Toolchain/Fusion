@@ -11,7 +11,7 @@
 
 typedef struct {
     FusLinkerContextSymbol_t* symbol;
-    FusBackendRealocOpaqueType_t type;
+    FusBackendRelocationOpaqueType_t type;
 
     size_t section_index;
     size_t offset;
