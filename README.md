@@ -232,7 +232,13 @@ typedef struct {
 ## Building
 
 ```bash
-make
+make -j 6
+```
+
+## Examples Building
+
+```bash
+make example
 ```
 
 The Makefile targets the project as a static library. See `src/linker.ld` for the custom linker script.
