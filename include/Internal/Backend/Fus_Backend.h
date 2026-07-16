@@ -32,7 +32,7 @@ typedef struct {
  *
  * @warning Do not interpret or modify without knowledge of the backend's relocation model.
  */
-typedef uint32_t FusBackendRealocOpaqueType_t;
+typedef uint32_t FusBackendRelocationOpaqueType_t;
 
 /**
  * @brief Pending Relocation Entry
@@ -41,10 +41,10 @@ typedef uint32_t FusBackendRealocOpaqueType_t;
  * that requires future resolution by the Core linker.
  */
 typedef struct {
-    const char*                  name;
-    FusBackendRealocOpaqueType_t type;
-    size_t                       offset;
-} FusBackendReallocNeed_t;
+    const char*                      name;
+    FusBackendRelocationOpaqueType_t type;
+    size_t                           offset;
+} FusBackendRelocationNeed_t;
 
 /**
  * @brief Transfer Lifetime Handle
@@ -56,9 +56,9 @@ typedef struct {
 typedef struct {
     const void* data;
     void (*free)(const void* data);
-} FusBackendTrasferLifeTime_t;
+} FusBackendTransferLifetime_t;
 
-typedef struct FusBackendGenereteDataBlock FusBackendGenereteDataBlock_t; // forward ref
+typedef struct FusBackendGenerateDataBlock FusBackendGenerateDataBlock_t; // forward ref
 
 /**
  * @brief Core Dependency Injection API
@@ -72,14 +72,14 @@ typedef struct FusBackendGenereteDataBlock FusBackendGenereteDataBlock_t; // for
 typedef struct FusBackendApi {
     void* (*FusAlloc)(struct FusBackendApi*, size_t);
     void  (*FusFree)(struct FusBackendApi*, void*);
-    FusBackendTrasferLifeTime_t* (*FusCreateTrasfer)(
+    FusBackendTransferLifetime_t* (*FusCreateTransfer)(
         struct FusBackendApi*, void* data, void (*free)(const void* data)
     );
-    void (*FusDestroyTrasfer)(
-        struct FusBackendApi*, FusBackendTrasferLifeTime_t*
+    void (*FusDestroyTransfer)(
+        struct FusBackendApi*, FusBackendTransferLifetime_t*
     );
-    FusBackendGenereteDataBlock_t* (*FusCreateDataBlock)(struct FusBackendApi*, size_t, size_t);
-    void (*FusDestroyDataBlock)(struct FusBackendApi*, FusBackendGenereteDataBlock_t*);
+    FusBackendGenerateDataBlock_t* (*FusCreateDataBlock)(struct FusBackendApi*, size_t, size_t);
+    void (*FusDestroyDataBlock)(struct FusBackendApi*, FusBackendGenerateDataBlock_t*);
     FusInstance* Instance;
 } FusBackendApi_t;
 
@@ -90,28 +90,28 @@ typedef struct FusBackendApi {
  * stream, an associated arena for auxiliary allocations, and a table of pending
  * relocations to be resolved by the Core linker.
  */
-typedef struct FusBackendGenereteDataBlock {
-    uint8_t*               buffer_slab;
-    size_t                 slab_size;
-    size_t                 slab_offset;
-    FusMemoryArena_t*      arena;
-    FusBackendReallocNeed_t* realoc;
-    size_t                 realoc_count;
-    size_t                 realoc_capacity;
-    FusStatusFlag_t        flag;
-    FusBackendApi_t*       api;
-} FusBackendGenereteDataBlock_t;
+typedef struct FusBackendGenerateDataBlock {
+    uint8_t*                         buffer_slab;
+    size_t                           slab_size;
+    size_t                           slab_offset;
+    FusMemoryArena_t*                arena;
+    FusBackendRelocationNeed_t*       reloc;
+    size_t                           reloc_count;
+    size_t                           reloc_capacity;
+    FusStatusFlag_t                  flag;
+    FusBackendApi_t*                 api;
+} FusBackendGenerateDataBlock_t;
 
 /**
  * @brief Backend Interface Contract
  *
  * The minimal set of operations a backend must expose to the Core.
- * Defines the three fundamental backend capabilities: single-node generation,
- * array generation, and relocation resolution.
+ * Defines the fundamental backend capabilities: code generation and relocation resolution.
  */
 typedef struct {
-    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidrArry)(const FusHidrNode_t*, size_t);
-    FusStatusFlag_t              (*FUSI_BackendLinkerRealloc)(FusBackendRealocOpaqueType_t, FusBackendRelocContext_t*);
+    FusBackendTransferLifetime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
+    FusBackendTransferLifetime_t* (*FUSI_BackendMountHidrArray)(const FusHidrNode_t*, size_t);
+    FusStatusFlag_t               (*FUSI_BackendLinkerRelocation)(FusBackendRelocationOpaqueType_t, FusBackendRelocContext_t*);
 } FusBackendInterface_t;
 
 /**
@@ -122,8 +122,8 @@ typedef struct {
  * required for its lifetime management.
  */
 struct FusBackendReturn_T {
-    FusBackendTrasferLifeTime_t* transfer_data;
-    FusBackendApi_t*             api;
+    FusBackendTransferLifetime_t* transfer_data;
+    FusBackendApi_t*              api;
 };
 
 /**
@@ -136,8 +136,8 @@ struct FusBackendReturn_T {
 struct FusModuleBackend_T {
     FusModuleBackendType_t  type;
     const char*             name;
-    FusBackendInterface_t*  interface;  // backend-facing contract
-    FusBackendApi_t*        api;        // one instance per module
+    FusBackendInterface_t*  interface;
+    FusBackendApi_t*        api;
 };
 
 /**
