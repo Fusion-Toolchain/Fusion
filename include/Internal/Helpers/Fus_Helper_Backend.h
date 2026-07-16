@@ -41,15 +41,15 @@ static inline void FUSIH_API_FREE(FusBackendApi_t* api, void* ptr)
     if (unlikely(!api || !ptr)) return;
     api->FusFree(api, ptr);
 }
-static inline FusBackendTrasferLifeTime_t* FUSIH_API_CREATE_TRANSFER_LIFETIME(FusBackendApi_t* api, void* data, void (*free)(const void* data))
+static inline FusBackendTransferLifetime_t* FUSIH_API_CREATE_TRANSFER_LIFETIME(FusBackendApi_t* api, void* data, void (*free)(const void* data))
 {
     if (unlikely(!api || !data)) return NULL;
-    return api->FusCreateTrasfer(api,data,free);
+    return api->FusCreateTransfer(api,data,free);
 }
-static inline void FUSIH_API_DESTROY_TRANSFER_LIFETIME(FusBackendApi_t* api, FusBackendTrasferLifeTime_t* data_tranfer)
+static inline void FUSIH_API_DESTROY_TRANSFER_LIFETIME(FusBackendApi_t* api, FusBackendTransferLifetime_t* data_tranfer)
 {
     if (unlikely(!api || !data_tranfer)) return;
-    api->FusDestroyTrasfer(api,data_tranfer);
+    api->FusDestroyTransfer(api,data_tranfer);
 }
 
 #endif

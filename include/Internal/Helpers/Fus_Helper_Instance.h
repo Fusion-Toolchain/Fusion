@@ -5,14 +5,17 @@
 #include <Internal/Fus_Instance.h>
 
 // ─── Instance Helpers ───────────────────────────────────────────
-static inline FusInstanceMyAllocation_t* FUSIH_INSTANCE_GET_ALLOC(FusInstance* instance)
+static inline FusInstanceMyAllocation_t* FUSIH_INSTANCE_GET_ALLOC(FusInstance instance)
 {
     if (!instance) return NULL;
-    struct FusInstance_T* real = *instance;
-    if (!real) return NULL;
 
-    return real->allocation;
+    return instance->allocation;
 }
+static inline FusInstanceMyAllocation_t* FUSIH_INSTANCE_GET_ALLOC_PTR(FusInstance* instance)
+{
+    return (!instance || !*instance) ? NULL : (*instance)->allocation;
+}
+
 static inline void FUSIH_INSTANCE_GET_TRACE(FusInstance* instance, FusTraceTree* trace)
 {
     if (!instance) return;
@@ -23,13 +26,13 @@ static inline void FUSIH_INSTANCE_GET_TRACE(FusInstance* instance, FusTraceTree*
 
 static inline void* FUSIH_INSTANCE_ALLOC(FusInstance* instance, size_t size)
 {
-    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC(instance);
+    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC_PTR(instance);
     if (!alloc) return NULL;
     return alloc->Alloc(alloc->userdata, size);
 }
 static inline void FUSIH_INSTANCE_FREE(FusInstance* instance, void* ptr)
 {
-    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC(instance);
+    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC_PTR(instance);
     if (!alloc || !ptr) return;
     alloc->Free(alloc->userdata, ptr);
 }

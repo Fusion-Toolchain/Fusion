@@ -21,25 +21,25 @@ static inline void FUSB_FREE(FusBackendApi_t* api, void* ptr)
     if (unlikely(!api || !ptr)) return;
     api->FusFree(api,ptr);
 }
-static inline FusBackendGenereteDataBlock_t* FUSB_CREATE_BLOCK(FusBackendApi_t* api,size_t need_realoc,size_t buffer_size)
+static inline FusBackendGenerateDataBlock_t* FUSB_CREATE_BLOCK(FusBackendApi_t* api,size_t need_realoc,size_t buffer_size)
 {
     if (unlikely(!api || need_realoc == 0 || buffer_size == 0)) return NULL;
     return api->FusCreateDataBlock(api,need_realoc,buffer_size);
 }
-static inline void FUSB_DESTROY_BLOCK(FusBackendApi_t* api, FusBackendGenereteDataBlock_t* block)
+static inline void FUSB_DESTROY_BLOCK(FusBackendApi_t* api, FusBackendGenerateDataBlock_t* block)
 {
     if (unlikely(!api || !block)) return;
     api->FusDestroyDataBlock(api,block);
 }
-static inline FusBackendTrasferLifeTime_t* FUSB_CREATE_TRASNFER(FusBackendApi_t* api,void* data,void (*free)(const void*))
+static inline FusBackendTransferLifetime_t* FUSB_CREATE_TRASNFER(FusBackendApi_t* api,void* data,void (*free)(const void*))
 {
     if (unlikely(!api || !data || !free)) return NULL;
-    return api->FusCreateTrasfer(api,data,free);
+    return api->FusCreateTransfer(api,data,free);
 }
-static inline void FUSB_DESTROY_TRASNFER(FusBackendApi_t* api, FusBackendTrasferLifeTime_t* lifetime)
+static inline void FUSB_DESTROY_TRASNFER(FusBackendApi_t* api, FusBackendTransferLifetime_t* lifetime)
 {
     if (unlikely(!api || !lifetime)) return;
-    api->FusDestroyTrasfer(api,lifetime);
+    api->FusDestroyTransfer(api,lifetime);
 }
 static inline FusStatusFlag_t FUSB_GET_TRACE_FUSION(FusBackendApi_t* api, FusTraceTree* tree_out)
 {
