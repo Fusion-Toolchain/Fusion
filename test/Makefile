@@ -1,19 +1,29 @@
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Iinclude -DFUSION_DEBUG
+CFLAGS = -g -Wall -Wextra -DFUSION_DEBUG
 LDFLAGS = -lm
 
 INCLUDE_DIR := ../include
-TARGET = test_slab
-TEST_SRC = slab_test.c
+LIB_PATH := ../libfusion.so
+SRC_DIR := src
+
+TEST_SRCS := $(wildcard $(SRC_DIR)/*.c)
+TARGETS := $(addprefix test_,$(basename $(notdir $(TEST_SRCS))))
 
 all: compile test
 
-compile: $(TEST_SRC)
-	$(CC) -I$(INCLUDE_DIR) $(CFLAGS) -o $(TARGET) $^ ../libfusion.so $(LDFLAGS)
+compile: $(TARGETS)
 
-test:
-	valgrind --leak-check=full ./$(TARGET)
+test_%: $(SRC_DIR)/%.c
+	$(CC) -I$(INCLUDE_DIR) $(CFLAGS) -o $@ $^ $(LIB_PATH) $(LDFLAGS)
+
+test: $(TARGETS)
+	@for target in $(TARGETS); do \
+		echo "=== Running $$target ==="; \
+		valgrind --leak-check=full ./$$target || exit 1; \
+	done
+
+clean:
+	@if [ -n "$(TARGETS)" ]; then rm -f $(TARGETS); fi
+	@echo "Clear"
 
 .PHONY: all compile test clean
-clean:
-	rm -f $(TARGET)

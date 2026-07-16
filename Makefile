@@ -68,8 +68,6 @@ lib: $(FUSION_SO)
 
 example:
 	$(MAKE) -C example
-test:
-	$(MAKE) -C test compile
 
 $(CORE_LIB): $(CORE_OBJ)
 	@mkdir -p $(dir $@)
