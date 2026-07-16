@@ -41,7 +41,7 @@ static inline void FUSB_DESTROY_TRASNFER(FusBackendApi_t* api, FusBackendTrasfer
     if (unlikely(!api || !lifetime)) return;
     api->FusDestroyTrasfer(api,lifetime);
 }
-static inline FusStatusFlag_t FUSB_GET_TRACE_FUSION(FusBackendApi_t* api, FusTraceTree_t* tree_out)
+static inline FusStatusFlag_t FUSB_GET_TRACE_FUSION(FusBackendApi_t* api, FusTraceTree* tree_out)
 {
     if (unlikely(!api)) return FUSION_ERRO;
     struct FusInstance_T* real_instance = *api->Instance;

@@ -50,7 +50,9 @@ BACKEND_SRC := \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_add.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_call.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_ret.c \
-	$(SRC_DIR)/Backend/X86/InstructionSets/x86_lea.c
+	$(SRC_DIR)/Backend/X86/InstructionSets/x86_lea.c \
+	$(SRC_DIR)/Backend/X86/InstructionSets/x86_stack.c \
+	$(SRC_DIR)/Backend/X86/InstructionSets/x86_syscall.c
 
 BACKEND_OBJ := $(BACKEND_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 BACKEND_LIB := $(BUILD_DIR)/libfusion_x86.a
@@ -65,7 +67,9 @@ all: lib
 lib: $(FUSION_SO)
 
 example:
-	$(MAKE) -f example/Makefile
+	$(MAKE) -C example
+test:
+	$(MAKE) -C test compile
 
 $(CORE_LIB): $(CORE_OBJ)
 	@mkdir -p $(dir $@)
@@ -94,6 +98,8 @@ $(BUILD_DIR)/example/%.o: $(EXAMPLE_DIR)/%.c
 # CLEAN
 # ========================
 clean:
+	$(MAKE) -C test clean
+	$(MAKE) -C example clean
 	rm -rf $(BUILD_DIR) $(FUSION_SO) main *.bin
 
 # ========================

@@ -110,7 +110,6 @@ typedef struct FusBackendGenereteDataBlock {
  * array generation, and relocation resolution.
  */
 typedef struct {
-    FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
     FusBackendTrasferLifeTime_t* (*FUSI_BackendMountHidrArry)(const FusHidrNode_t*, size_t);
     FusStatusFlag_t              (*FUSI_BackendLinkerRealloc)(FusBackendRealocOpaqueType_t, FusBackendRelocContext_t*);
 } FusBackendInterface_t;

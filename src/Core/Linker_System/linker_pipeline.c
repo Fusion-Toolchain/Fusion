@@ -1,9 +1,12 @@
-#include "Internal/Backend/Fus_Backend.h"
+#include <Internal/Backend/Fus_Backend.h>
 #include <Internal/Linker/Fus_Linker.h>
 #include <Internal/Linker/Fus_Hashtable.h>
 
+#include <Internal/Fus_TraceTree.h>
+
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
+#include <Internal/Helpers/Fus_Helper_Instance.h>
 
 #include <Fusion/FusionRule.h>
 
@@ -42,13 +45,19 @@ static inline void LinkerBackendRealloc(FusModuleBackend* backend, FusBackendRel
 }
 static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend* backend, FusBackendReturn backend_data)
 {
+    FusTraceTree trace = NULL;
+    FUSIH_INSTANCE_GET_TRACE(linker->inst_ref,&trace);
+
     FusBackendTrasferLifeTime_t*   data  = backend_data->transfer_data;
     FusBackendGenereteDataBlock_t* block = (FusBackendGenereteDataBlock_t*)data->data;
 
     for (size_t i = 0; i < block->realoc_count; i++) {
         FusBackendReallocNeed_t*  realoc_backend = &block->realoc[i];
         FusLinkerContextSymbol_t* symbol = FUS_GetSymbolLinker(linker, realoc_backend->name);
-        if (unlikely(!symbol)) return false;
+        if (unlikely(!symbol)) {
+            FUS_PUSH_ERR(trace,FUSION_ERRO,"Linker Resolver Relocation Step-Failed");
+            return false;
+        }
 
         FusBackendRelocContext_t context = {
             .buffer     = block->buffer_slab,
@@ -59,12 +68,7 @@ static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend*
         LinkerBackendRealloc(backend, &context, realoc_backend->type);
     }
 
-#ifdef FUSION_DEBUG
-    for (size_t i = 0; i < block->slab_offset; i++) {
-        printf(" %X", block->buffer_slab[i]);
-    }
-    printf("\n");
-#endif
+    FUS_PUSH_ERR(trace,FUSION_OK,"Linker Resolver Relocation Step-Success");
     return true;
 }
 

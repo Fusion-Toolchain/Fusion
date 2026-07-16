@@ -8,10 +8,8 @@ bool X86_CaseMountLeaRegMem(X86BackendContext* backend_ctx)
     x86Instruction_t* mount_instr = backend_ctx->encoder;
 
     /* Validação de operands */
-    if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG)
-        return false;
-    if (mir_node->src.type != HIDR_OPERAND_TYPE_MEM_REF)
-        return false;
+    if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
+    if (mir_node->src.type != HIDR_OPERAND_TYPE_MEM_REF) return false;
 
     FusHidrVirtualReg_t dst_reg  = X86_MapVirtualReg(mir_node->dst.data.reg);
     FusHidrVirtualReg_t base_reg = X86_MapVirtualReg(mir_node->src.data.memory_ref.base);

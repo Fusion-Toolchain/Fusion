@@ -10,14 +10,15 @@ static inline FusInstanceMyAllocation_t* FUSIH_INSTANCE_GET_ALLOC(FusInstance* i
     if (!instance) return NULL;
     struct FusInstance_T* real = *instance;
     if (!real) return NULL;
+
     return real->allocation;
 }
-static inline FusTraceTree_t FUSIH_INSTANCE_GET_TRACE(FusInstance* instance)
+static inline void FUSIH_INSTANCE_GET_TRACE(FusInstance* instance, FusTraceTree* trace)
 {
-    if (!instance) return NULL;
+    if (!instance) return;
     struct FusInstance_T* real = *instance;
-    if (!real) return NULL;
-    return real->trace;
+    if (!real) return;
+    *trace = real->trace;
 }
 
 static inline void* FUSIH_INSTANCE_ALLOC(FusInstance* instance, size_t size)

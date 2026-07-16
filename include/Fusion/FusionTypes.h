@@ -5,8 +5,8 @@
 #define FUS_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
 typedef enum {
-    FUSION_OK = 0,
-    FUSION_ERRO = 1
+    FUSION_OK = 1,
+    FUSION_ERRO = 0
 } FusStatusFlag_t;
 typedef struct {
     void* (*Alloc)(void*,size_t);

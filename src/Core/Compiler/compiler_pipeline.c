@@ -52,15 +52,17 @@ static inline bool _ArgumentProcessMountHidrBytes(
 
 FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out)
 {
-    if (unlikely(!instance)) return FUSION_ERRO;
-    if (unlikely(!compiler_rule)) return FUSION_ERRO;
-    if (unlikely(!out)) return FUSION_ERRO;
+    if (unlikely(!instance || !compiler_rule || !out)) return FUSION_ERRO;
     *out = NULL;
+
+    FusTraceTree trace = NULL;
+    FUSIH_INSTANCE_GET_TRACE(instance,&trace);
 
     struct FusBackendReturn_T* ctx = FUSIH_INSTANCE_ALLOC(instance, sizeof(struct FusBackendReturn_T));
     if (unlikely(!ctx)) {
-        FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO,
-            "Fail alloc Backend Return!");
+        FUS_PUSH_ERR(
+            trace,FUSION_ERRO,
+            "Fail alloc Backend Return");
         goto error;
     }
 
@@ -69,11 +71,10 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     size_t count = 0;
 
     if(!_ArgumentProcessMountHidrBytes(compiler_rule,&backend,&hidr,&count)) goto error;
-    if (unlikely(!backend || !hidr || !count)) goto error;
-    if (unlikely(count == 0)) {
+    if (unlikely(!backend || !hidr || count == 0)) {
         FUS_PUSH_ERR(
-            FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO,
-            "Backend Compiler Argumento Failed!");
+            trace,FUSION_ERRO,
+            "Backend Compiler Argumento Failed");
         goto error;
     }
 
@@ -81,8 +82,8 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     FusBackendTrasferLifeTime_t* backend_data = interface->FUSI_BackendMountHidrArry(hidr,count);
     if (unlikely(!backend_data)) {
         FUS_PUSH_ERR(
-            FUSIH_INSTANCE_GET_TRACE(instance),FUSION_ERRO,
-            "Backend fail step mount Bytes, entry backend!");
+            trace,FUSION_ERRO,
+            "Backend Fail Step MountBytes, Entry Backend");
         goto error;
     }
 
@@ -90,8 +91,9 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     ctx->api = backend->api;
     *out = ctx;
 
-    FUS_PUSH_ERR(FUSIH_INSTANCE_GET_TRACE(instance),FUSION_OK,
-        "Backend Mount Byte-Step OK!");
+    FUS_PUSH_ERR(
+        trace,FUSION_OK,
+        "Backend Mount ByteCode Step Completed");
     return FUSION_OK;
 
     error:
@@ -116,7 +118,7 @@ FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend)
     return exec;
 }
 
-void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn ctx_backend)
+void FUS_DestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend)
 {
     if (unlikely(!instance || !ctx_backend)) return;
 

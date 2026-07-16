@@ -33,7 +33,7 @@ bool X86_CaseMountCallReg(X86BackendContext* backend_ctx)
     return true;
 }
 
-bool X86_CaseMountCallImm(X86BackendContext* backend_ctx)
+bool X86_CaseMountCallRel32(X86BackendContext* backend_ctx)
 {
     x86Instruction_t* mount_instr = backend_ctx->encoder;
 

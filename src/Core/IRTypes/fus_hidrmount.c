@@ -68,13 +68,12 @@ FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t 
     return FUSION_OK;
 }
 
-void FUS_DestroyCodeMount(FusInstance* ctx, FusCodeMount code)
+void FUS_DestroyCodeMount(FusInstance ctx, FusCodeMount code)
 {
     if (unlikely(!ctx || !code)) return;
-    struct FusInstance_T* instance_real = *ctx;
 
-    FUSIH_FREE(instance_real->allocation,code->code_arry);
-    FUSIH_FREE(instance_real->allocation,code);
+    FUSIH_FREE(ctx->allocation,code->code_arry);
+    FUSIH_FREE(ctx->allocation,code);
 
     code = NULL;
 }

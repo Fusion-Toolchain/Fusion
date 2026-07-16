@@ -110,26 +110,25 @@ FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* 
     ctx_real->slab = slab;
     ctx_real->larger_alloc = larger_blocks;
 
+    FUS_PUSH_ERR(ctx_real->trace,FUSION_OK,"Core Instance Create");
     *ctx = ctx_real;
     return FUSION_OK;
 }
-FusStatusFlag_t FUS_DestroyInstance(FusInstance* ctx)
+FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx)
 {
     if (unlikely(!ctx)) return FUSION_ERRO;
-    struct FusInstance_T* ctx_real = *ctx;
-    FusInstanceMyAllocation_t* allocation = FUSIH_INSTANCE_GET_ALLOC(ctx);
+    FusInstanceMyAllocation_t* allocation = FUSIH_INSTANCE_GET_ALLOC(&ctx);
 
     #ifdef FUSION_DEBUG
     FUSI_SlabTrace(ctx_real->slab);
     #endif
 
-    FUSI_DestrotTraceContext(allocation,&ctx_real->trace);
-    FUSI_CloseHandleSystem(&ctx_real->table);
-    FUSI_DestroySlab(ctx_real->slab);
-    FUSI_CloseLargerBlocks(allocation,&ctx_real->larger_alloc);
-    FUSIH_FREE(allocation,ctx_real);
+    FUSI_DestrotTraceContext(allocation,&ctx->trace);
+    FUSI_CloseHandleSystem(&ctx->table);
+    FUSI_DestroySlab(ctx->slab);
+    FUSI_CloseLargerBlocks(allocation,&ctx->larger_alloc);
+    FUSIH_FREE(allocation,ctx);
 
-    *ctx = NULL;
     return FUSION_OK;
 }
 

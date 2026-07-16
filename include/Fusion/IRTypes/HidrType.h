@@ -31,6 +31,9 @@ typedef enum {
     HIDR_INSTR_RET,
     HIDR_INSTR_CALL,
     HIDR_INSTR_ADDR,
+    HIDR_INSTR_PUSH,
+    HIDR_INSTR_POP,
+    HIDR_INSTR_SYSCALL
 } FusHidrNodeKind_t;
 /*
  * @brief Hidr Operand Types

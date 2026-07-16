@@ -7,21 +7,33 @@ bool X86_CaseMountMovImmReg(X86BackendContext* backend_ctx)
 {
     const FusHidrNode_t* mir_node = backend_ctx->hidr;
     x86Instruction_t* mount_instr = backend_ctx->encoder;
-
+    
     FusHidrImmSize_t imm_type = mir_node->src.data.imm.size;
-
-    mount_instr->opcode.opcode[0] = (imm_type == HIDR_IMM8 ? 0xB0 : 0xB8) + X86_MapVirtualReg(
-        mir_node->dst.data.reg
-    );
-    mount_instr->opcode.opcode_size = 1;
-    size_t imm_size = X86_CalMirImmSize(mir_node->src.data.imm.size);
-
+    size_t imm_size = X86_CalMirImmSize(imm_type);
+    
     if (!imm_size) return false;
+    
+    mount_instr->opcode.opcode[0] = 0xB8 + X86_MapVirtualReg(mir_node->dst.data.reg);
+    mount_instr->opcode.opcode_size = 1;
+    
+    // Se for 64-bit, SEMPRE precisa REX.W (mesmo com imm32)
+    if (mir_node->op_size == HIDR_OP_SIZE_64) {
+        mount_instr->rex.w = 1;
+        mount_instr->has_rex = true;
 
+        if (imm_type <= HIDR_IMM32) {
+            mount_instr->imm.size = 4;  // imm32 sign-extended
+        } else {
+            mount_instr->imm.size = 8;  // imm64 completo
+        }
+    } else {
+        // 32-bit (sem REX.W)
+        mount_instr->imm.size = imm_size;
+    }
+    
     mount_instr->imm.value = mir_node->src.data.imm.imm;
-    mount_instr->imm.size = imm_size;
     mount_instr->has_imm = true;
-
+    
     return true;
 }
 
@@ -79,6 +91,69 @@ bool X86_CaseMountMovMemImm(X86BackendContext* backend_ctx)
     instr->imm.value = mir_node->src.data.imm.imm;
     instr->imm.size = 4;
     instr->has_imm = true;
+
+    return true;
+}
+
+bool X86_CaseMountMovRegMem(X86BackendContext* backend_ctx)
+{
+    const FusHidrNode_t* mir_node = backend_ctx->hidr;
+    x86Instruction_t* instr = backend_ctx->encoder;
+
+    if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
+    if (mir_node->src.type != HIDR_OPERAND_TYPE_MEM_REF) return false;
+    FusHidrVirtualReg_t dst_reg = X86_MapVirtualReg(mir_node->dst.data.reg);
+    FusHidrVirtualReg_t base_reg = X86_MapVirtualReg(mir_node->src.data.memory_ref.base);
+
+    int32_t offset = mir_node->src.data.memory_ref.offset;
+    /*
+     * MOV r64, r/m64
+     *
+     * Opcode:
+     *   48 8B /r
+     */
+    instr->opcode.opcode[0] = 0x8B;
+    instr->opcode.opcode_size = 1;
+
+    uint8_t mod;
+    if (offset == 0 && (base_reg & 0x7) != 5) {
+        mod = 0;        // [base]
+    }
+    else if (offset >= -128 && offset <= 127) {
+        mod = 1;        // [base + disp8]
+    }
+    else {
+        mod = 2;        // [base + disp32]
+    }
+
+    instr->modrm.mod = mod;
+    instr->modrm.reg = dst_reg & 0x7;
+    instr->modrm.rm  = base_reg & 0x7;
+    instr->has_modrm = true;
+
+    /*
+     * REX.W + REX.R + REX.B
+     */
+
+    instr->rex.w = 1;
+    instr->rex.r = (dst_reg >= 8);
+    instr->rex.b = (base_reg >= 8);
+    instr->has_rex = true;
+
+    /*
+     * displacement
+     */
+
+    if (mod == 1) {
+        instr->disp.value = offset;
+        instr->disp.size = 1;
+        instr->has_disp = true;
+    }
+    else if (mod == 2) {
+        instr->disp.value = offset;
+        instr->disp.size = 4;
+        instr->has_disp = true;
+    }
 
     return true;
 }

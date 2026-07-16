@@ -27,7 +27,7 @@ struct FusTraceTree_T {
     FusErrorNode_t* current;
 };
 
-FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree_t* out)
+FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree* out)
 {
     if (unlikely(!allocator || !out)) return FUSION_ERRO;
 
@@ -40,7 +40,7 @@ FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,Fus
     *out = tree;
     return FUSION_OK;
 }
-void FUSI_DestrotTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree_t* tree_ctx)
+void FUSI_DestrotTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx)
 {
     if (unlikely(!allocator || !tree_ctx)) return;
     struct FusTraceTree_T* tree = *tree_ctx;
@@ -49,8 +49,8 @@ void FUSI_DestrotTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree
     *tree_ctx = NULL;
 }
 
-FusStatusFlag_t FUSI_PushError(
-    FusTraceTree_t tree_ctx, FusStatusFlag_t code,
+FusStatusFlag_t FUS_PushError(
+    FusTraceTree tree_ctx, FusStatusFlag_t code,
     const char* file, uint32_t line, const char* message
 )
 {
@@ -74,7 +74,7 @@ FusStatusFlag_t FUSI_PushError(
     return FUSION_OK;
 }
 
-void FUS_ClearErrors(FusTraceTree_t tree_ctx)
+void FUS_ClearErrors(FusTraceTree tree_ctx)
 {
     if (unlikely(!tree_ctx)) return;
     struct FusTraceTree_T* tree = tree_ctx;
@@ -82,47 +82,72 @@ void FUS_ClearErrors(FusTraceTree_t tree_ctx)
     tree->current = NULL;
 }
 
-static void FUSI_DumpTraceNode(FusErrorNode_t* node, int depth)
+#define FUS_COLOR_RESET  "\033[0m"
+#define FUS_COLOR_GRAY   "\033[90m"
+#define FUS_COLOR_GREEN  "\033[32m"
+#define FUS_COLOR_BLUE   "\033[34m"
+#define FUS_COLOR_YELLOW "\033[33m"
+#define FUS_COLOR_RED    "\033[31m"
+
+static int FUSI_TraceDepth(FusErrorNode_t* node)
+{
+    int depth = 0;
+    while (node && node->parent) {
+        depth++;
+        node = node->parent;
+    }
+    return depth;
+}
+static void FUSI_DumpTraceNode(FusErrorNode_t* node)
 {
     if (!node) return;
+    if (node->parent)FUSI_DumpTraceNode(node->parent);
+    int depth = FUSI_TraceDepth(node);
+    printf(
+    "%*s%s[%s:%u] code=%d%s\n",
+        depth * 2,
+        "",
+        FUS_COLOR_GRAY,
+        node->file ? node->file : "???",
+        node->line,
+        (int)node->code,
+        FUS_COLOR_RESET);
 
-    printf("%*s[%s:%u] code=%d\n",
-           depth * 2, "",
-           node->file ? node->file : "???",
-           node->line,
-           (int)node->code);
-    
     if (node->message[0] != '\0') {
-        printf("%*s  └─ %s\n",
-               depth * 2, "",
-               node->message);
-    }
-
-    if (node->parent) {
-        FUSI_DumpTraceNode(node->parent, depth + 1);
+        const char *color =
+            node->code == 0 ?
+            FUS_COLOR_GREEN :
+            FUS_COLOR_RED;
+        printf(
+            "%*s%s└─ %s%s\n",
+            depth * 2,
+            "",
+            color,
+            node->message,
+            FUS_COLOR_RESET
+        );
     }
 }
 
-void FUS_DumpTrace(FusTraceTree_t tree_ctx)
+void FUS_DumpTrace(FusTraceTree tree_ctx)
 {
-    if (unlikely(!tree_ctx)) {
-        printf("(sem trace context)\n");
-        return;
-    }
+    if (unlikely(!tree_ctx)) return;
+
+    printf("\n\n");
     struct FusTraceTree_T* tree = tree_ctx;
     if (!tree->current) {
         printf("(nenhum erro registrado)\n");
         return;
     }
     
-    printf("=== Fusion Error Trace (Raiz -> Saida Final) ===\n");
-    FUSI_DumpTraceNode(tree->current, 0);
-    printf("================================================\n");
+    printf("=== Fusion Trace (Raiz -> Saida Final) ===\n");
+    FUSI_DumpTraceNode(tree->current);
+    printf("================================================\n\n");
 }
 
-FusStatusFlag_t FUS_InstanceGetTrace(FusInstance instance, FusTraceTree_t* out)
+FusStatusFlag_t FUS_InstanceGetTrace(FusInstance instance, FusTraceTree* out)
 {
     if (unlikely(!instance || !out)) return FUSION_ERRO;
-    *out = FUSIH_INSTANCE_GET_TRACE(&instance);
+    FUSIH_INSTANCE_GET_TRACE(&instance,out);
     return FUSION_OK;
 }

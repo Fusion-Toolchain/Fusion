@@ -14,7 +14,7 @@ struct FusInstance_T {
     FusTable_t table;
     FusSlab_t* slab;
     FusLargerBlock_t larger_alloc;
-    FusTraceTree_t trace;
+    FusTraceTree trace;
 };
 
 #endif

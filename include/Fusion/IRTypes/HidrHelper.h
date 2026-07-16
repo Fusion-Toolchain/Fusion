@@ -6,7 +6,7 @@
 FUS_DEFINE_HANDLE(FusCodeMount);
 
 FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount* out);
-void FUS_DestroyCodeMount(FusInstance* ctx, FusCodeMount code);
+void FUS_DestroyCodeMount(FusInstance ctx, FusCodeMount code);
 
 FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node);
 

@@ -3,15 +3,15 @@
 #include <Fusion/FusionTypes.h>
 #include <stdint.h>
 
-typedef struct FusTraceTree_T* FusTraceTree_t;
+typedef struct FusTraceTree_T* FusTraceTree;
 
-FusStatusFlag_t FUSI_PushError(
-    FusTraceTree_t tree_ctx, FusStatusFlag_t code,
+FusStatusFlag_t FUS_PushError(
+    FusTraceTree tree_ctx, FusStatusFlag_t code,
     const char* file, uint32_t line, const char* message
 );
-void FUS_ClearErrors(FusTraceTree_t tree_ctx);
-void FUS_DumpTrace(FusTraceTree_t tree_ctx);
+void FUS_ClearErrors(FusTraceTree tree_ctx);
+void FUS_DumpTrace(FusTraceTree tree_ctx);
 
-FusStatusFlag_t FUS_InstanceGetTrace(FusInstance instance, FusTraceTree_t* out);
+FusStatusFlag_t FUS_InstanceGetTrace(FusInstance instance, FusTraceTree* out);
 
 #endif

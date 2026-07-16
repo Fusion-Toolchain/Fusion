@@ -11,7 +11,7 @@
 #include <stddef.h>
 
 FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx,FusInstanceMyAllocation_t* allocation);
-FusStatusFlag_t FUS_DestroyInstance(FusInstance* ctx);
+FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx);
 /*
  * @breif Create Buffer
  * @param size_t Buffer Size
@@ -32,7 +32,7 @@ void FUS_DestroyBufferCode(FusBufferContext_t* buffer);
 */
 FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out);
 FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend);
-void FUS_DestroyCompiler(FusInstance instance, FusBackendReturn ctx_backend);
+void FUS_DestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend);
 /*
  * @brief Status By String
  * @param FusStatusFlag_t Status Code
