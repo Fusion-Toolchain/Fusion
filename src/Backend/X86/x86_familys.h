@@ -8,7 +8,7 @@
 typedef struct {
     x86Instruction_t* encoder;
     const FusHidrNode_t* hidr;
-    FusBackendGenereteDataBlock_t* block;
+    FusBackendGenerateDataBlock_t* block;
 } X86BackendContext;
 
 typedef bool (*X86FmailyRuleFunc_t)(X86BackendContext*);

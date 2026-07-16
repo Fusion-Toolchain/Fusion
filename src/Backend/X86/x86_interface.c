@@ -114,7 +114,7 @@ static inline bool X86_SelectFamily(X86BackendContext* backend_ctx)
 /*
  * Internal Once Processor
 */
-static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenereteDataBlock_t* block, const FusHidrNode_t* element)
+static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenerateDataBlock_t* block, const FusHidrNode_t* element)
 {
     FusTraceTree trace = NULL;
     if (unlikely(!block || !element)) return FUSION_ERRO;
@@ -154,11 +154,11 @@ static inline size_t X86DraticCase(const FusHidrNode_t* node)
 
 static void DestroyLifetimeBlock(const void* data)
 {
-    FusBackendGenereteDataBlock_t* block = (FusBackendGenereteDataBlock_t*)data; // EXPLICIT CAST
+    FusBackendGenerateDataBlock_t* block = (FusBackendGenerateDataBlock_t*)data; // EXPLICIT CAST
     FUSB_DESTROY_BLOCK(block->api,block);
 }
 
-static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(const FusHidrNode_t* hidr, const size_t count)
+static FusBackendTransferLifetime_t* X86_BackendMountHidrArry(const FusHidrNode_t* hidr, const size_t count)
 {
     FusTraceTree trace = NULL;
     if (unlikely(!hidr || count == 0)) return NULL;
@@ -167,12 +167,12 @@ static FusBackendTrasferLifeTime_t* X86_BackendMountHidrArry(const FusHidrNode_t
     size_t size_buffer = 0;
     for (size_t i = 0; i < count; i++) size_buffer += X86DraticCase(&hidr[i]);
 
-    FusBackendGenereteDataBlock_t* block = FUSB_CREATE_BLOCK(FUS, 23, size_buffer);
+    FusBackendGenerateDataBlock_t* block = FUSB_CREATE_BLOCK(FUS, 23, size_buffer);
     if (unlikely(!block)) {
         FUS_PUSH_ERR(trace,FUSION_OK,"Backend Create BlockCompiler, Fail");
         return NULL;
     }
-    FusBackendTrasferLifeTime_t* transfer = FUSB_CREATE_TRASNFER(FUS, block, DestroyLifetimeBlock);
+    FusBackendTransferLifetime_t* transfer = FUSB_CREATE_TRASNFER(FUS, block, DestroyLifetimeBlock);
     if (unlikely(!transfer)) {
         DestroyLifetimeBlock(block);
 
@@ -199,7 +199,7 @@ static inline void X86_WriteInt32(uint8_t* base, size_t offset, int32_t value)
 {
     memcpy(base + offset, &value, sizeof(int32_t));
 }
-static FusStatusFlag_t X86_LinkerHelper(FusBackendRealocOpaqueType_t opaque_type, FusBackendRelocContext_t* realoc)
+static FusStatusFlag_t X86_LinkerHelper(FusBackendRelocationOpaqueType_t opaque_type, FusBackendRelocContext_t* realoc)
 {
     FusTraceTree trace = NULL;
     if (unlikely(!realoc)) return FUSION_ERRO;
@@ -236,8 +236,8 @@ static FusStatusFlag_t X86_LinkerHelper(FusBackendRealocOpaqueType_t opaque_type
 #include <Internal/Backend/Fus_StaticBackend.h>
 
 static FusBackendInterface_t interface = {
-    .FUSI_BackendMountHidrArry = X86_BackendMountHidrArry,
-    .FUSI_BackendLinkerRealloc = X86_LinkerHelper,
+    .FUSI_BackendMountHidrArray = X86_BackendMountHidrArry,
+    .FUSI_BackendLinkerRelocation = X86_LinkerHelper,
 };
 FusBackendInterface_t* X86_BackendDefine(FusBackendApi_t* api)
 {
