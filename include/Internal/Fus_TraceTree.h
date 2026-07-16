@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree* out);
-void FUSI_DestrotTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx);
+void FUSI_DestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx);
 
 #define FUS_PUSH_ERR(trace, code, msg) \
     FUS_PushError(trace, code, __FILE__, __LINE__, msg)

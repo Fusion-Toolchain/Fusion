@@ -123,7 +123,7 @@ FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx)
     FUSI_SlabTrace(ctx_real->slab);
     #endif
 
-    FUSI_DestrotTraceContext(allocation,&ctx->trace);
+    FUSI_DestroyTraceContext(allocation,&ctx->trace);
     FUSI_CloseHandleSystem(&ctx->table);
     FUSI_DestroySlab(ctx->slab);
     FUSI_CloseLargerBlocks(allocation,&ctx->larger_alloc);

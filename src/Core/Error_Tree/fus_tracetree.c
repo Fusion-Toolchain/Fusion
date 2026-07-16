@@ -40,7 +40,7 @@ FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,Fus
     *out = tree;
     return FUSION_OK;
 }
-void FUSI_DestrotTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx)
+void FUSI_DestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx)
 {
     if (unlikely(!allocator || !tree_ctx)) return;
     struct FusTraceTree_T* tree = *tree_ctx;
@@ -115,7 +115,7 @@ static void FUSI_DumpTraceNode(FusErrorNode_t* node)
 
     if (node->message[0] != '\0') {
         const char *color =
-            node->code == 0 ?
+            node->code == FUSION_OK ?
             FUS_COLOR_GREEN :
             FUS_COLOR_RED;
         printf(
