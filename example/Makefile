@@ -1,7 +1,7 @@
 CC := gcc
 
 CFLAG := -I../include
-FUS_LIB := -L../ -lfusion -Wl,-rpath,'$$ORIGIN'
+FUS_LIB := ../libfusion.so -lelf -Wl,-rpath,'$$ORIGIN'
 
 SRC_DIR := src
 EXAMPLE_SRCS := $(wildcard $(SRC_DIR)/*.c)
@@ -14,6 +14,7 @@ example_%: $(SRC_DIR)/%.c
 
 clean:
 	@if [ -n "$(TARGETS)" ]; then rm -f $(TARGETS); fi
+	@rm -rf *.elf *.bin
 	@echo "Clear"
 
 .PHONY: all clean

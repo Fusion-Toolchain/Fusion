@@ -95,3 +95,12 @@ void FUS_DestroyBufferCode(FusBufferContext_t* buffer)
     munmap(buffer->buffer,buffer->buffer_size);
     free(buffer);
 }
+
+#include <Fusion/IO/FusionGenericIO.h>
+#include <Internal/IO/Fus_GenericIO.h>
+FusStatusFlag_t FUS_BufferIOSink(FusBufferContext_t* buffer, FusIOSink sink)
+{
+    if (unlikely(!buffer || !sink)) return FUSION_ERRO;
+    sink->interface.write(sink->ctx,buffer->buffer,buffer->offset);
+    return FUSION_OK;
+}

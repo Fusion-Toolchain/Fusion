@@ -107,12 +107,12 @@ static inline void DestroyConfigureSymbols(FusInstanceMyAllocation_t* allocator,
 }
 
 
-FusStatusFlag_t FUS_CreateLinkerContext(FusInstance* instance, FusLinkerContext* out)
+FusStatusFlag_t FUS_CreateLinkerContext(FusInstance instance, FusLinkerContext* out)
 {
     if (unlikely(!instance || !out)) return FUSION_ERRO;
     *out = NULL;
 
-    struct FusInstance_T* instance_real = *instance;
+    struct FusInstance_T* instance_real = instance;
     FusInstanceMyAllocation_t* allocator = instance_real->allocation;
     FusSlab_t* slab = instance_real->slab;
 
@@ -148,7 +148,7 @@ FusStatusFlag_t FUS_CreateLinkerContext(FusInstance* instance, FusLinkerContext*
 static inline bool SectionArryGrow(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return false;
-    struct FusInstance_T* instance_real = *ctx->inst_ref;
+    struct FusInstance_T* instance_real = ctx->inst_ref;
     FusInstanceMyAllocation_t* allocator = instance_real->allocation;
 
     size_t new_cap = ctx->sections_capacity * 2;
@@ -202,7 +202,7 @@ static inline bool SymbolsArryGrow(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return false;
 
-    struct FusInstance_T* instance_real = *ctx->inst_ref;
+    struct FusInstance_T* instance_real = ctx->inst_ref;
     FusInstanceMyAllocation_t* allocator = instance_real->allocation;
 
     size_t new_cap = ctx->symbols_capacity * 2;

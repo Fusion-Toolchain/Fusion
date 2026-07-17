@@ -7,6 +7,7 @@
 #include "FusionRule.h"
 #include "FusionTypes.h"
 #include "IRTypes/HidrHelper.h"
+#include "IO/FusionGenericIO.h"
 
 #include <stddef.h>
 
@@ -19,6 +20,7 @@ FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx);
 */
 FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size);
 FusStatusFlag_t FUS_ExecutableBuffer(FusBufferContext_t* buffer);
+FusStatusFlag_t FUS_BufferIOSink(FusBufferContext_t* buffer, FusIOSink sink);
 void FUS_ReUsedBuffer(FusBufferContext_t* buffer);
 /*
  * @brief Destroy Buffer Access
@@ -30,7 +32,7 @@ void FUS_DestroyBufferCode(FusBufferContext_t* buffer);
  * @param FusMirNode_t* Mir Node
  * @return FusStatusFlag_t Build Flag
 */
-FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out);
+FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out);
 FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend);
 void FUS_DestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend);
 /*

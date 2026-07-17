@@ -43,7 +43,7 @@ static inline void BackendDefineInterface(FusInstance* instance,FusBackendApi_t*
 {
     if (unlikely(!instance || !api)) return;
     *api = FUSI_InterfaceDefine(); // Backend Interface Define
-    api->Instance = instance;
+    api->Instance = instance; // REFERENCIA PARA BACKEND, exige variavel que tenha ciclo de vida alto.
 }
 
 

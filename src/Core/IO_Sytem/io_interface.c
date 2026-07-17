@@ -1,23 +1,23 @@
-#include "io_interface.h"
+#include <Internal/IO/Fus_GenericIO.h>
 
 #include <stdlib.h>
 
-FusIOBackend_t* IO_CreateGenericIOBackend(void* ctx_data)
+FusStatusFlag_t FUSI_IOCreateGenericIOSink(FusIOSink* out,FusIOSinkInterfaceDefine interface,void* ctx_data)
 {
-    FusIOBackend_t* ctx = malloc(sizeof(FusIOBackend_t));
-    if (!ctx) return NULL;
+    if (!out) return FUSION_ERRO;
+    struct FusIOSink_T* ctx = malloc(sizeof(struct FusIOSink_T));
+    if (!ctx) return FUSION_ERRO;
 
-    ctx->close = NULL;
-    ctx->flush = NULL;
-    ctx->write = NULL;
-
+    ctx->interface = interface;
     ctx->ctx = ctx_data;
 
-    return ctx;
+    *out = ctx;
+    return FUSION_OK;
 }
-void FUS_DestroyIOBackend(FusIOBackend_t* ctx)
+void FUS_DestroyIOSink(FusIOSink ctx)
 {
     if (!ctx) return;
-    if (ctx->close) ctx->close(ctx->ctx);
+    FusIOSinkInterfaceDefine interface = ctx->interface;
+    if (interface.close) interface.close(ctx->ctx);
     free(ctx);
 }

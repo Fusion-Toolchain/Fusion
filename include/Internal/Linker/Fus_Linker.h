@@ -31,7 +31,7 @@ struct FusLinkerContext_T {
     FdbHashTable_t* symbols_table;
     FusMemoryArena_t* arena;
 
-    FusInstance* inst_ref;
+    FusInstance inst_ref;
 };
 
 #endif

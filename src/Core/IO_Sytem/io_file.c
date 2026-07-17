@@ -1,5 +1,8 @@
 #include <Fusion/IO/FusionFileIO.h>
-#include "io_interface.h"
+#include <Internal/IO/Fus_GenericIO.h>
+
+// HELPER
+#include <Internal/Helpers/Fus_Helper_Codebase.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,7 +19,7 @@ static FusStatusFlag_t _file_write(void* ctx, const void* data, size_t size)
     ssize_t total = 0;
     while (total < (ssize_t)size) {
         ssize_t w = write(f->fd, (const char*)data + total, size - total);
-        if (w <= 0) return FUSION_ERRO;
+        if (unlikely(w <= 0)) return FUSION_ERRO;
         total += w;
     }
     return FUSION_OK;
@@ -36,38 +39,38 @@ static FusStatusFlag_t _file_seek(void* ctx, size_t offset)
 {
     IoFile_t* f = (IoFile_t*)ctx;
     // SEEK_SET move o ponteiro para a posição absoluta a partir do início
-    if (lseek(f->fd, (off_t)offset, SEEK_SET) == (off_t)-1) {
-        return FUSION_ERRO;
-    }
+    if (unlikely(lseek(f->fd, (off_t)offset, SEEK_SET) == (off_t)-1)) return FUSION_ERRO;
     return FUSION_OK;
 }
 
-FusIOBackend_t* FUS_IOBackendFile(const char* path)
+static FusIOSinkInterfaceDefine file_interface = {
+    .close = _file_close,
+    .flush = _file_flush,
+    .seek = _file_seek,
+    .write = _file_write
+};
+
+FusStatusFlag_t FUS_IOFileSink(FusIOSink* out,const char* path)
 {
-    if (!path) return NULL;
+    if (unlikely(!out || !path)) return FUSION_ERRO;
 
     int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    if (fd < 0) return NULL;
+    if (unlikely(fd < 0)) return FUSION_ERRO;
 
     IoFile_t* fctx = malloc(sizeof(IoFile_t));
-    if (!fctx) {
+    if (unlikely(!fctx)) {
         close(fd);
-        return NULL;
+        return FUSION_ERRO;
     }
-
     fctx->fd = fd;
 
-    FusIOBackend_t* backend = IO_CreateGenericIOBackend(fctx);
-    if (!backend) {
+    FusIOSink sink = NULL;
+    if (unlikely(!FUSI_IOCreateGenericIOSink(&sink,file_interface,fctx))) {
         close(fd);
         free(fctx);
-        return NULL;
+        return FUSION_ERRO;
     }
 
-    backend->write = _file_write;
-    backend->flush = _file_flush;
-    backend->close = _file_close;
-    backend->seek = _file_seek;
-
-    return backend;
+    *out = sink;
+    return FUSION_OK;
 }

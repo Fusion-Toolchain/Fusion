@@ -96,8 +96,8 @@ $(BUILD_DIR)/example/%.o: $(EXAMPLE_DIR)/%.c
 # CLEAN
 # ========================
 clean:
-	$(MAKE) -C test clean
-	$(MAKE) -C example clean
+	@$(MAKE) -C test clean
+	@$(MAKE) -C example clean
 	rm -rf $(BUILD_DIR) $(FUSION_SO) main *.bin
 
 # ========================

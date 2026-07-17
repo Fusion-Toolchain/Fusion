@@ -46,7 +46,7 @@ static inline void LinkerBackendRealloc(FusModuleBackend* backend, FusBackendRel
 static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend* backend, FusBackendReturn backend_data)
 {
     FusTraceTree trace = NULL;
-    FUSIH_INSTANCE_GET_TRACE(linker->inst_ref,&trace);
+    FUSIH_INSTANCE_GET_TRACE(&linker->inst_ref,&trace);
 
     FusBackendTransferLifetime_t*   data  = backend_data->transfer_data;
     FusBackendGenerateDataBlock_t* block = (FusBackendGenerateDataBlock_t*)data->data;

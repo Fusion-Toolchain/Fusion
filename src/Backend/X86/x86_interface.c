@@ -1,9 +1,3 @@
-/*
- * CR: Implementa sistema Validação de HIDR para arquitetura do Backend
- * PS: Fazer algo modular para interface do backend, para todo backend seguir a definição de regras.
- * PR: Nova Interface melhorada, para backend, algo como Backend API.
-*/
-
 #include <Fusion/IRTypes/HidrType.h>
 #include <Fusion/FusionTypes.h>
 #include <Internal/Backend/Fus_Backend.h>

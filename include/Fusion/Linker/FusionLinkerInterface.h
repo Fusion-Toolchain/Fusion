@@ -43,7 +43,7 @@ typedef struct {
 
 FUS_DEFINE_HANDLE(FusLinkerContext)
 
-FusStatusFlag_t FUS_CreateLinkerContext(FusInstance* instance, FusLinkerContext* out);
+FusStatusFlag_t FUS_CreateLinkerContext(FusInstance instance, FusLinkerContext* out);
 
 FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectionDefine_t* define);
 FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext ctx, const char* name);

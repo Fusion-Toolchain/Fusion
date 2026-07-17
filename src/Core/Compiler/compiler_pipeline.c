@@ -50,15 +50,15 @@ static inline bool _ArgumentProcessMountHidrBytes(
     return true;
 }
 
-FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out)
+FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out)
 {
     if (unlikely(!instance || !compiler_rule || !out)) return FUSION_ERRO;
     *out = NULL;
 
     FusTraceTree trace = NULL;
-    FUSIH_INSTANCE_GET_TRACE(instance,&trace);
+    FUSIH_INSTANCE_GET_TRACE(&instance,&trace);
 
-    struct FusBackendReturn_T* ctx = FUSIH_INSTANCE_ALLOC(instance, sizeof(struct FusBackendReturn_T));
+    struct FusBackendReturn_T* ctx = FUSIH_INSTANCE_ALLOC(&instance, sizeof(struct FusBackendReturn_T));
     if (unlikely(!ctx)) {
         FUS_PUSH_ERR(
             trace,FUSION_ERRO,
@@ -99,7 +99,7 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance* instance,FusCommandRuleBase_t* 
     error:
     if (ctx) {
         FUSIH_API_DESTROY_TRANSFER_LIFETIME(ctx->api,ctx->transfer_data);
-        FUSIH_INSTANCE_FREE(instance,ctx);
+        FUSIH_INSTANCE_FREE(&instance,ctx);
     }
     return FUSION_ERRO; // RETURN ERROR
 }
