@@ -45,7 +45,6 @@ CORE_LIB := $(BUILD_DIR)/libfusion_core.a
 BACKEND_SRC := \
 	$(SRC_DIR)/Backend/X86/x86_pipeline.c \
 	$(SRC_DIR)/Backend/X86/x86_interface.c \
-	$(SRC_DIR)/Backend/X86/x86_helpers.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_mov.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_add.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_call.c \

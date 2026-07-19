@@ -58,7 +58,7 @@ int main(void)
     FUS_AddSymbolLinker(linker,"Print",(uintptr_t)&Print);
 
     FUS_LoaderBackend(
-        &instance,
+        instance,
         &x86,
         "X86_Backend",
         FUS_BACKEND_TYPE_STATIC);

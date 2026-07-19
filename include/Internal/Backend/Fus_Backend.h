@@ -80,7 +80,9 @@ typedef struct FusBackendApi {
     );
     FusBackendGenerateDataBlock_t* (*FusCreateDataBlock)(struct FusBackendApi*, size_t, size_t);
     void (*FusDestroyDataBlock)(struct FusBackendApi*, FusBackendGenerateDataBlock_t*);
-    FusInstance* Instance;
+    FusStatusFlag_t (*FusRegistreRealocationDataBlock)(struct FusBackendApi* api, 
+        FusBackendGenerateDataBlock_t* block, const char* name, FusBackendRelocationOpaqueType_t type, size_t offset);
+    FusInstance Instance;
 } FusBackendApi_t;
 
 /**

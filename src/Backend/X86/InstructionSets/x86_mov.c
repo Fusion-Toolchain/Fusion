@@ -1,5 +1,9 @@
 #include "../x86_helpers.h"
 #include "x86_instructions.h"
+
+// HELPER
+#include <BackendInterface/Backend.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -171,7 +175,7 @@ bool X86_CaseMountMovSymReg(X86BackendContext* backend_ctx)
     mount_instr->has_imm            = true;
 
     size_t offset = backend_ctx->block->slab_offset + 2; // aponta pro IMM
-    X86RegistreRealloc(backend_ctx->block, symbol_name, X86_ABS64, offset);
 
+    FUSB_REGISTRE_REALOCATION(backend_ctx->Api,backend_ctx->block,symbol_name,X86_ABS64,offset);
     return true;
 }

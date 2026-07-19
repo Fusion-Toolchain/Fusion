@@ -37,7 +37,6 @@ FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
         -1,
         0
     );
-
     if (unlikely(buffer == MAP_FAILED)) {
         free(ctx);
         return NULL;

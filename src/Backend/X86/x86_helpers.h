@@ -46,6 +46,4 @@ static inline size_t X86_MapVirtualReg(FusHidrVirtualReg_t reg)
     return vreg_to_x86[reg];
 }
 
-bool X86RegistreRealloc(FusBackendGenerateDataBlock_t* block, const char* name, FusBackendRelocationOpaqueType_t type, size_t offset);
-
 #endif

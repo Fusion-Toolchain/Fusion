@@ -44,11 +44,18 @@ static inline void FUSB_DESTROY_TRASNFER(FusBackendApi_t* api, FusBackendTransfe
 static inline FusStatusFlag_t FUSB_GET_TRACE_FUSION(FusBackendApi_t* api, FusTraceTree* tree_out)
 {
     if (unlikely(!api)) return FUSION_ERRO;
-    struct FusInstance_T* real_instance = *api->Instance;
+    struct FusInstance_T* real_instance = api->Instance;
     if (!real_instance) return FUSION_ERRO;
 
     *tree_out = real_instance->trace;
     return FUSION_OK;
+}
+static inline FusStatusFlag_t FUSB_REGISTRE_REALOCATION(FusBackendApi_t* api,
+    FusBackendGenerateDataBlock_t* block, const char* name, FusBackendRelocationOpaqueType_t type, size_t offset
+)
+{
+    if (unlikely(!api)) return FUSION_ERRO;
+    return api->FusRegistreRealocationDataBlock(api,block,name,type,offset);
 }
 
 #endif

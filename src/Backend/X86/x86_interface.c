@@ -119,7 +119,8 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenerateDataBlock_t* block,
     X86BackendContext backend_ctx = {
         .encoder = &out_instr,
         .hidr    = element,
-        .block   = block
+        .block   = block,
+        .Api = FUS
     };
 
     X86_MountRex(element, &out_instr);

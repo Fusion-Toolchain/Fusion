@@ -97,7 +97,7 @@ int main(void)
     MountCode(CodeMount);
 
     FusModuleBackend BackendInstance = NULL;
-    if (!FUS_LoaderBackend(&Instance, &BackendInstance, "X86_Backend", FUS_BACKEND_TYPE_STATIC)) {
+    if (!FUS_LoaderBackend(Instance, &BackendInstance, "X86_Backend", FUS_BACKEND_TYPE_STATIC)) {
         printf("Erro Init BackendModule\n");
         return 1;
     }

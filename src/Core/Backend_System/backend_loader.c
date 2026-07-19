@@ -39,7 +39,7 @@ static inline FusBackendInterface_t* LoaderBackendInterfaceType(FusBackendApi_t*
         default: return NULL;
     }
 }
-static inline void BackendDefineInterface(FusInstance* instance,FusBackendApi_t* api)
+static inline void BackendDefineInterface(FusInstance instance,FusBackendApi_t* api)
 {
     if (unlikely(!instance || !api)) return;
     *api = FUSI_InterfaceDefine(); // Backend Interface Define
@@ -47,12 +47,12 @@ static inline void BackendDefineInterface(FusInstance* instance,FusBackendApi_t*
 }
 
 
-FusStatusFlag_t FUS_LoaderBackend(FusInstance* instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type)
+FusStatusFlag_t FUS_LoaderBackend(FusInstance instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type)
 {
     if (unlikely(!instance || !ctx || !name || type == FUS_BACKEND_TYPE_NONE)) return FUSION_ERRO;
     *ctx = NULL;
 
-    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC_PTR(instance);
+    FusInstanceMyAllocation_t* alloc = FUSIH_INSTANCE_GET_ALLOC(instance);
     if (unlikely(!alloc)) return FUSION_ERRO;
 
     struct FusModuleBackend_T* ctx_real = FUSIH_ALLOC(alloc, sizeof(struct FusModuleBackend_T));
@@ -97,8 +97,8 @@ void FUS_DestroyBackend(FusModuleBackend backend)
     if (unlikely(!backend)) return;
     struct FusModuleBackend_T* backend_real = backend;
 
-    FusInstance* instance              = FUSIH_BACKEND_GET_API(&backend)->Instance;
-    FusInstanceMyAllocation_t* alloc   = FUSIH_INSTANCE_GET_ALLOC_PTR(instance);
+    FusInstance instance              = FUSIH_BACKEND_GET_API(&backend)->Instance;
+    FusInstanceMyAllocation_t* alloc   = FUSIH_INSTANCE_GET_ALLOC(instance);
 
     FUSIH_FREE(alloc, (void*)backend_real->name);
     FUSIH_FREE(alloc, backend_real->api);
