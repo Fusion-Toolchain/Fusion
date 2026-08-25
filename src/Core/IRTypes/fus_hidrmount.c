@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount* out)
+FusStatusFlag_t fusCreateCodeMount(FusInstance* ctx, FusCodeMount* out)
 {
     if (unlikely(!ctx || !out)) return FUSION_ERRO;
     struct FusInstance_T* instance_real = *ctx;
@@ -57,7 +57,7 @@ static inline bool ExpansiveCodeBuffer(struct FusCodeMount_T* mount)
 
     return true;
 }
-FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node)
+FusStatusFlag_t fusInsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node)
 {
     if (unlikely(!mount)) return FUSION_ERRO;
     if (unlikely(!ExpansiveCodeBuffer(mount))) return FUSION_ERRO;
@@ -68,7 +68,7 @@ FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t 
     return FUSION_OK;
 }
 
-void FUS_DestroyCodeMount(FusInstance ctx, FusCodeMount code)
+void fusDestroyCodeMount(FusInstance ctx, FusCodeMount code)
 {
     if (unlikely(!ctx || !code)) return;
 

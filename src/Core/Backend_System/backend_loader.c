@@ -22,32 +22,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline FusBackendInterface_t* LoaderStaticInterfaceMethod(FusBackendApi_t* api,const char* name)
+static inline FusBackendInterface_t* LoaderStaticInterfaceMethod(const char* name)
 {
-    ModuleStaticEntry_t* entry = FUS_GetStaticBackend(name);
+    ModuleStaticEntry_t* entry = fusiGetStaticBackend(name);
     if (unlikely(!entry)) return NULL;
 
-    FusBackendInterface_t* interface = entry->fn(api); // RETURN STATIC TABLE FOR MODULE!!!
+    FusBackendInterface_t* interface = entry->fn(); // RETURN STATIC TABLE FOR MODULE!!!
     if (unlikely(!interface)) return NULL;
 
     return interface;
 }
-static inline FusBackendInterface_t* LoaderBackendInterfaceType(FusBackendApi_t* api,const char* name,FusModuleBackendType_t type)
+static inline FusBackendInterface_t* LoaderBackendInterfaceType(const char* name,FusModuleBackendType_t type)
 {
     switch (type) {
-        case FUS_BACKEND_TYPE_STATIC: return LoaderStaticInterfaceMethod(api,name);
+        case FUS_BACKEND_TYPE_STATIC: return LoaderStaticInterfaceMethod(name);
         default: return NULL;
     }
 }
 static inline void BackendDefineInterface(FusInstance instance,FusBackendApi_t* api)
 {
     if (unlikely(!instance || !api)) return;
-    *api = FUSI_InterfaceDefine(); // Backend Interface Define
+    *api = fusiInterfaceDefine(); // Backend Interface Define
     api->Instance = instance; // REFERENCIA PARA BACKEND, exige variavel que tenha ciclo de vida alto.
 }
 
 
-FusStatusFlag_t FUS_LoaderBackend(FusInstance instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type)
+FusStatusFlag_t fusLoaderBackend(FusInstance instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type)
 {
     if (unlikely(!instance || !ctx || !name || type == FUS_BACKEND_TYPE_NONE)) return FUSION_ERRO;
     *ctx = NULL;
@@ -75,7 +75,7 @@ FusStatusFlag_t FUS_LoaderBackend(FusInstance instance, FusModuleBackend* ctx,co
 
     BackendDefineInterface(instance,api); // DEFINE API INTERFACE
 
-    FusBackendInterface_t* interface = LoaderBackendInterfaceType(api, name, type);
+    FusBackendInterface_t* interface = LoaderBackendInterfaceType(name, type);
     if (unlikely(!interface)) {
         FUSIH_FREE(alloc, (void*)name_copy);
         FUSIH_FREE(alloc, api);
@@ -92,7 +92,7 @@ FusStatusFlag_t FUS_LoaderBackend(FusInstance instance, FusModuleBackend* ctx,co
     return FUSION_OK;
 }
 
-void FUS_DestroyBackend(FusModuleBackend backend)
+void fusDestroyBackend(FusModuleBackend backend)
 {
     if (unlikely(!backend)) return;
     struct FusModuleBackend_T* backend_real = backend;

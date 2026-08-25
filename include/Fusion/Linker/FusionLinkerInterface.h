@@ -43,13 +43,13 @@ typedef struct {
 
 FUS_DEFINE_HANDLE(FusLinkerContext)
 
-FusStatusFlag_t FUS_CreateLinkerContext(FusInstance instance, FusLinkerContext* out);
+FusStatusFlag_t fusCreateLinkerContext(FusInstance instance, FusLinkerContext* out);
 
-FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectionDefine_t* define);
-FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext ctx, const char* name);
-FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext ctx, const char* name,uintptr_t addr);
-FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext ctx, const char* name);
+FusStatusFlag_t fusAddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectionDefine_t* define);
+FusLinkerContextSection_t* fusGetSectionLinker(FusLinkerContext ctx, const char* name);
+FusStatusFlag_t fusAddSymbolLinker(FusLinkerContext ctx, const char* name,uintptr_t addr);
+FusLinkerContextSymbol_t* fusGetSymbolLinker(FusLinkerContext ctx, const char* name);
 
-FusStatusFlag_t FUS_LinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext linker_ctx, FusBackendReturn backend_data);
-void FUS_DestroyLinkerContext(FusInstance instance, FusLinkerContext ctx);
+FusStatusFlag_t fusLinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext linker_ctx, FusBackendReturn backend_data);
+void fusDestroyLinkerContext(FusInstance instance, FusLinkerContext ctx);
 #endif

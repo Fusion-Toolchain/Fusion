@@ -37,7 +37,7 @@ struct FusSlab {
     uint32_t pools_num;
 };
 
-FusPool_t* FUSI_CreatePool(FusInstanceMyAllocation_t* allocation,size_t num_slots, size_t slot_size)
+FusPool_t* fusiCreatePool(FusInstanceMyAllocation_t* allocation,size_t num_slots, size_t slot_size)
 {
     if (unlikely(!allocation || num_slots == 0 || slot_size == 0)) return NULL;
     if (unlikely(slot_size < sizeof(FreeListType_t))) return NULL;
@@ -80,7 +80,7 @@ FusPool_t* FUSI_CreatePool(FusInstanceMyAllocation_t* allocation,size_t num_slot
     return ctx;
 }
 
-void* FUSI_AllocPool(FusPool_t* pool)
+void* fusiAllocPool(FusPool_t* pool)
 {
     if (unlikely(!pool || pool->free_head == POOL_NULL_INDEX)) return NULL;
 
@@ -98,7 +98,7 @@ void* FUSI_AllocPool(FusPool_t* pool)
 
     return (void*)free_slot;
 }
-void FUSI_FreePool(FusPool_t* pool, void* ptr)
+void fusiFreePool(FusPool_t* pool, void* ptr)
 {
     if (unlikely(!pool || !ptr)) return;
     FreeListType_t* free_slot = (FreeListType_t*)ptr;
@@ -122,7 +122,7 @@ void FUSI_FreePool(FusPool_t* pool, void* ptr)
     pool->used_count--;
 }
 
-void FUSI_DestroyPool(FusPool_t* pool)
+void fusiDestroyPool(FusPool_t* pool)
 {
     if (unlikely(!pool)) return;
     FusInstanceMyAllocation_t* allocation = pool->allocation;
@@ -144,7 +144,7 @@ static inline size_t CalcSlabPoolNum(size_t min_size, size_t max_size)
 
     return pool_num;
 }
-FusSlab_t* FUSI_CreateSlab(
+FusSlab_t* fusiCreateSlab(
     FusInstanceMyAllocation_t* allocation,
     size_t initial_slots,
     size_t min_slots,
@@ -168,10 +168,10 @@ FusSlab_t* FUSI_CreateSlab(
     size_t slot_size = min_size;
     size_t num_slots = initial_slots;
     for (size_t i = 0; i < pool_num; i++) {
-        FusPool_t* new_pool = FUSI_CreatePool(allocation,num_slots,slot_size);
+        FusPool_t* new_pool = fusiCreatePool(allocation,num_slots,slot_size);
 
         if (unlikely(!new_pool)) {
-            for (size_t j = 0; j < i; j++) FUSI_DestroyPool(pool_list[j]);
+            for (size_t j = 0; j < i; j++) fusiDestroyPool(pool_list[j]);
 
             FUSIH_FREE(allocation,pool_list);
             FUSIH_FREE(allocation,ctx);
@@ -193,7 +193,7 @@ FusSlab_t* FUSI_CreateSlab(
     return ctx;
 }
 
-void* FUSI_AllocSlab(FusSlab_t* ctx, size_t size)
+void* fusiAllocSlab(FusSlab_t* ctx, size_t size)
 {
     if (unlikely(!ctx || size == 0)) return NULL;
 
@@ -201,12 +201,12 @@ void* FUSI_AllocSlab(FusSlab_t* ctx, size_t size)
         FusPool_t* select_pool = ctx->pools[i];
         if (size > select_pool->slot_size) continue;
 
-        if (likely(select_pool->used_count < select_pool->slot_count)) return FUSI_AllocPool(select_pool);
+        if (likely(select_pool->used_count < select_pool->slot_count)) return fusiAllocPool(select_pool);
     }
 
     return NULL;
 }
-void FUSI_FreeSlab(FusSlab_t* ctx, void* ptr)
+void fusiFreeSlab(FusSlab_t* ctx, void* ptr)
 {
     if (unlikely(!ctx || !ptr)) return;
 
@@ -217,13 +217,13 @@ void FUSI_FreeSlab(FusSlab_t* ctx, void* ptr)
         if ((uint8_t*)ptr >= (uint8_t*)select_pool->memory &&
             (uint8_t*)ptr < (uint8_t*)select_pool->memory + pool_bytes
         ) {
-            FUSI_FreePool(select_pool,ptr);
+            fusiFreePool(select_pool,ptr);
             return;
         }
     }
 }
 
-void FUSI_SlabTrace(FusSlab_t* ctx)
+void fusiSlabTrace(FusSlab_t* ctx)
 {
     if (unlikely(!ctx)) return;
 
@@ -236,11 +236,11 @@ void FUSI_SlabTrace(FusSlab_t* ctx)
     }
 }
 
-void FUSI_DestroySlab(FusSlab_t* ctx)
+void fusiDestroySlab(FusSlab_t* ctx)
 {
     if (unlikely(!ctx)) return;
 
-    for (size_t i = 0; i < ctx->pools_num; i++) FUSI_DestroyPool(ctx->pools[i]);
+    for (size_t i = 0; i < ctx->pools_num; i++) fusiDestroyPool(ctx->pools[i]);
 
     FUSIH_FREE(ctx->allocation,ctx->pools);
     FUSIH_FREE(ctx->allocation,ctx);

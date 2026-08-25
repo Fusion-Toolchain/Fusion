@@ -53,17 +53,17 @@ static FusInstanceMyAllocation_t TestAllocation = {
 
 static bool Test_SlabBasic(void)
 {
-    FusSlab_t* slab = FUSI_CreateSlab(&TestAllocation, 4096, 8, 8, 4096);
+    FusSlab_t* slab = fusiCreateSlab(&TestAllocation, 4096, 8, 8, 4096);
     FUS_TEST_ASSERT(slab != NULL, "Criacao do slab falhou");
 
-    int* value = FUSI_AllocSlab(slab, sizeof(int));
+    int* value = fusiAllocSlab(slab, sizeof(int));
     FUS_TEST_ASSERT(value != NULL, "Alloc int falhou");
 
     *value = 12345;
     FUS_TEST_ASSERT(*value == 12345, "Valor escrito incorreto");
 
-    FUSI_FreeSlab(slab, value);
-    FUSI_DestroySlab(slab);
+    fusiFreeSlab(slab, value);
+    fusiDestroySlab(slab);
 
     FUS_TEST_ASSERT(alloc_count == free_count, "Memory leak detectado");
     return true;
@@ -71,12 +71,12 @@ static bool Test_SlabBasic(void)
 
 static bool Test_SlabMultipleAlloc(void)
 {
-    FusSlab_t* slab = FUSI_CreateSlab(&TestAllocation, 8192, 16, 16, 4096);
+    FusSlab_t* slab = fusiCreateSlab(&TestAllocation, 8192, 16, 16, 4096);
     FUS_TEST_ASSERT(slab != NULL, "Slab multi init falhou");
 
     void* blocks[32];
     for (int i = 0; i < 32; i++) {
-        blocks[i] = FUSI_AllocSlab(slab, 64 + i);
+        blocks[i] = fusiAllocSlab(slab, 64 + i);
         FUS_TEST_ASSERT(blocks[i] != NULL, "Alloc multiplo falhou");
         memset(blocks[i], i, 64 + i);
     }
@@ -84,29 +84,29 @@ static bool Test_SlabMultipleAlloc(void)
     for (int i = 0; i < 32; i++) {
         unsigned char* data = blocks[i];
         FUS_TEST_ASSERT(data[0] == (unsigned char)i, "Memoria corrompida");
-        FUSI_FreeSlab(slab, blocks[i]);
+        fusiFreeSlab(slab, blocks[i]);
     }
 
-    FUSI_DestroySlab(slab);
+    fusiDestroySlab(slab);
     FUS_TEST_ASSERT(alloc_count == free_count, "Leak apos multiplas alocacoes");
     return true;
 }
 
 static bool Test_SlabReuse(void)
 {
-    FusSlab_t* slab = FUSI_CreateSlab(&TestAllocation, 4096, 8, 8, 4096);
+    FusSlab_t* slab = fusiCreateSlab(&TestAllocation, 4096, 8, 8, 4096);
     FUS_TEST_ASSERT(slab != NULL, "Slab reuse falhou");
 
-    void* a = FUSI_AllocSlab(slab, 128);
+    void* a = fusiAllocSlab(slab, 128);
     FUS_TEST_ASSERT(a != NULL, "Primeiro alloc falhou");
 
-    FUSI_FreeSlab(slab, a);
+    fusiFreeSlab(slab, a);
 
-    void* b = FUSI_AllocSlab(slab, 128);
+    void* b = fusiAllocSlab(slab, 128);
     FUS_TEST_ASSERT(b != NULL, "Reuso falhou");
 
-    FUSI_FreeSlab(slab, b);
-    FUSI_DestroySlab(slab);
+    fusiFreeSlab(slab, b);
+    fusiDestroySlab(slab);
 
     FUS_TEST_ASSERT(alloc_count == free_count, "Leak no reuse");
     return true;
@@ -124,7 +124,7 @@ int main(void)
     if (!Test_SlabMultipleAlloc()) return 1;
     if (!Test_SlabReuse()) return 1;
 
-    printf("✅ Todos testes passaram!\n");
+    printf("Todos testes passaram!\n");
     printf("Alloc: %zu Free: %zu\n", alloc_count, free_count);
 
     return 0;

@@ -5,41 +5,17 @@
 #include "Backend/FusionBackend.h"
 #include "Linker/FusionLinkerInterface.h"
 #include "FusionRule.h"
-#include "FusionTypes.h"
 #include "IRTypes/HidrHelper.h"
 #include "IO/FusionGenericIO.h"
+#include "FusionBuffer.h"
+#include "FusionCompile.h"
+#include "FusionInstance.h"
 
-#include <stddef.h>
-
-FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx,FusInstanceMyAllocation_t* allocation);
-FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx);
-/*
- * @breif Create Buffer
- * @param size_t Buffer Size
- * @return FusBufferContext_t* Buffer Access
-*/
-FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size);
-FusStatusFlag_t FUS_ExecutableBuffer(FusBufferContext_t* buffer);
-FusStatusFlag_t FUS_BufferIOSink(FusBufferContext_t* buffer, FusIOSink sink);
-void FUS_ReUsedBuffer(FusBufferContext_t* buffer);
-/*
- * @brief Destroy Buffer Access
-*/
-void FUS_DestroyBufferCode(FusBufferContext_t* buffer);
-/*
- * @brief Mount Bytes Of Mir
- * @param FusBufferContext_t* Buffer Acess
- * @param FusMirNode_t* Mir Node
- * @return FusStatusFlag_t Build Flag
-*/
-FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out);
-FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend);
-void FUS_DestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend);
 /*
  * @brief Status By String
  * @param FusStatusFlag_t Status Code
  * @return const char* String Error
 */
-const char* FUS_StrError(FusStatusFlag_t status);
+const char* fusStrError(FusStatusFlag_t status);
 
 #endif

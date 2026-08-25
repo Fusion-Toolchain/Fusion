@@ -50,7 +50,7 @@ static FusIOSinkInterfaceDefine file_interface = {
     .write = _file_write
 };
 
-FusStatusFlag_t FUS_IOFileSink(FusIOSink* out,const char* path)
+FusStatusFlag_t fusIOFileSink(FusIOSink* out,const char* path)
 {
     if (unlikely(!out || !path)) return FUSION_ERRO;
 
@@ -65,7 +65,7 @@ FusStatusFlag_t FUS_IOFileSink(FusIOSink* out,const char* path)
     fctx->fd = fd;
 
     FusIOSink sink = NULL;
-    if (unlikely(!FUSI_IOCreateGenericIOSink(&sink,file_interface,fctx))) {
+    if (unlikely(!fusiIOCreateGenericIOSink(&sink,file_interface,fctx))) {
         close(fd);
         free(fctx);
         return FUSION_ERRO;

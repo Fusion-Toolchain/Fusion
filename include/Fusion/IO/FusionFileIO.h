@@ -3,5 +3,5 @@
 #include <Fusion/FusionTypes.h>
 #include "FusionGenericIO.h"
 
-FusStatusFlag_t FUS_IOFileSink(FusIOSink* out,const char* path);
+FUS_API FusStatusFlag_t fusIOFileSink(FusIOSink* out,const char* path);
 #endif

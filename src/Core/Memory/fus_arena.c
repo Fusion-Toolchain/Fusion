@@ -14,7 +14,7 @@
 
 #define DEFAULT_ALIGN_ARENA 8
 
-static inline size_t FUSI_AlignForward(size_t ptr, size_t align)
+static inline size_t AlignForward(size_t ptr, size_t align)
 {
     size_t mod = ptr & (align - 1);
     if (mod) ptr += (align - mod);
@@ -22,7 +22,7 @@ static inline size_t FUSI_AlignForward(size_t ptr, size_t align)
     return ptr;
 }
 
-FusMemoryArena_t* FUSI_CreateArena(size_t size)
+FusMemoryArena_t* fusiCreateArena(size_t size)
 {
     if (unlikely(size == 0)) return NULL;
 
@@ -36,28 +36,28 @@ FusMemoryArena_t* FUSI_CreateArena(size_t size)
 
     return arena;
 }
-void* FUSI_AllocArena(FusMemoryArena_t* arena, size_t size)
+void* fusiAllocArena(FusMemoryArena_t* arena, size_t size)
 {
     if (unlikely(!arena)) return NULL;
 
-    size_t aligned = FUSI_AlignForward(arena->offset, DEFAULT_ALIGN_ARENA);
+    size_t aligned = AlignForward(arena->offset, DEFAULT_ALIGN_ARENA);
 
     // CHECKS
     if (unlikely(size > arena->size - aligned)) return NULL;
 
     void* ptr = ((uint8_t*)arena->data + aligned);
-    arena->offset = FUSI_AlignForward(aligned + size, DEFAULT_ALIGN_ARENA);
+    arena->offset = AlignForward(aligned + size, DEFAULT_ALIGN_ARENA);
 
     return ptr;
 }
 
 // HELPER
-char* FUSI_ArenaPushString(FusMemoryArena_t* arena, const char* str)
+char* fusiArenaPushString(FusMemoryArena_t* arena, const char* str)
 {
     if (unlikely(!arena || !str)) return NULL;
 
     size_t len = strlen(str) + 1;
-    char* mem = FUSI_AllocArena(arena, len);
+    char* mem = fusiAllocArena(arena, len);
     if (!mem) {
         return NULL;
     }
@@ -65,11 +65,11 @@ char* FUSI_ArenaPushString(FusMemoryArena_t* arena, const char* str)
 
     return mem;
 }
-char* FUSI_ArenaPrintf(FusMemoryArena_t* arena, const char* fmt, ...)
+char* fusiArenaPrintf(FusMemoryArena_t* arena, const char* fmt, ...)
 {
     if (unlikely(!arena || !fmt)) return NULL;
 
-    size_t aligned = FUSI_AlignForward(arena->offset, DEFAULT_ALIGN_ARENA);
+    size_t aligned = AlignForward(arena->offset, DEFAULT_ALIGN_ARENA);
     if (unlikely(aligned >= arena->size)) return NULL;
 
     size_t available = arena->size - aligned;
@@ -84,12 +84,12 @@ char* FUSI_ArenaPrintf(FusMemoryArena_t* arena, const char* fmt, ...)
     if (unlikely(written < 0 || (size_t)written >= available)) return NULL;
 
     char* start = (char*)arena->data + aligned;
-    arena->offset = FUSI_AlignForward(aligned + (size_t)written + 1, DEFAULT_ALIGN_ARENA);
+    arena->offset = AlignForward(aligned + (size_t)written + 1, DEFAULT_ALIGN_ARENA);
 
     return start;
 }
 
-void FUSI_ResetArena(FusMemoryArena_t* arena)
+void fusiResetArena(FusMemoryArena_t* arena)
 {
     if (unlikely(!arena)) return;
 
@@ -100,7 +100,7 @@ void FUSI_ResetArena(FusMemoryArena_t* arena)
 
     arena->offset = 0;
 }
-void FUSI_DestroyArena(FusMemoryArena_t* arena)
+void fusiDestroyArena(FusMemoryArena_t* arena)
 {
     if (unlikely(!arena)) return;
 

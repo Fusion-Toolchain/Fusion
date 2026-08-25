@@ -6,11 +6,11 @@
 
 #include <stdint.h>
 
-FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree* out);
-void FUSI_DestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx);
+FusStatusFlag_t fusiCreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree* out);
+void fusiDestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx);
 
 #define FUS_PUSH_ERR(trace, code, msg) \
-    FUS_PushError(trace, code, __FILE__, __LINE__, msg)
+    fusPushError(trace, code, __FILE__, __LINE__, msg)
 
 #define FUS_RETURN_ERR_VAL(trace, code, retval, msg) \
 do { \

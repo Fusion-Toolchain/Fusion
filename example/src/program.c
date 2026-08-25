@@ -9,19 +9,19 @@
 
 void MountCode(FusCodeMount Mount)
 {
-    FUS_InsertCodeBlock(Mount,
+    fusInsertCodeBlock(Mount,
         FUS_HIDRM(HIDR_INSTR_MOV,
             HIDR_OP_SIZE_64,
             FUS_HIDR_Reg(0),
             FUS_HIDR_Imm(60,HIDR_IMM64))
     );
-    FUS_InsertCodeBlock(Mount,
+    fusInsertCodeBlock(Mount,
         FUS_HIDRM(HIDR_INSTR_MOV,
             HIDR_OP_SIZE_64,
             FUS_HIDR_Reg(5),
             FUS_HIDR_Imm(1,HIDR_IMM64))
     );
-    FUS_InsertCodeBlock(Mount,
+    fusInsertCodeBlock(Mount,
         FUS_HIDRM(HIDR_INSTR_SYSCALL,
             HIDR_OP_SIZE_NONE,
             FUS_HIDR_None(),
@@ -85,19 +85,18 @@ int main(void)
     FusInstance Instance = NULL;
     FusCodeMount CodeMount = NULL;
 
-    if (!FUS_CreateInstance(&Instance, NULL)) {
+    if (!fusCreateInstance(&Instance, NULL)) {
         printf("Erro Init Instance!\n");
         return 1;
     }
-
-    if (!FUS_CreateCodeMount(&Instance, &CodeMount)) {
+    if (!fusCreateCodeMount(&Instance, &CodeMount)) {
         printf("Erro Init CodeMount System\n");
         return 1;
     }
     MountCode(CodeMount);
 
     FusModuleBackend BackendInstance = NULL;
-    if (!FUS_LoaderBackend(Instance, &BackendInstance, "X86_Backend", FUS_BACKEND_TYPE_STATIC)) {
+    if (!fusLoaderBackend(Instance, &BackendInstance, "X86_Backend", FUS_BACKEND_TYPE_STATIC)) {
         printf("Erro Init BackendModule\n");
         return 1;
     }
@@ -112,13 +111,12 @@ int main(void)
         .code = CodeMount,
         .pNext = (FusCommandRuleBase_t*)&BackendChain
     };
-
     FusBackendReturn BackendReturn = NULL;
-    if (!FUS_MountHidrsBytes(Instance, (FusCommandRuleBase_t*)&HidrChain, &BackendReturn)) {
+    if (!fusMountHidrsBytes(Instance, (FusCommandRuleBase_t*)&HidrChain, &BackendReturn)) {
         printf("Erro Compile Code\n");
         return 1;
     }
-    FusBufferContext_t* CodeBuffer = FUS_GetStreamBufferCompiler(BackendReturn);
+    FusBufferContext_t* CodeBuffer = fusGetStreamBufferCompiler(BackendReturn);
     if (!CodeBuffer) {
         printf("Erro obter buffer compilado\n");
         return 1;
@@ -130,11 +128,11 @@ int main(void)
     }
     printf("Execute: ./output.elf\n echo $?\n");
 
-    FUS_DestroyBufferCode(CodeBuffer);
-    FUS_DestroyBackendReturn(Instance, BackendReturn);
-    FUS_DestroyBackend(BackendInstance);
-    FUS_DestroyCodeMount(Instance, CodeMount);
-    FUS_DestroyInstance(Instance);
+    fusDestroyBufferCode(CodeBuffer);
+    fusDestroyBackendReturn(Instance, BackendReturn);
+    fusDestroyBackend(BackendInstance);
+    fusDestroyCodeMount(Instance, CodeMount);
+    fusDestroyInstance(Instance);
 
     return 0;
 }

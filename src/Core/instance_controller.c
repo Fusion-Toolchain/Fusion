@@ -56,7 +56,7 @@ static void* _Default_Realloc(
     return realloc(old_ptr,new_size);
 }
 
-FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* allocation)
+FusStatusFlag_t fusCreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* allocation)
 {
     if (unlikely(!ctx)) return FUSION_ERRO;
     *ctx = NULL;
@@ -75,33 +75,33 @@ FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* 
     struct FusInstance_T* ctx_real = FUSIH_ALLOC(alloc,sizeof(struct FusInstance_T));
     if (unlikely(!ctx_real)) return FUSION_ERRO;
 
-    FusSlab_t* slab = FUSI_CreateSlab(alloc, 4096, 4, 8, 4096);
+    FusSlab_t* slab = fusiCreateSlab(alloc, 4096, 4, 8, 4096);
     if (unlikely(!slab)) {
         FUSIH_FREE(alloc,ctx_real);
 
         return FUSION_ERRO;
     }
     FusLargerBlock_t larger_blocks = NULL;
-    if (unlikely(FUSI_InitLargerBlocks(alloc,&larger_blocks,(3*1024*1024)) != FUSION_OK)) {
+    if (unlikely(fusiInitLargerBlocks(alloc,&larger_blocks,(3*1024*1024)) != FUSION_OK)) {
         FUSIH_FREE(alloc,ctx_real);
-        FUSI_DestroySlab(slab);
+        fusiDestroySlab(slab);
 
         return FUSION_ERRO;
     }
 
-    if (unlikely(FUSI_InitHandleSystem(&ctx_real->table) != FUSION_OK)) {
+    if (unlikely(fusiInitHandleSystem(&ctx_real->table) != FUSION_OK)) {
         FUSIH_FREE(alloc,ctx_real);
-        FUSI_DestroySlab(slab);
-        FUSI_CloseLargerBlocks(alloc,&larger_blocks);
+        fusiDestroySlab(slab);
+        fusiCloseLargerBlocks(alloc,&larger_blocks);
 
         return FUSION_ERRO;
     }
 
-    if (unlikely(FUSI_CreateTraceContext(alloc,&ctx_real->trace) != FUSION_OK)) {
+    if (unlikely(fusiCreateTraceContext(alloc,&ctx_real->trace) != FUSION_OK)) {
         FUSIH_FREE(alloc,ctx_real);
-        FUSI_DestroySlab(slab);
-        FUSI_CloseLargerBlocks(alloc,&larger_blocks);
-        FUSI_CloseHandleSystem(&ctx_real->table);
+        fusiDestroySlab(slab);
+        fusiCloseLargerBlocks(alloc,&larger_blocks);
+        fusiCloseHandleSystem(&ctx_real->table);
         
         return FUSION_ERRO;
     }
@@ -114,7 +114,7 @@ FusStatusFlag_t FUS_CreateInstance(FusInstance* ctx, FusInstanceMyAllocation_t* 
     *ctx = ctx_real;
     return FUSION_OK;
 }
-FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx)
+FusStatusFlag_t fusDestroyInstance(FusInstance ctx)
 {
     if (unlikely(!ctx)) return FUSION_ERRO;
     FusInstanceMyAllocation_t* allocation = FUSIH_INSTANCE_GET_ALLOC(ctx);
@@ -123,16 +123,16 @@ FusStatusFlag_t FUS_DestroyInstance(FusInstance ctx)
     FUSI_SlabTrace(ctx_real->slab);
     #endif
 
-    FUSI_DestroyTraceContext(allocation,&ctx->trace);
-    FUSI_CloseHandleSystem(&ctx->table);
-    FUSI_DestroySlab(ctx->slab);
-    FUSI_CloseLargerBlocks(allocation,&ctx->larger_alloc);
+    fusiDestroyTraceContext(allocation,&ctx->trace);
+    fusiCloseHandleSystem(&ctx->table);
+    fusiDestroySlab(ctx->slab);
+    fusiCloseLargerBlocks(allocation,&ctx->larger_alloc);
     FUSIH_FREE(allocation,ctx);
 
     return FUSION_OK;
 }
 
-const char* FUS_StrError(FusStatusFlag_t status)
+const char* fusStrError(FusStatusFlag_t status)
 {
     switch(status) {
         case FUSION_OK: return "OK";

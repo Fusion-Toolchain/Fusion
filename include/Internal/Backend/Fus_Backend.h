@@ -111,9 +111,8 @@ typedef struct FusBackendGenerateDataBlock {
  * Defines the fundamental backend capabilities: code generation and relocation resolution.
  */
 typedef struct {
-    FusBackendTransferLifetime_t* (*FUSI_BackendMountHidr)(const FusHidrNode_t*);
-    FusBackendTransferLifetime_t* (*FUSI_BackendMountHidrArray)(const FusHidrNode_t*, size_t);
-    FusStatusFlag_t               (*FUSI_BackendLinkerRelocation)(FusBackendRelocationOpaqueType_t, FusBackendRelocContext_t*);
+    FusBackendTransferLifetime_t* (*FUSI_BackendMountHidrArray)(FusBackendApi_t*, const FusHidrNode_t*, size_t);
+    FusStatusFlag_t               (*FUSI_BackendLinkerRelocation)(FusBackendApi_t*, FusBackendRelocationOpaqueType_t, FusBackendRelocContext_t*);
 } FusBackendInterface_t;
 
 /**
@@ -149,6 +148,6 @@ struct FusModuleBackend_T {
  * The backend receives the injected API and returns its interface contract.
  * This is the sole required export of any Fusion-compatible backend module.
  */
-typedef FusBackendInterface_t* (*FusBackendInterfaceDefine_t)(FusBackendApi_t*);
+typedef FusBackendInterface_t* (*FusBackendInterfaceDefine_t)();
 
 #endif

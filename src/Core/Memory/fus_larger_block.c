@@ -29,7 +29,7 @@ struct FusLargerBlock_T {
 #define LARGE_BLOCK_MIN_SPLIT 64
 #define ALIGN_UP(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
 
-FusStatusFlag_t FUSI_InitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx ,size_t pool_size)
+FusStatusFlag_t fusiInitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx ,size_t pool_size)
 {
     if (unlikely(!alloc || !ctx || pool_size <= sizeof(block_t))) return FUSION_ERRO;
 
@@ -54,7 +54,7 @@ FusStatusFlag_t FUSI_InitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLarge
     return FUSION_OK;
 }
 
-void* FUSI_AllocLargerBlocks(FusLargerBlock_t* ctx,size_t size)
+void* fusiAllocLargerBlocks(FusLargerBlock_t* ctx,size_t size)
 {
     if (unlikely(!ctx || size == 0)) return NULL;
     struct FusLargerBlock_T* ctx_real = *ctx;
@@ -86,7 +86,7 @@ void* FUSI_AllocLargerBlocks(FusLargerBlock_t* ctx,size_t size)
 
     return NULL;
 }
-void FUSI_FreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr)
+void fusiFreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr)
 {
     if (unlikely(!ctx || !ptr)) return;
     struct FusLargerBlock_T* ctx_real = *ctx;
@@ -109,7 +109,7 @@ void FUSI_FreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr)
     }
 }
 
-void FUSI_CloseLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx)
+void fusiCloseLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx)
 {
     if (unlikely(!alloc || !ctx || !*ctx)) return;
     struct FusLargerBlock_T* ctx_real = *ctx;

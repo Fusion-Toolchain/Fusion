@@ -2,6 +2,12 @@
 #define FUSION_CORE_TYPES_H
 #include <stddef.h>
 
+#ifdef _WIN32
+#define FUS_API __declspec(dllexport)
+#else
+#define FUS_API __attribute__((visibility("default")))
+#endif
+
 #define FUS_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
 typedef enum {

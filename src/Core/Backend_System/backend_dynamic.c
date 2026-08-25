@@ -3,7 +3,7 @@
 
 // TYPES
 #include <Fusion/FusionTypes.h>
-#include <Internal/Fus_Backend.h>
+#include <BackendInterface/Backend.h>
 
 // LOCAL
 #include "backend_internal.h"
@@ -11,10 +11,9 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
-FusStatusFlag_t FUSI_LoaderDynamicBackend(const char* path, FusBackendApi_t* api, FusBackendDynamic_t* out)
+FusStatusFlag_t fusiLoaderDynamicBackend(const char* path, FusBackendApi_t* api, FusBackendDynamic_t* out)
 {
     if (unlikely(!path || !api || !out)) return FUSION_ERRO;
-
     void* handle = dlopen(path,RTLD_NOW);
     if (unlikely(!handle)) return FUSION_ERRO;
 
@@ -33,7 +32,7 @@ FusStatusFlag_t FUSI_LoaderDynamicBackend(const char* path, FusBackendApi_t* api
     out->interface = ModuleBackendDefine(api);
     return FUSION_OK;
 }
-void FUSI_DestroyDynamicBackend(FusBackendDynamic_t* dyn)
+void fusiDestroyDynamicBackend(FusBackendDynamic_t* dyn)
 {
     if (unlikely(!dyn)) return;
 

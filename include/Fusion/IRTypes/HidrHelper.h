@@ -5,10 +5,10 @@
 
 FUS_DEFINE_HANDLE(FusCodeMount);
 
-FusStatusFlag_t FUS_CreateCodeMount(FusInstance* ctx, FusCodeMount* out);
-void FUS_DestroyCodeMount(FusInstance ctx, FusCodeMount code);
+FUS_API FusStatusFlag_t fusCreateCodeMount(FusInstance* ctx, FusCodeMount* out);
+FUS_API void fusDestroyCodeMount(FusInstance ctx, FusCodeMount code);
 
-FusStatusFlag_t FUS_InsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node);
+FUS_API FusStatusFlag_t fusInsertCodeBlock(struct FusCodeMount_T* mount, FusHidrNode_t node);
 
 static inline FusHidrNode_t FUS_HIDRM(
     FusHidrNodeKind_t   op,

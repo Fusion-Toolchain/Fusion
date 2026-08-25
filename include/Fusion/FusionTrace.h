@@ -5,13 +5,13 @@
 
 typedef struct FusTraceTree_T* FusTraceTree;
 
-FusStatusFlag_t FUS_PushError(
+FusStatusFlag_t fusPushError(
     FusTraceTree tree_ctx, FusStatusFlag_t code,
     const char* file, uint32_t line, const char* message
 );
-void FUS_ClearErrors(FusTraceTree tree_ctx);
-void FUS_DumpTrace(FusTraceTree tree_ctx);
+void fusClearErrors(FusTraceTree tree_ctx);
+void fusDumpTrace(FusTraceTree tree_ctx);
 
-FusStatusFlag_t FUS_InstanceGetTrace(FusInstance instance, FusTraceTree* out);
+FusStatusFlag_t fusInstanceGetTrace(FusInstance instance, FusTraceTree* out);
 
 #endif

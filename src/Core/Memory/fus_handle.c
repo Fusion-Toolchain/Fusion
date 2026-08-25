@@ -24,7 +24,7 @@ struct FusTable_T {
     uint32_t freelist_count;
 };
 
-FusStatusFlag_t FUSI_InitHandleSystem(FusTable_t* table)
+FusStatusFlag_t fusiInitHandleSystem(FusTable_t* table)
 {
     if (unlikely(!table)) return FUSION_ERRO;
 
@@ -50,7 +50,7 @@ FusStatusFlag_t FUSI_InitHandleSystem(FusTable_t* table)
     *table = handle_table;
     return FUSION_OK;
 }
-void FUSI_CloseHandleSystem(FusTable_t* table)
+void fusiCloseHandleSystem(FusTable_t* table)
 {
     if (unlikely(!table)) return;
     struct FusTable_T* handle_table = *table;
@@ -64,7 +64,7 @@ void FUSI_CloseHandleSystem(FusTable_t* table)
     *table = NULL;
 }
 
-FusMemoryId_t FUSI_AllocHandle(FusTable_t* table,void* data, uint8_t type,FusDestroyFn_t destroy)
+FusMemoryId_t fusiAllocHandle(FusTable_t* table,void* data, uint8_t type,FusDestroyFn_t destroy)
 {
     if (unlikely(!table || !data || !destroy)) return FUSION_INVALID_HANDLE;
     struct FusTable_T* handle_table = *table;
@@ -80,7 +80,7 @@ FusMemoryId_t FUSI_AllocHandle(FusTable_t* table,void* data, uint8_t type,FusDes
 
     return FUSI_HandleMake(id,type,slot->generation);
 }
-void* FUSI_GetDataHandle(FusTable_t* table,FusMemoryId_t handle)
+void* fusiGetDataHandle(FusTable_t* table,FusMemoryId_t handle)
 {
     if (unlikely(!table)) return NULL;
     struct FusTable_T* handle_table = *table;
@@ -93,7 +93,7 @@ void* FUSI_GetDataHandle(FusTable_t* table,FusMemoryId_t handle)
 
     return slot->ptr;
 }
-void FUSI_FreeHandle(FusTable_t* table,FusMemoryId_t handle)
+void fusiFreeHandle(FusTable_t* table,FusMemoryId_t handle)
 {
     if (unlikely(!table)) return;
 

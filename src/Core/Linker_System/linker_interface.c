@@ -26,7 +26,7 @@ static inline FusStatusFlag_t ConfigureFileBasic(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return FUSION_ERRO;
 
-    FusMemoryArena_t* arena = FUSI_CreateArena(1024 * 1024);
+    FusMemoryArena_t* arena = fusiCreateArena(1024 * 1024);
     if (unlikely(!arena)) return FUSION_ERRO;
 
     ctx->arena = arena;
@@ -37,7 +37,7 @@ static inline void DestroyConfigureFileBasic(FusLinkerContext ctx)
 {
     if (unlikely(!ctx)) return;
 
-    if (unlikely(ctx->arena)) FUSI_DestroyArena(ctx->arena);
+    if (unlikely(ctx->arena)) fusiDestroyArena(ctx->arena);
 }
 static inline FusStatusFlag_t ConfigureSection(FusInstanceMyAllocation_t* allocator,FusLinkerContext ctx)
 {
@@ -107,7 +107,7 @@ static inline void DestroyConfigureSymbols(FusInstanceMyAllocation_t* allocator,
 }
 
 
-FusStatusFlag_t FUS_CreateLinkerContext(FusInstance instance, FusLinkerContext* out)
+FusStatusFlag_t fusCreateLinkerContext(FusInstance instance, FusLinkerContext* out)
 {
     if (unlikely(!instance || !out)) return FUSION_ERRO;
     *out = NULL;
@@ -117,22 +117,22 @@ FusStatusFlag_t FUS_CreateLinkerContext(FusInstance instance, FusLinkerContext* 
     FusSlab_t* slab = instance_real->slab;
 
     // sizeof do STRUCT real, não do ponteiro-typedef
-    struct FusLinkerContext_T* ctx = FUSI_AllocSlab(slab, sizeof(struct FusLinkerContext_T));
+    struct FusLinkerContext_T* ctx = fusiAllocSlab(slab, sizeof(struct FusLinkerContext_T));
     if (unlikely(!ctx)) return FUSION_ERRO;
 
     if (unlikely(ConfigureFileBasic(ctx) != FUSION_OK)) {
-        FUSI_FreeSlab(slab, ctx);
+        fusiFreeSlab(slab, ctx);
         return FUSION_ERRO;
     }
     if (unlikely(ConfigureSection(allocator, ctx) != FUSION_OK)) {
         DestroyConfigureFileBasic(ctx);
-        FUSI_FreeSlab(slab, ctx);
+        fusiFreeSlab(slab, ctx);
         return FUSION_ERRO;
     }
     if (unlikely(ConfigureSymbols(allocator, ctx) != FUSION_OK)) {
         DestroyConfigureFileBasic(ctx);
         DestroyConfigureSection(allocator, ctx);
-        FUSI_FreeSlab(slab, ctx);
+        fusiFreeSlab(slab, ctx);
         return FUSION_ERRO;
     }
 
@@ -164,7 +164,7 @@ static inline bool SectionArryGrow(FusLinkerContext ctx)
 
     return true;
 }
-FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectionDefine_t* define)
+FusStatusFlag_t fusAddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectionDefine_t* define)
 {
     if (unlikely(!define)) return FUSION_ERRO;
     if (unlikely(!define->name || define->size == 0)) return FUSION_ERRO;
@@ -177,7 +177,7 @@ FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectio
     section->size = define->size;
     section->alignment = define->alignment;
 
-    section->name = FUSI_ArenaPushString(ctx->arena,define->name);
+    section->name = fusiArenaPushString(ctx->arena,define->name);
     if (unlikely(!section->name)) return FUSION_ERRO;
 
     section->flag = define->flag;
@@ -187,7 +187,7 @@ FusStatusFlag_t FUS_AddSectionLinker(FusLinkerContext ctx,FusLinkerContextSectio
 
     return FUSION_OK;
 }
-FusLinkerContextSection_t* FUS_GetSectionLinker(FusLinkerContext ctx, const char* name)
+FusLinkerContextSection_t* fusGetSectionLinker(FusLinkerContext ctx, const char* name)
 {
     if (unlikely(!ctx || !name)) return NULL;
 
@@ -218,7 +218,7 @@ static inline bool SymbolsArryGrow(FusLinkerContext ctx)
 
     return true;
 }
-FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext ctx, const char* name,uintptr_t addr)
+FusStatusFlag_t fusAddSymbolLinker(FusLinkerContext ctx, const char* name,uintptr_t addr)
 {
     if (unlikely(!ctx || !name)) return FUSION_ERRO;
     if (unlikely(addr == 0)) return FUSION_ERRO;
@@ -227,7 +227,7 @@ FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext ctx, const char* name,uintp
 
     size_t idx = ctx->symbols_count;
     FusLinkerContextSymbol_t* symbol = &ctx->symbols[idx];
-    symbol->name = FUSI_ArenaPushString(ctx->arena,name);
+    symbol->name = fusiArenaPushString(ctx->arena,name);
     if (unlikely(!symbol->name)) return FUSION_ERRO;
     symbol->local.addr = addr;
 
@@ -236,7 +236,7 @@ FusStatusFlag_t FUS_AddSymbolLinker(FusLinkerContext ctx, const char* name,uintp
     ctx->symbols_count++;
     return FUSION_OK;
 }
-FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext ctx, const char* name)
+FusLinkerContextSymbol_t* fusGetSymbolLinker(FusLinkerContext ctx, const char* name)
 {
     if (unlikely(!ctx || !name)) return NULL;
 
@@ -247,12 +247,12 @@ FusLinkerContextSymbol_t* FUS_GetSymbolLinker(FusLinkerContext ctx, const char* 
     return &ctx->symbols[idx];
 }
 
-void FUS_DestroyLinkerContext(FusInstance instance, FusLinkerContext ctx)
+void fusDestroyLinkerContext(FusInstance instance, FusLinkerContext ctx)
 {
     if (unlikely(!instance || !ctx)) return;
     struct FusInstance_T* instance_real = instance;
     DestroyConfigureSymbols(instance_real->allocation, ctx);
     DestroyConfigureSection(instance_real->allocation, ctx);
     DestroyConfigureFileBasic(ctx);
-    FUSI_FreeSlab(instance_real->slab, ctx);
+    fusiFreeSlab(instance_real->slab, ctx);
 }

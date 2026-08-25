@@ -1,5 +1,4 @@
 #include <Fusion/Fusion.h>
-#include <Fusion/IO/FusionFileIO.h>
 #include <Fusion/FusionTrace.h>
 
 #include <stdint.h>
@@ -14,6 +13,35 @@ void Print(int value)
     puts(buffer);
 }
 
+static void MountCode(FusCodeMount mount)
+{
+    fusInsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_MOV,
+            HIDR_OP_SIZE_64,
+            FUS_HIDR_Reg(1),
+            FUS_HIDR_Sym("Print"))
+    );
+    fusInsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_MOV,
+            HIDR_OP_SIZE_64,
+            FUS_HIDR_Reg(5),
+            FUS_HIDR_Imm(30,HIDR_IMM64))
+    );
+    fusInsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_CALL,
+            HIDR_OP_SIZE_64,
+            FUS_HIDR_Reg(1),
+            FUS_HIDR_None())
+    );
+
+    fusInsertCodeBlock(mount,
+        FUS_HIDRM(HIDR_INSTR_RET,
+            HIDR_OP_SIZE_NONE,
+            FUS_HIDR_None(),
+            FUS_HIDR_None())
+    );
+}
+
 int main(void)
 {
     FusInstance instance = NULL;
@@ -24,40 +52,16 @@ int main(void)
     FusTraceTree trace = NULL;
     FusBufferContext_t *buffer = NULL;
 
-    if (FUS_CreateInstance(&instance, NULL) != FUSION_OK) return 1;
-    FUS_InstanceGetTrace(instance, &trace);
-    FUS_CreateCodeMount(&instance, &mount);
+    if (!fusCreateInstance(&instance, NULL)) return 1;
+    fusInstanceGetTrace(instance, &trace);
+    fusCreateCodeMount(&instance, &mount);
 
-    FUS_InsertCodeBlock(mount,
-        FUS_HIDRM(HIDR_INSTR_MOV,
-            HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(1),
-            FUS_HIDR_Sym("Print"))
-    );
-    FUS_InsertCodeBlock(mount,
-        FUS_HIDRM(HIDR_INSTR_MOV,
-            HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(5),
-            FUS_HIDR_Imm(30,HIDR_IMM64))
-    );
-    FUS_InsertCodeBlock(mount,
-        FUS_HIDRM(HIDR_INSTR_CALL,
-            HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(1),
-            FUS_HIDR_None())
-    );
+    MountCode(mount); // CREATE CODE
 
-    FUS_InsertCodeBlock(mount,
-        FUS_HIDRM(HIDR_INSTR_RET,
-            HIDR_OP_SIZE_NONE,
-            FUS_HIDR_None(),
-            FUS_HIDR_None())
-    );
+    fusCreateLinkerContext(instance, &linker);
+    fusAddSymbolLinker(linker,"Print",(uintptr_t)&Print);
 
-    FUS_CreateLinkerContext(instance, &linker);
-    FUS_AddSymbolLinker(linker,"Print",(uintptr_t)&Print);
-
-    FUS_LoaderBackend(
+    fusLoaderBackend(
         instance,
         &x86,
         "X86_Backend",
@@ -73,10 +77,10 @@ int main(void)
         .code = mount
     };
 
-    if (FUS_MountHidrsBytes(
+    if (!fusMountHidrsBytes(
         instance,
         (FusCommandRuleBase_t *)&hidr,
-        &compiler) != FUSION_OK) {
+        &compiler)) {
             printf("Erro ao gerar codigo!\n");
             goto _end;
         }
@@ -86,27 +90,24 @@ int main(void)
         .backend = x86
     };
 
-    if (FUS_LinkerResolver(
+    if (!fusLinkerResolver(
         (FusCommandRuleBase_t *)&link,
         linker,
-        compiler) != FUSION_OK) {
+        compiler)) {
             printf("Falha no Linker!\n");
             goto _end;
         }
-    buffer = FUS_GetStreamBufferCompiler(compiler);
-
-    FUS_DumpTrace(trace);
-
-    if (FUS_ExecutableBuffer(buffer) == FUSION_OK) ((FusionEntryPoint)buffer->buffer)();
+    buffer = fusGetStreamBufferCompiler(compiler);
+    fusDumpTrace(trace);
+    if (fusExecutableBuffer(buffer)) ((FusionEntryPoint)buffer->buffer)();
 
 _end:
-
-    FUS_DestroyBufferCode(buffer);
-    FUS_DestroyBackendReturn(instance, compiler);
-    FUS_DestroyBackend(x86);
-    FUS_DestroyLinkerContext(instance, linker);
-    FUS_DestroyCodeMount(instance, mount);
-    FUS_DestroyInstance(instance);
+    fusDestroyBufferCode(buffer);
+    fusDestroyBackendReturn(instance, compiler);
+    fusDestroyBackend(x86);
+    fusDestroyLinkerContext(instance, linker);
+    fusDestroyCodeMount(instance, mount);
+    fusDestroyInstance(instance);
 
     return 0;
 }

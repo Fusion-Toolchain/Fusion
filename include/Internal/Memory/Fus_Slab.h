@@ -6,16 +6,16 @@
 
 typedef struct FusSlab FusSlab_t;
 
-FusSlab_t* FUSI_CreateSlab(
+FusSlab_t* fusiCreateSlab(
     FusInstanceMyAllocation_t* allocation,
     size_t initial_slots,
     size_t min_slots,
     size_t min_size,
     size_t max_size
 );
-void* FUSI_AllocSlab(FusSlab_t* ctx, size_t size);
-void FUSI_FreeSlab(FusSlab_t* ctx, void* ptr);
-void FUSI_SlabTrace(FusSlab_t* ctx);
-void FUSI_DestroySlab(FusSlab_t* ctx);
+void* fusiAllocSlab(FusSlab_t* ctx, size_t size);
+void fusiFreeSlab(FusSlab_t* ctx, void* ptr);
+void fusiSlabTrace(FusSlab_t* ctx);
+void fusiDestroySlab(FusSlab_t* ctx);
 
 #endif

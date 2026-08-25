@@ -50,12 +50,15 @@ static inline bool _ArgumentProcessMountHidrBytes(
     return true;
 }
 
-FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out)
+FusStatusFlag_t fusMountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out)
 {
+    FusTraceTree trace = NULL;
+    struct FusModuleBackend_T* backend = NULL;
+    FusHidrNode_t* hidr = NULL;
+    size_t count = 0;
+
     if (unlikely(!instance || !compiler_rule || !out)) return FUSION_ERRO;
     *out = NULL;
-
-    FusTraceTree trace = NULL;
     FUSIH_INSTANCE_GET_TRACE(&instance,&trace);
 
     struct FusBackendReturn_T* ctx = FUSIH_INSTANCE_ALLOC(&instance, sizeof(struct FusBackendReturn_T));
@@ -66,10 +69,6 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* c
         goto error;
     }
 
-    struct FusModuleBackend_T* backend = NULL;
-    FusHidrNode_t* hidr = NULL;
-    size_t count = 0;
-
     if(!_ArgumentProcessMountHidrBytes(compiler_rule,&backend,&hidr,&count)) goto error;
     if (unlikely(!backend || !hidr || count == 0)) {
         FUS_PUSH_ERR(
@@ -79,7 +78,7 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* c
     }
 
     FusBackendInterface_t* interface = backend->interface;
-    FusBackendTransferLifetime_t* backend_data = interface->FUSI_BackendMountHidrArray(hidr,count);
+    FusBackendTransferLifetime_t* backend_data = interface->FUSI_BackendMountHidrArray(backend->api,hidr,count);
     if (unlikely(!backend_data)) {
         FUS_PUSH_ERR(
             trace,FUSION_ERRO,
@@ -90,7 +89,6 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* c
     ctx->transfer_data = backend_data;
     ctx->api = backend->api;
     *out = ctx;
-
     FUS_PUSH_ERR(
         trace,FUSION_OK,
         "Backend Mount ByteCode Step Completed");
@@ -104,12 +102,12 @@ FusStatusFlag_t FUS_MountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* c
     return FUSION_ERRO; // RETURN ERROR
 }
 
-FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend)
+FusBufferContext_t* fusGetStreamBufferCompiler(FusBackendReturn ctx_backend)
 {
     if (unlikely(!ctx_backend)) return NULL;
 
     FusBackendGenerateDataBlock_t* data_block = (FusBackendGenerateDataBlock_t*)ctx_backend->transfer_data->data;
-    FusBufferContext_t* exec = FUS_CreateBufferCode(data_block->slab_size);
+    FusBufferContext_t* exec = fusCreateBufferCode(data_block->slab_size);
     if (unlikely(!exec)) return NULL;
 
     memcpy(exec->buffer, data_block->buffer_slab,data_block->slab_size);
@@ -118,7 +116,7 @@ FusBufferContext_t* FUS_GetStreamBufferCompiler(FusBackendReturn ctx_backend)
     return exec;
 }
 
-void FUS_DestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend)
+void fusDestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend)
 {
     if (unlikely(!instance || !ctx_backend)) return;
 

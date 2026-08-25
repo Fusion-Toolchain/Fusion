@@ -15,7 +15,7 @@ typedef struct {
         .fn   = mod_fn \
     };
 
-static inline ModuleStaticEntry_t* FUS_GetStaticBackend(const char* name)
+static inline ModuleStaticEntry_t* fusiGetStaticBackend(const char* name)
 {
     if (!name) return NULL;
 

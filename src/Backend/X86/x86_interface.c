@@ -20,8 +20,6 @@
 #include "x86_functions.h"
 #include "x86_types.h"
 
-FusBackendApi_t* FUS = NULL;
-
 #include "InstructionSets/x86_instructions.h" // IMPORT CASES
 #include "x86_FamilyDefine.inc"
 
@@ -72,7 +70,7 @@ static inline void X86_MountRex(const FusHidrNode_t* mir_node, x86Instruction_t*
     }
 }
 
-static inline bool X86_SelectFamily(X86BackendContext* backend_ctx)
+static inline bool X86_SelectFamily(FusBackendApi_t* FUS, X86BackendContext* backend_ctx)
 {
     FusTraceTree trace = NULL;
     FUSB_GET_TRACE_FUSION(FUS,&trace);
@@ -108,7 +106,7 @@ static inline bool X86_SelectFamily(X86BackendContext* backend_ctx)
 /*
  * Internal Once Processor
 */
-static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenerateDataBlock_t* block, const FusHidrNode_t* element)
+static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendApi_t* FUS, FusBackendGenerateDataBlock_t* block, const FusHidrNode_t* element)
 {
     FusTraceTree trace = NULL;
     if (unlikely(!block || !element)) return FUSION_ERRO;
@@ -124,7 +122,7 @@ static FusStatusFlag_t X86_ProcessOnceHidr(FusBackendGenerateDataBlock_t* block,
     };
 
     X86_MountRex(element, &out_instr);
-    if (unlikely(!X86_SelectFamily(&backend_ctx))) return FUSION_ERRO;
+    if (unlikely(!X86_SelectFamily(FUS, &backend_ctx))) return FUSION_ERRO;
     if (unlikely(!X86_MountCodeBytes(&out_instr,
             &block->slab_offset,
             block->buffer_slab,
@@ -153,7 +151,7 @@ static void DestroyLifetimeBlock(const void* data)
     FUSB_DESTROY_BLOCK(block->api,block);
 }
 
-static FusBackendTransferLifetime_t* X86_BackendMountHidrArry(const FusHidrNode_t* hidr, const size_t count)
+static FusBackendTransferLifetime_t* X86_BackendMountHidrArry(FusBackendApi_t* FUS, const FusHidrNode_t* hidr, const size_t count)
 {
     FusTraceTree trace = NULL;
     if (unlikely(!hidr || count == 0)) return NULL;
@@ -177,7 +175,7 @@ static FusBackendTransferLifetime_t* X86_BackendMountHidrArry(const FusHidrNode_
 
     for (size_t i = 0; i < count; i++) {
         if (count > 32 && i + 8 < count) __builtin_prefetch(&hidr[i + 8], 0, 2);
-        FusStatusFlag_t flag = X86_ProcessOnceHidr(block, &hidr[i]);
+        FusStatusFlag_t flag = X86_ProcessOnceHidr(FUS, block, &hidr[i]);
         if (flag != FUSION_OK) {
             block->flag = flag;
 
@@ -194,7 +192,7 @@ static inline void X86_WriteInt32(uint8_t* base, size_t offset, int32_t value)
 {
     memcpy(base + offset, &value, sizeof(int32_t));
 }
-static FusStatusFlag_t X86_LinkerHelper(FusBackendRelocationOpaqueType_t opaque_type, FusBackendRelocContext_t* realoc)
+static FusStatusFlag_t X86_LinkerHelper(FusBackendApi_t* FUS, FusBackendRelocationOpaqueType_t opaque_type, FusBackendRelocContext_t* realoc)
 {
     FusTraceTree trace = NULL;
     if (unlikely(!realoc)) return FUSION_ERRO;
@@ -234,9 +232,8 @@ static FusBackendInterface_t interface = {
     .FUSI_BackendMountHidrArray = X86_BackendMountHidrArry,
     .FUSI_BackendLinkerRelocation = X86_LinkerHelper,
 };
-FusBackendInterface_t* X86_BackendDefine(FusBackendApi_t* api)
+FusBackendInterface_t* X86_BackendDefine()
 {
-    FUS = api;
     return &interface;
 }
 REGISTER_BACKEND(X86_Backend,X86_BackendDefine);

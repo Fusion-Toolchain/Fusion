@@ -7,9 +7,9 @@ typedef struct {
     FusBackendInterface_t* interface;
 } FusBackendDynamic_t;
 
-FusBackendApi_t FUSI_InterfaceDefine();
+FusBackendApi_t fusiInterfaceDefine(); // BACKEND INJECT
 
-FusStatusFlag_t FUSI_LoaderDynamicBackend(const char* path, FusBackendApi_t* api, FusBackendDynamic_t* out);
-void FUSI_DestroyDynamicBackend(FusBackendDynamic_t* dyn);
+FusStatusFlag_t fusiLoaderDynamicBackend(const char* path, FusBackendApi_t* api, FusBackendDynamic_t* out);
+void fusiDestroyDynamicBackend(FusBackendDynamic_t* dyn);
 
 #endif

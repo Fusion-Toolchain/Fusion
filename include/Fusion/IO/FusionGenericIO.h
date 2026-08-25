@@ -1,7 +1,8 @@
 #ifndef FUSION_GENERIC_IO_H
 #define FUSION_GENERIC_IO_H
+#include <Fusion/FusionTypes.h>
 
 typedef struct FusIOSink_T* FusIOSink;
-void FUS_DestroyIOSink(FusIOSink ctx);
+FUS_API void fusDestroyIOSink(FusIOSink ctx);
 
 #endif

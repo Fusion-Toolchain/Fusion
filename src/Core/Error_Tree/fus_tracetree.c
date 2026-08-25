@@ -27,7 +27,7 @@ struct FusTraceTree_T {
     FusErrorNode_t* current;
 };
 
-FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree* out)
+FusStatusFlag_t fusiCreateTraceContext(FusInstanceMyAllocation_t* allocator,FusTraceTree* out)
 {
     if (unlikely(!allocator || !out)) return FUSION_ERRO;
 
@@ -40,7 +40,7 @@ FusStatusFlag_t FUSI_CreateTraceContext(FusInstanceMyAllocation_t* allocator,Fus
     *out = tree;
     return FUSION_OK;
 }
-void FUSI_DestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx)
+void fusiDestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree* tree_ctx)
 {
     if (unlikely(!allocator || !tree_ctx)) return;
     struct FusTraceTree_T* tree = *tree_ctx;
@@ -49,7 +49,7 @@ void FUSI_DestroyTraceContext(FusInstanceMyAllocation_t* allocator, FusTraceTree
     *tree_ctx = NULL;
 }
 
-FusStatusFlag_t FUS_PushError(
+FusStatusFlag_t fusPushError(
     FusTraceTree tree_ctx, FusStatusFlag_t code,
     const char* file, uint32_t line, const char* message
 )
@@ -74,7 +74,7 @@ FusStatusFlag_t FUS_PushError(
     return FUSION_OK;
 }
 
-void FUS_ClearErrors(FusTraceTree tree_ctx)
+void fusClearErrors(FusTraceTree tree_ctx)
 {
     if (unlikely(!tree_ctx)) return;
     struct FusTraceTree_T* tree = tree_ctx;
@@ -89,7 +89,7 @@ void FUS_ClearErrors(FusTraceTree tree_ctx)
 #define FUS_COLOR_YELLOW "\033[33m"
 #define FUS_COLOR_RED    "\033[31m"
 
-static int FUSI_TraceDepth(FusErrorNode_t* node)
+static int TraceDepth(FusErrorNode_t* node)
 {
     int depth = 0;
     while (node && node->parent) {
@@ -102,7 +102,7 @@ static void FUSI_DumpTraceNode(FusErrorNode_t* node)
 {
     if (!node) return;
     if (node->parent)FUSI_DumpTraceNode(node->parent);
-    int depth = FUSI_TraceDepth(node);
+    int depth = TraceDepth(node);
     printf(
     "%*s%s[%s:%u] code=%d%s\n",
         depth * 2,
@@ -129,7 +129,7 @@ static void FUSI_DumpTraceNode(FusErrorNode_t* node)
     }
 }
 
-void FUS_DumpTrace(FusTraceTree tree_ctx)
+void fusDumpTrace(FusTraceTree tree_ctx)
 {
     if (unlikely(!tree_ctx)) return;
 
@@ -145,7 +145,7 @@ void FUS_DumpTrace(FusTraceTree tree_ctx)
     printf("================================================\n\n");
 }
 
-FusStatusFlag_t FUS_InstanceGetTrace(FusInstance instance, FusTraceTree* out)
+FusStatusFlag_t fusInstanceGetTrace(FusInstance instance, FusTraceTree* out)
 {
     if (unlikely(!instance || !out)) return FUSION_ERRO;
     FUSIH_INSTANCE_GET_TRACE(&instance,out);

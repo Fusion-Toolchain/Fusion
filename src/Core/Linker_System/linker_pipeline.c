@@ -41,7 +41,7 @@ static inline void LinkerBackendRealloc(FusModuleBackend* backend, FusBackendRel
     if (unlikely(!backend)) return;
 
     struct FusModuleBackend_T* backend_real = *backend;
-    backend_real->interface->FUSI_BackendLinkerRelocation(type,context_realoc);
+    backend_real->interface->FUSI_BackendLinkerRelocation(backend_real->api,type,context_realoc);
 }
 static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend* backend, FusBackendReturn backend_data)
 {
@@ -53,7 +53,7 @@ static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend*
 
     for (size_t i = 0; i < block->reloc_count; i++) {
         FusBackendRelocationNeed_t*  realoc_backend = &block->reloc[i];
-        FusLinkerContextSymbol_t* symbol = FUS_GetSymbolLinker(linker, realoc_backend->name);
+        FusLinkerContextSymbol_t* symbol = fusGetSymbolLinker(linker, realoc_backend->name);
         if (unlikely(!symbol)) {
             FUS_PUSH_ERR(trace,FUSION_ERRO,"Linker Resolver Relocation Step-Failed");
             return false;
@@ -73,7 +73,7 @@ static inline bool LinkerCodeResolver(FusLinkerContext linker, FusModuleBackend*
 }
 
 
-FusStatusFlag_t FUS_LinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext linker_ctx, FusBackendReturn backend_data)
+FusStatusFlag_t fusLinkerResolver(FusCommandRuleBase_t* compiler_rule, FusLinkerContext linker_ctx, FusBackendReturn backend_data)
 {
     if (unlikely(!compiler_rule || !backend_data || !linker_ctx)) return FUSION_ERRO;
     FusModuleBackend* backend = NULL;

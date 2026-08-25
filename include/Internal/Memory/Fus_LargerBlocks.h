@@ -20,7 +20,7 @@ typedef struct FusLargerBlock_T* FusLargerBlock_t;
  * @param pool_size 
  * @return FusStatusFlag_t 
  */
-FusStatusFlag_t FUSI_InitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx ,size_t pool_size);
+FusStatusFlag_t fusiInitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx ,size_t pool_size);
 /**
  * @brief Close Larger Block Context
  * 
@@ -29,7 +29,7 @@ FusStatusFlag_t FUSI_InitLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLarge
  * @param alloc 
  * @param ctx 
  */
-void FUSI_CloseLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx);
+void fusiCloseLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* ctx);
 
 /**
  * @brief Alloc Block in Larger Block System
@@ -38,13 +38,13 @@ void FUSI_CloseLargerBlocks(FusInstanceMyAllocation_t* alloc, FusLargerBlock_t* 
  * @param size 
  * @return void* 
  */
-void* FUSI_AllocLargerBlocks(FusLargerBlock_t* ctx,size_t size);
+void* fusiAllocLargerBlocks(FusLargerBlock_t* ctx,size_t size);
 /**
  * @brief Free Larger Block
  * 
  * @param ctx 
  * @param ptr 
  */
-void FUSI_FreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr);
+void fusiFreeLargerBlocks(FusLargerBlock_t* ctx, void* ptr);
 
 #endif // FUSION_INTERNAL_LARGER_BLOCKS_H

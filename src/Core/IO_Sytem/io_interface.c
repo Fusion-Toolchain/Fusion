@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-FusStatusFlag_t FUSI_IOCreateGenericIOSink(FusIOSink* out,FusIOSinkInterfaceDefine interface,void* ctx_data)
+FusStatusFlag_t fusiIOCreateGenericIOSink(FusIOSink* out,FusIOSinkInterfaceDefine interface,void* ctx_data)
 {
     if (!out) return FUSION_ERRO;
     struct FusIOSink_T* ctx = malloc(sizeof(struct FusIOSink_T));
@@ -14,7 +14,7 @@ FusStatusFlag_t FUSI_IOCreateGenericIOSink(FusIOSink* out,FusIOSinkInterfaceDefi
     *out = ctx;
     return FUSION_OK;
 }
-void FUS_DestroyIOSink(FusIOSink ctx)
+void fusDestroyIOSink(FusIOSink ctx)
 {
     if (!ctx) return;
     FusIOSinkInterfaceDefine interface = ctx->interface;

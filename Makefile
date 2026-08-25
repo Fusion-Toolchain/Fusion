@@ -22,6 +22,7 @@ CORE_SRC := \
 	$(SRC_DIR)/Core/instance_controller.c \
 	$(SRC_DIR)/Core/Compiler/compiler_pipeline.c \
 	$(SRC_DIR)/Core/BufferSystem/buffer_mounter.c \
+	$(SRC_DIR)/Core/BufferSystem/bufferio_utils.c \
 	$(SRC_DIR)/Core/Backend_System/backend_loader.c \
 	$(SRC_DIR)/Core/Backend_System/backend_inject.c \
 	$(SRC_DIR)/Core/IO_Sytem/io_interface.c \

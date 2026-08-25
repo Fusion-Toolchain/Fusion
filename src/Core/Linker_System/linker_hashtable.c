@@ -56,7 +56,7 @@ FdbHashTable_t* FDBI_HashTableCreate(size_t capacity)
 
     ht->capacity = capacity;
     ht->entries_count = 0;
-    ht->arena = FUSI_CreateArena(1*1024*1024);
+    ht->arena = fusiCreateArena(1*1024*1024);
     if (unlikely(!ht->arena)) {
         free(ht);
         return NULL;
@@ -64,7 +64,7 @@ FdbHashTable_t* FDBI_HashTableCreate(size_t capacity)
 
     ht->entries = calloc(capacity,sizeof(FdbHashEntry_t));
     if (unlikely(!ht->entries)) {
-        FUSI_DestroyArena(ht->arena);
+        fusiDestroyArena(ht->arena);
         free(ht);
         return NULL;
     }
@@ -99,7 +99,7 @@ FusStatusFlag_t FDBI_HashTableInsert(FdbHashTable_t* ht, const char* key, size_t
         }
     }
 
-    const char* k = FUSI_ArenaPushString(ht->arena, key);
+    const char* k = fusiArenaPushString(ht->arena, key);
     if (unlikely(!k)) goto err;
 
     ht->entries[i].key = k;
@@ -141,6 +141,6 @@ void FDBI_HashTableDestroy(FdbHashTable_t* ht)
     if (unlikely(!ht)) return;
 
     if (likely(ht->entries)) free(ht->entries);
-    FUSI_DestroyArena(ht->arena);
+    fusiDestroyArena(ht->arena);
     free(ht);
 }

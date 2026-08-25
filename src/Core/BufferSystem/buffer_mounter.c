@@ -17,7 +17,7 @@ static inline int fus_memfd_create(const char* name)
     return (int)syscall(SYS_memfd_create, name, 1); // 1 = MFD_CLOEXEC
 }
 
-FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
+FusBufferContext_t* fusCreateBufferCode(size_t buffer_size)
 {
     if (unlikely(buffer_size == 0)) return NULL;
 
@@ -48,13 +48,13 @@ FusBufferContext_t* FUS_CreateBufferCode(size_t buffer_size)
 
     return ctx;
 }
-void FUS_ReUsedBuffer(FusBufferContext_t* buffer)
+void fusReUsedBuffer(FusBufferContext_t* buffer)
 {
     if (unlikely(!buffer)) return;
     buffer->offset = 0;
 }
 
-FusStatusFlag_t FUS_ExecutableBuffer(FusBufferContext_t* buffer)
+FusStatusFlag_t fusExecutableBuffer(FusBufferContext_t* buffer)
 {
     if (unlikely(!buffer)) return FUSION_ERRO;
 
@@ -87,19 +87,10 @@ FusStatusFlag_t FUS_ExecutableBuffer(FusBufferContext_t* buffer)
     buffer->buffer = exec;
     return FUSION_OK;
 }
-void FUS_DestroyBufferCode(FusBufferContext_t* buffer)
+void fusDestroyBufferCode(FusBufferContext_t* buffer)
 {
     if (unlikely(!buffer)) return;
 
     munmap(buffer->buffer,buffer->buffer_size);
     free(buffer);
-}
-
-#include <Fusion/IO/FusionGenericIO.h>
-#include <Internal/IO/Fus_GenericIO.h>
-FusStatusFlag_t FUS_BufferIOSink(FusBufferContext_t* buffer, FusIOSink sink)
-{
-    if (unlikely(!buffer || !sink)) return FUSION_ERRO;
-    sink->interface.write(sink->ctx,buffer->buffer,buffer->offset);
-    return FUSION_OK;
 }

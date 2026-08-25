@@ -14,7 +14,7 @@
 Fusion is a modular code generation engine written in C. It takes an intermediate representation called **HIDR** and compiles it down to native machine code through a pluggable backend system. The design philosophy is inspired by Vulkan: explicit control, no hidden magic, the caller owns the pipeline.
 
 ```
-HIDR Nodes  →  FusCommandRule chain  →  FUS_MountHidrsBytes  →  FusBufferContext_t  →  Execute
+HIDR Nodes  →  FusCommandRule chain  →  fusMountHidrsBytes  →  FusBufferContext_t  →  Execute
 ```
 
 Fusion does **not** dictate how you manage memory, how you parse your language, or which backend you use. You wire it together.
@@ -70,9 +70,9 @@ FusInstanceMyAllocation_t alloc = {
 };
 
 FusInstance instance;
-FusStatusFlag_t status = FUS_CreateInstance(&instance, &alloc);
+FusStatusFlag_t status = fusCreateInstance(&instance, &alloc);
 if (status != FUSION_OK) {
-    fprintf(stderr, "FUS_CreateInstance: %s\n", FUS_StrError(status));
+    fprintf(stderr, "fusCreateInstance: %s\n", fusStrError(status));
     return 1;
 }
 ```
@@ -80,8 +80,8 @@ if (status != FUSION_OK) {
 ### 2. Load a backend
 
 ```c
-FusModuleBackend_t backend;
-status = FUS_LoaderBackend(&instance, &backend, "x86", FUS_BACKEND_TYPE_STATIC);
+FusModuleBackend backend;
+status = fusLoaderBackend(instance, &backend, "x86", FUS_BACKEND_TYPE_STATIC);
 if (status != FUSION_OK) { /* handle */ }
 ```
 
@@ -91,7 +91,7 @@ The compiler pipeline is driven by a `pNext` chain of `FusCommandRuleBase_t` str
 
 ```c
 // Provide the output buffer
-FusBufferContext_t* out_buf = FUS_CreateBufferCode(4096);
+FusBufferContext_t* out_buf = fusCreateBufferCode(4096);
 
 FusCommandBuffer cmd_buf = {
     .sType  = FUS_COMMAND_SEND_BUFFER,
@@ -99,12 +99,11 @@ FusCommandBuffer cmd_buf = {
     .buffer = out_buf,
 };
 
-// Provide your HIDR node array
+// Provide your HIDR code mount
 FusCommandHidr cmd_hidr = {
-    .sType      = FUS_COMMAND_SEND_HIDR,
-    .pNext      = (FusCommandRuleBase_t*)&cmd_buf,
-    .hidr_arry  = my_hidr_nodes,
-    .hidr_count = my_node_count,
+    .sType = FUS_COMMAND_SEND_HIDR,
+    .pNext = (FusCommandRuleBase_t*)&cmd_buf,
+    .code  = my_code_mount,
 };
 
 // Provide the backend
@@ -118,15 +117,16 @@ FusCommandBackend cmd_backend = {
 ### 4. Compile
 
 ```c
-FusBackendReturn_t* result = FUS_MountHidrsBytes(&instance, (FusCommandRuleBase_t*)&cmd_backend);
+FusBackendReturn result;
+FusStatusFlag_t status = fusMountHidrsBytes(instance, (FusCommandRuleBase_t*)&cmd_backend, &result);
 
-FusBufferContext_t* exec_buf = FUS_GetStreamBufferCompiler(result);
+FusBufferContext_t* exec_buf = fusGetStreamBufferCompiler(result);
 ```
 
 ### 5. Execute (JIT)
 
 ```c
-FUS_ExecutableBuffer(exec_buf);   // marks buffer as executable (mprotect)
+fusExecutableBuffer(exec_buf);   // marks buffer as executable (mprotect)
 
 typedef int (*JitFn)(void);
 JitFn fn = (JitFn)exec_buf->buffer;
@@ -136,10 +136,10 @@ int ret = fn();
 ### 6. Cleanup
 
 ```c
-FUS_DestroyCompiler(instance, result);
-FUS_DestroyBufferCode(exec_buf);
-FUS_DestroyBackend(backend);
-FUS_DestroyInstance(&instance);
+fusDestroyBackendReturn(instance, result);
+fusDestroyBufferCode(exec_buf);
+fusDestroyBackend(backend);
+fusDestroyInstance(instance);
 ```
 
 ---
@@ -150,37 +150,37 @@ FUS_DestroyInstance(&instance);
 
 | Function | Description |
 |---|---|
-| `FUS_CreateInstance(ctx, allocation)` | Create a Fusion instance with a custom allocator |
-| `FUS_DestroyInstance(ctx)` | Destroy instance and free all associated resources |
+| `fusCreateInstance(ctx, allocation)` | Create a Fusion instance with a custom allocator |
+| `fusDestroyInstance(ctx)` | Destroy instance and free all associated resources |
 
 ### Buffer
 
 | Function | Description |
 |---|---|
-| `FUS_CreateBufferCode(size)` | Allocate a code buffer of `size` bytes |
-| `FUS_ExecutableBuffer(buffer)` | Mark buffer as executable (call before JIT execution) |
-| `FUS_DestroyBufferCode(buffer)` | Free a code buffer |
+| `fusCreateBufferCode(size)` | Allocate a code buffer of `size` bytes |
+| `fusExecutableBuffer(buffer)` | Mark buffer as executable (call before JIT execution) |
+| `fusDestroyBufferCode(buffer)` | Free a code buffer |
 
 ### Backend
 
 | Function | Description |
 |---|---|
-| `FUS_LoaderBackend(instance, ctx, name, type)` | Load a backend module by name |
-| `FUS_DestroyBackend(backend)` | Unload and free a backend module |
+| `fusLoaderBackend(instance, ctx, name, type)` | Load a backend module by name |
+| `fusDestroyBackend(backend)` | Unload and free a backend module |
 
 ### Compilation
 
 | Function | Description |
 |---|---|
-| `FUS_MountHidrsBytes(instance, rule)` | Run the compiler pipeline from a command rule chain |
-| `FUS_GetStreamBufferCompiler(ctx_backend)` | Extract the output buffer from a compilation result |
-| `FUS_DestroyCompiler(instance, ctx_backend)` | Free compilation result resources |
+| `fusMountHidrsBytes(instance, rule, out)` | Run the compiler pipeline from a command rule chain |
+| `fusGetStreamBufferCompiler(ctx_backend)` | Extract the output buffer from a compilation result |
+| `fusDestroyBackendReturn(instance, ctx_backend)` | Free compilation result resources |
 
 ### Utilities
 
 | Function | Description |
 |---|---|
-| `FUS_StrError(status)` | Convert a `FusStatusFlag_t` to a human-readable string |
+| `fusStrError(status)` | Convert a `FusStatusFlag_t` to a human-readable string |
 
 ---
 
@@ -200,8 +200,8 @@ The compilation pipeline is configured via a linked chain of command structs. Ea
 ## Status Codes
 
 ```c
-FUSION_OK   = 0   // Success
-FUSION_ERRO = 1   // Generic error — use FUS_StrError() for details
+FUSION_OK   = 1   // Success (truthy)
+FUSION_ERRO = 0   // Generic error — use fusStrError() for details
 ```
 
 ---

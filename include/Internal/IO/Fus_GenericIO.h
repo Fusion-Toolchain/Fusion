@@ -16,5 +16,5 @@ struct FusIOSink_T {
     void*           ctx;
 };
 
-FusStatusFlag_t FUSI_IOCreateGenericIOSink(FusIOSink* out,FusIOSinkInterfaceDefine interface,void* ctx_data);
+FusStatusFlag_t fusiIOCreateGenericIOSink(FusIOSink* out,FusIOSinkInterfaceDefine interface,void* ctx_data);
 #endif

@@ -11,6 +11,6 @@ typedef enum {
 FUS_DEFINE_HANDLE(FusModuleBackend)
 FUS_DEFINE_HANDLE(FusBackendReturn)
 
-FusStatusFlag_t FUS_LoaderBackend(FusInstance instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type);
-void FUS_DestroyBackend(FusModuleBackend backend);
+FusStatusFlag_t fusLoaderBackend(FusInstance instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type);
+void fusDestroyBackend(FusModuleBackend backend);
 #endif
