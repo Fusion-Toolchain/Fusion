@@ -92,12 +92,11 @@ FusStatusFlag_t fusLoaderBackend(FusInstance instance, FusModuleBackend* ctx,con
     return FUSION_OK;
 }
 
-void fusDestroyBackend(FusModuleBackend backend)
+void fusDestroyBackend(FusInstance instance, FusModuleBackend backend)
 {
     if (unlikely(!backend)) return;
     struct FusModuleBackend_T* backend_real = backend;
 
-    FusInstance instance              = FUSIH_BACKEND_GET_API(&backend)->Instance;
     FusInstanceMyAllocation_t* alloc   = FUSIH_INSTANCE_GET_ALLOC(instance);
 
     FUSIH_FREE(alloc, (void*)backend_real->name);

@@ -68,6 +68,7 @@ FusStatusFlag_t fusMountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* co
             "Fail alloc Backend Return");
         goto error;
     }
+    memset(ctx, 0, sizeof(*ctx));
 
     if(!_ArgumentProcessMountHidrBytes(compiler_rule,&backend,&hidr,&count)) goto error;
     if (unlikely(!backend || !hidr || count == 0)) {
@@ -86,6 +87,13 @@ FusStatusFlag_t fusMountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* co
         goto error;
     }
 
+    FusBackendGenerateDataBlock_t* blk = (FusBackendGenerateDataBlock_t*)backend_data->data;
+    if (unlikely(blk->flag != FUSION_OK)) {
+        FUS_PUSH_ERR(trace, FUSION_ERRO, "Backend Generation Boundary Reached - invalid HIDR");
+        FUSIH_API_DESTROY_TRANSFER_LIFETIME(backend->api, backend_data);
+        goto error;
+    }
+
     ctx->transfer_data = backend_data;
     ctx->api = backend->api;
     *out = ctx;
@@ -96,18 +104,18 @@ FusStatusFlag_t fusMountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* co
 
     error:
     if (ctx) {
-        FUSIH_API_DESTROY_TRANSFER_LIFETIME(ctx->api,ctx->transfer_data);
+        if (ctx->transfer_data) FUSIH_API_DESTROY_TRANSFER_LIFETIME(ctx->api,ctx->transfer_data);
         FUSIH_INSTANCE_FREE(&instance,ctx);
     }
     return FUSION_ERRO; // RETURN ERROR
 }
 
-FusBufferContext_t* fusGetStreamBufferCompiler(FusBackendReturn ctx_backend)
+FusBufferContext_t* fusGetStreamBufferCompiler(FusInstance instance, FusBackendReturn ctx_backend)
 {
     if (unlikely(!ctx_backend)) return NULL;
 
     FusBackendGenerateDataBlock_t* data_block = (FusBackendGenerateDataBlock_t*)ctx_backend->transfer_data->data;
-    FusBufferContext_t* exec = fusCreateBufferCode(data_block->slab_size);
+    FusBufferContext_t* exec = fusCreateBufferCode(instance, data_block->slab_size);
     if (unlikely(!exec)) return NULL;
 
     memcpy(exec->buffer, data_block->buffer_slab,data_block->slab_size);

@@ -39,8 +39,8 @@ static X86FamilyRule_t ret_rules[] = {
     }
 };
 static X86FamilyRule_t add_rules[] = {
-    {HIDR_OPERAND_TYPE_REG, HIDR_OPERAND_TYPE_REG, X86_CaseMountAddRegReg},
-    {HIDR_OPERAND_TYPE_REG, HIDR_OPERAND_TYPE_IMM, X86_CaseMountAddImmReg},
+    {.dst_type = HIDR_OPERAND_TYPE_REG, .src_type = HIDR_OPERAND_TYPE_REG, .builder = X86_CaseMountAddRegReg},
+    {.dst_type = HIDR_OPERAND_TYPE_REG, .src_type = HIDR_OPERAND_TYPE_IMM, .builder = X86_CaseMountAddImmReg},
 };
 static X86FamilyRule_t lea_rules[] = {
     {

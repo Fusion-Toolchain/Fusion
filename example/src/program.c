@@ -12,14 +12,14 @@ void MountCode(FusCodeMount Mount)
     fusInsertCodeBlock(Mount,
         FUS_HIDRM(HIDR_INSTR_MOV,
             HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(0),
-            FUS_HIDR_Imm(60,HIDR_IMM64))
+            FUS_HIDR_Reg("ACL0"),  // rax
+            FUS_HIDR_Imm(60, HIDR_IMM64))
     );
     fusInsertCodeBlock(Mount,
         FUS_HIDRM(HIDR_INSTR_MOV,
             HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(5),
-            FUS_HIDR_Imm(1,HIDR_IMM64))
+            FUS_HIDR_Reg("OCL0"),  // rdi
+            FUS_HIDR_Imm(1, HIDR_IMM64))
     );
     fusInsertCodeBlock(Mount,
         FUS_HIDRM(HIDR_INSTR_SYSCALL,
@@ -116,7 +116,7 @@ int main(void)
         printf("Erro Compile Code\n");
         return 1;
     }
-    FusBufferContext_t* CodeBuffer = fusGetStreamBufferCompiler(BackendReturn);
+    FusBufferContext_t* CodeBuffer = fusGetStreamBufferCompiler(Instance,BackendReturn);
     if (!CodeBuffer) {
         printf("Erro obter buffer compilado\n");
         return 1;
@@ -128,9 +128,9 @@ int main(void)
     }
     printf("Execute: ./output.elf\n echo $?\n");
 
-    fusDestroyBufferCode(CodeBuffer);
+    fusDestroyBufferCode(Instance,CodeBuffer);
     fusDestroyBackendReturn(Instance, BackendReturn);
-    fusDestroyBackend(BackendInstance);
+    fusDestroyBackend(Instance,BackendInstance);
     fusDestroyCodeMount(Instance, CodeMount);
     fusDestroyInstance(Instance);
 

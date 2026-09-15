@@ -3,7 +3,7 @@ SRC_DIR     := src
 EXAMPLE_DIR := example
 BUILD_DIR   := .build
 CC          := gcc
-CFLAGS      := -g -I$(INCLUDE_DIR) -O3 -MMD -MP -fPIC
+CFLAGS      := -std=gnu23 -g -I$(INCLUDE_DIR) -O3 -MMD -MP -fPIC
 CFLAGS      += -Wextra -Wall -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 
 ifeq ($(DEBUG),Y)
@@ -35,7 +35,8 @@ CORE_SRC := \
 	$(SRC_DIR)/Core/Memory/fus_slab.c \
 	$(SRC_DIR)/Core/Memory/fus_handle.c \
 	$(SRC_DIR)/Core/Memory/fus_larger_block.c \
-	$(SRC_DIR)/Core/IRTypes/fus_hidrmount.c
+	$(SRC_DIR)/Core/IRTypes/fus_hidrmount.c \
+	$(SRC_DIR)/Core/IRTypes/fus_hidregistrer.c \
 
 CORE_OBJ := $(CORE_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 CORE_LIB := $(BUILD_DIR)/libfusion_core.a

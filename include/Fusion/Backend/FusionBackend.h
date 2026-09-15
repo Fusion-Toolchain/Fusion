@@ -12,5 +12,5 @@ FUS_DEFINE_HANDLE(FusModuleBackend)
 FUS_DEFINE_HANDLE(FusBackendReturn)
 
 FusStatusFlag_t fusLoaderBackend(FusInstance instance, FusModuleBackend* ctx,const char* name, FusModuleBackendType_t type);
-void fusDestroyBackend(FusModuleBackend backend);
+void fusDestroyBackend(FusInstance instance, FusModuleBackend backend);
 #endif

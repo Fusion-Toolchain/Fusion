@@ -11,7 +11,7 @@
  * @return FusStatusFlag_t Build Flag
 */
 FusStatusFlag_t fusMountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* compiler_rule,FusBackendReturn* out);
-FusBufferContext_t* fusGetStreamBufferCompiler(FusBackendReturn ctx_backend);
+FusBufferContext_t* fusGetStreamBufferCompiler(FusInstance instance, FusBackendReturn ctx_backend);
 void fusDestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend);
 
 #endif

@@ -1,15 +1,14 @@
 #include <Fusion/FusionTypes.h>
+#include <Fusion/FusionBuffer.h>
 
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
+#include <Internal/Helpers/Fus_Helper_Instance.h>
 
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include <errno.h>
 #include <string.h>
 
 static inline int fus_memfd_create(const char* name)
@@ -17,11 +16,10 @@ static inline int fus_memfd_create(const char* name)
     return (int)syscall(SYS_memfd_create, name, 1); // 1 = MFD_CLOEXEC
 }
 
-FusBufferContext_t* fusCreateBufferCode(size_t buffer_size)
+FusBufferContext_t* fusCreateBufferCode(FusInstance instance, size_t buffer_size)
 {
     if (unlikely(buffer_size == 0)) return NULL;
-
-    FusBufferContext_t* ctx = malloc(sizeof(FusBufferContext_t));
+    FusBufferContext_t* ctx = FUSIH_INSTANCE_ALLOC(&instance,sizeof(FusBufferContext_t));
     if (unlikely(!ctx)) return NULL;
 
     long page_size = sysconf(_SC_PAGESIZE);
@@ -38,7 +36,7 @@ FusBufferContext_t* fusCreateBufferCode(size_t buffer_size)
         0
     );
     if (unlikely(buffer == MAP_FAILED)) {
-        free(ctx);
+        FUSIH_INSTANCE_FREE(&instance,ctx);
         return NULL;
     }
 
@@ -58,16 +56,12 @@ FusStatusFlag_t fusExecutableBuffer(FusBufferContext_t* buffer)
 {
     if (unlikely(!buffer)) return FUSION_ERRO;
 
-    // cria FD anônimo
     int fd = fus_memfd_create("fusion_jit");
     if (fd < 0) {
-        fprintf(stderr, "memfd_create falhou: %s\n", strerror(errno));
         return FUSION_ERRO;
     }
 
-    // escreve o código gerado no FD
     if (write(fd, buffer->buffer, buffer->offset) != (ssize_t)buffer->offset) {
-        fprintf(stderr, "write falhou: %s\n", strerror(errno));
         close(fd);
         return FUSION_ERRO;
     }
@@ -80,17 +74,16 @@ FusStatusFlag_t fusExecutableBuffer(FusBufferContext_t* buffer)
     close(fd);
 
     if (exec == MAP_FAILED) {
-        fprintf(stderr, "mmap falhou: %s\n", strerror(errno));
         return FUSION_ERRO;
     }
 
     buffer->buffer = exec;
     return FUSION_OK;
 }
-void fusDestroyBufferCode(FusBufferContext_t* buffer)
+void fusDestroyBufferCode(FusInstance instance, FusBufferContext_t* buffer)
 {
     if (unlikely(!buffer)) return;
 
     munmap(buffer->buffer,buffer->buffer_size);
-    free(buffer);
+    FUSIH_INSTANCE_FREE(&instance, buffer);
 }

@@ -19,6 +19,7 @@
 #include "x86_familys.h"
 #include "x86_functions.h"
 #include "x86_types.h"
+#include "x86_helpers.h"
 
 #include "InstructionSets/x86_instructions.h" // IMPORT CASES
 #include "x86_FamilyDefine.inc"
@@ -35,35 +36,41 @@ static inline void X86_MountPrefixHidr(const FusHidrNode_t* mir_node, x86Instruc
         instr->has_prefix = true;
     }
 }
+
 static inline void X86_MountRex(const FusHidrNode_t* mir_node, x86Instruction_t* instr)
 {
     instr->has_rex = false;
 
     // W: operação 64-bit
     if (mir_node->op_size == HIDR_OP_SIZE_64 &&
-    !(mir_node->src.type == HIDR_OPERAND_TYPE_IMM && 
+    !(mir_node->src.type == HIDR_OPERAND_TYPE_IMM &&
     mir_node->src.data.imm.size == HIDR_IMM8)) {
         instr->rex.w = 1;
         instr->has_rex = true;
     }
 
     // R: extensão do campo reg (dst normalmente)
-    if (mir_node->dst.type == HIDR_OPERAND_TYPE_REG &&
-        mir_node->dst.data.reg >= 8) {
-        instr->rex.r = 1;
-        instr->has_rex = true;
+    if (mir_node->dst.type == HIDR_OPERAND_TYPE_REG) {
+        size_t idx = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->dst.data.reg));
+        if (idx != (size_t)-1 && idx >= 8) {
+            instr->rex.r = 1;
+            instr->has_rex = true;
+        }
     }
 
     // B: extensão do campo rm (src normalmente)
-    if (mir_node->src.type == HIDR_OPERAND_TYPE_REG &&
-        mir_node->src.data.reg >= 8) {
-        instr->rex.b = 1;
-        instr->has_rex = true;
+    if (mir_node->src.type == HIDR_OPERAND_TYPE_REG) {
+        size_t idx = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->src.data.reg));
+        if (idx != (size_t)-1 && idx >= 8) {
+            instr->rex.b = 1;
+            instr->has_rex = true;
+        }
     }
 
     // memória (base register)
     if (mir_node->src.type == HIDR_OPERAND_TYPE_MEM_REF) {
-        if (mir_node->src.data.memory_ref.base >= 8) {
+        size_t idx = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->src.data.memory_ref.base));
+        if (idx != (size_t)-1 && idx >= 8) {
             instr->rex.b = 1;
             instr->has_rex = true;
         }
@@ -184,6 +191,7 @@ static FusBackendTransferLifetime_t* X86_BackendMountHidrArry(FusBackendApi_t* F
         }
     }
 
+    block->flag = FUSION_OK;
     FUS_PUSH_ERR(trace,FUSION_OK,"Backend Full Generation ByteCode Step Completed");
     return transfer;
 }

@@ -10,14 +10,22 @@ typedef enum {
 } X86ReallocTypes_t;
 
 // REGISTERS (único source of truth)
-#define X86_REG_RAX 0
-#define X86_REG_RCX 1
-#define X86_REG_RDX 2
-#define X86_REG_RBX 3
-#define X86_REG_RSP 4
-#define X86_REG_RBP 5
-#define X86_REG_RSI 6
-#define X86_REG_RDI 7
+#define X86_REG_RAX  0
+#define X86_REG_RCX  1
+#define X86_REG_RDX  2
+#define X86_REG_RBX  3
+#define X86_REG_RSP  4
+#define X86_REG_RBP  5
+#define X86_REG_RSI  6
+#define X86_REG_RDI  7
+#define X86_REG_R8   8
+#define X86_REG_R9   9
+#define X86_REG_R10  10
+#define X86_REG_R11  11
+#define X86_REG_R12  12
+#define X86_REG_R13  13
+#define X86_REG_R14  14
+#define X86_REG_R15  15
 
 /*
  * ! MODRM TYPES !

@@ -10,7 +10,8 @@ bool X86_CaseMountCallReg(X86BackendContext* backend_ctx)
 
     if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
 
-    FusHidrVirtualReg_t src_reg = X86_MapVirtualReg(mir_node->dst.data.reg);
+    size_t src_reg = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->dst.data.reg));
+    if (src_reg == (size_t)-1) return false;
 
     /* Opcode: FF */
     mount_instr->opcode.opcode[0] = 0xFF;

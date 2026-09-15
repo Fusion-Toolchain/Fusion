@@ -18,22 +18,21 @@ static void MountCode(FusCodeMount mount)
     fusInsertCodeBlock(mount,
         FUS_HIDRM(HIDR_INSTR_MOV,
             HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(1),
+            FUS_HIDR_Reg("BCL0"),  // rbx
             FUS_HIDR_Sym("Print"))
     );
     fusInsertCodeBlock(mount,
         FUS_HIDRM(HIDR_INSTR_MOV,
             HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(5),
-            FUS_HIDR_Imm(30,HIDR_IMM64))
+            FUS_HIDR_Reg("OCL0"),  // rdi
+            FUS_HIDR_Imm(30, HIDR_IMM64))
     );
     fusInsertCodeBlock(mount,
         FUS_HIDRM(HIDR_INSTR_CALL,
             HIDR_OP_SIZE_64,
-            FUS_HIDR_Reg(1),
+            FUS_HIDR_Reg("BCL0"),  // rbx
             FUS_HIDR_None())
     );
-
     fusInsertCodeBlock(mount,
         FUS_HIDRM(HIDR_INSTR_RET,
             HIDR_OP_SIZE_NONE,
@@ -97,14 +96,14 @@ int main(void)
             printf("Falha no Linker!\n");
             goto _end;
         }
-    buffer = fusGetStreamBufferCompiler(compiler);
+    buffer = fusGetStreamBufferCompiler(instance,compiler);
     fusDumpTrace(trace);
     if (fusExecutableBuffer(buffer)) ((FusionEntryPoint)buffer->buffer)();
 
 _end:
-    fusDestroyBufferCode(buffer);
+    fusDestroyBufferCode(instance,buffer);
     fusDestroyBackendReturn(instance, compiler);
-    fusDestroyBackend(x86);
+    fusDestroyBackend(instance,x86);
     fusDestroyLinkerContext(instance, linker);
     fusDestroyCodeMount(instance, mount);
     fusDestroyInstance(instance);

@@ -11,10 +11,11 @@ bool X86_CaseMountLeaRegMem(X86BackendContext* backend_ctx)
     if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
     if (mir_node->src.type != HIDR_OPERAND_TYPE_MEM_REF) return false;
 
-    FusHidrVirtualReg_t dst_reg  = X86_MapVirtualReg(mir_node->dst.data.reg);
-    FusHidrVirtualReg_t base_reg = X86_MapVirtualReg(mir_node->src.data.memory_ref.base);
-    uint16_t            offset   = mir_node->src.data.memory_ref.offset;
+    size_t dst_reg  = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->dst.data.reg));
+    size_t base_reg = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->src.data.memory_ref.base));
+    if (dst_reg == (size_t)-1 || base_reg == (size_t)-1) return false;
 
+    uint16_t            offset   = mir_node->src.data.memory_ref.offset;
     /*
      * RSP (rm=100) como base sem SIB é encoding indefinido no x86.
      * Quando HIDR_OPERAND_TYPE_MEM_REF tiver index/scale, resolve aqui.

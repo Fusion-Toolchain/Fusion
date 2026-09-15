@@ -4,21 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/*
- * @brief Hidr Virtual/Fisical Registre Represent (HIDR)
- * Negativo: Especial nao devem entrar no alocador.
- * Positivo: Entram no alocador.
-*/
-
-#define FUS_IS_SPECIAL(r) ((r) < 0)
-#define FUS_IS_VREG(r)    ((r) >= 0)
-
-typedef int16_t FusHidrVirtualReg_t;
-enum {
-    HIDR_REG_STACK_PTR = -1,
-    HIDR_REG_BASE_PTR  = -2,
-};
-
+#include "HidrRegistre.h"
 
 /*
  * @brief Hidr Opcode Types
@@ -67,7 +53,7 @@ typedef struct {
     FusHidrImmSize_t size;
 } FusHidrImm_t;
 typedef struct {
-    FusHidrVirtualReg_t base;
+    FusHidrRegistre base;
     uint16_t offset;
 } FusHidrMemRef_t;
 typedef struct {
@@ -80,7 +66,7 @@ typedef struct {
 typedef struct {
     FusHidrOperandType_t type;
     union {
-        FusHidrVirtualReg_t reg;
+        FusHidrRegistre reg;
         FusHidrMemRef_t memory_ref;
         FusHidrImm_t imm;
         FusHidrSysm_t sym;
@@ -106,11 +92,11 @@ typedef struct {
     FusHidrOperand_t dst;
 } FusHidrNode_t;
 
-static inline FusHidrOperand_t FUS_HIDR_Reg(FusHidrVirtualReg_t reg_id)
+static inline FusHidrOperand_t FUS_HIDR_Reg(char* registre_description)
 {
     return (FusHidrOperand_t){
         .type = HIDR_OPERAND_TYPE_REG,
-        .data.reg = reg_id
+        .data.reg = fusInterpreterRegistre(registre_description)
     };
 }
 
@@ -122,7 +108,7 @@ static inline FusHidrOperand_t FUS_HIDR_Sym(const char* sym_name)
     };
 }
 
-static inline FusHidrOperand_t FUS_HIDR_Mem(FusHidrVirtualReg_t base_reg, int offset)
+static inline FusHidrOperand_t FUS_HIDR_Mem(FusHidrRegistre base_reg, int offset)
 {
     return (FusHidrOperand_t){
         .type = HIDR_OPERAND_TYPE_MEM_REF,

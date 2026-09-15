@@ -1,6 +1,7 @@
 #ifndef X86_INTERNAL_HELPERS_H
 #define X86_INTERNAL_HELPERS_H
 #include <Fusion/IRTypes/HidrType.h>
+#include <Internal/IRTypes/Fus_HidrRegistre.h>
 #include <Internal/Backend/Fus_Backend.h>
 
 //HELPER
@@ -22,28 +23,55 @@ static inline size_t X86_CalMirImmSize(FusHidrImmSize_t size_enum)
     }
 }
 
-// TODO: Pre Implementação da janela de Virtual Registres.
-static const size_t vreg_to_x86[] = {
-    X86_REG_RAX, // V0
-    X86_REG_RBX, // V1
-    X86_REG_RCX, // V2
-    X86_REG_RDX, // V3
-    X86_REG_RSI, // V4
-    X86_REG_RDI, // V5
-};
-#define X86_VREG_COUNT (sizeof(vreg_to_x86) / sizeof(vreg_to_x86[0]))
-static inline size_t X86_MapVirtualReg(FusHidrVirtualReg_t reg)
+static inline size_t X86_MapVirtualReg(const HidrRegistre reg)
 {
-    if (FUS_IS_SPECIAL(reg)) {
-        switch (reg) {
-            case HIDR_REG_STACK_PTR: return X86_REG_RSP;
-            case HIDR_REG_BASE_PTR:  return X86_REG_RBP;
-            default: return (size_t)-1;
+    static char buffer[25] = {0};
+    if (reg.raw == HIDR_REGISTRE_INVALID) return (size_t)-1;
+
+    uint8_t group = reg.desc.group;
+    uint8_t role  = reg.desc.role;
+    uint8_t index = reg.desc.index;
+
+    if (group == HIDR_REGISTRE_GROUP_GP) {
+        switch (role) {
+            case HIDR_REGISTRE_ROLE_ACC:
+            case HIDR_REGISTRE_ROLE_COUNTER:
+            case HIDR_REGISTRE_ROLE_DATA:
+            case HIDR_REGISTRE_ROLE_BASE:
+            case HIDR_REGISTRE_ROLE_SP:
+            case HIDR_REGISTRE_ROLE_BP:
+            case HIDR_REGISTRE_ROLE_SRC:
+            case HIDR_REGISTRE_ROLE_DST:
+                if (index != 0) goto not_suport;
+                if (role == HIDR_REGISTRE_ROLE_ACC) return X86_REG_RAX;
+                if (role == HIDR_REGISTRE_ROLE_COUNTER) return X86_REG_RCX;
+                if (role == HIDR_REGISTRE_ROLE_DATA) return X86_REG_RDX;
+                if (role == HIDR_REGISTRE_ROLE_BASE) return X86_REG_RBX;
+                if (role == HIDR_REGISTRE_ROLE_SP) return X86_REG_RSP;
+                if (role == HIDR_REGISTRE_ROLE_BP) return X86_REG_RBP;
+                if (role == HIDR_REGISTRE_ROLE_SRC) return X86_REG_RSI;
+                return X86_REG_RDI;
+            case HIDR_REGISTRE_ROLE_ARG:
+            case HIDR_REGISTRE_ROLE_TMP:
+                if (index < 8) return X86_REG_R8 + index;
+                goto not_suport;
+            default: goto not_suport;;
         }
     }
 
-    if (unlikely(reg >= (FusHidrVirtualReg_t)X86_VREG_COUNT)) return (size_t)-1;
-    return vreg_to_x86[reg];
+    if (group == HIDR_REGISTRE_GROUP_SIMD) {
+        if (index < 16) return index; // xmm0-xmm15
+        goto not_suport;
+    }
+    if (group == HIDR_REGISTRE_GROUP_SEG) {
+        if (index < 6) return index;
+        goto not_suport;
+    }
+
+not_suport:
+    fusiRegistreToString(reg,buffer,sizeof(buffer));
+    printf("Does not suport this %s\n",buffer);
+    return (size_t)-1;
 }
 
 #endif
