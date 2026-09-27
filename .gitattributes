@@ -1,7 +1,7 @@
 
-* linguist-language=C
-
-*.md linguist-documentation
+*.c linguist-language=C
+*.h linguist-language=C
+*.md linguist-language=Markdown linguist-documentation
 *.png binary
 *.drawio linguist-vendored
 *.dot linguist-documentation
