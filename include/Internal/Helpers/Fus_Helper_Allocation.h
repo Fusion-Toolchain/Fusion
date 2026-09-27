@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Helper_Allocation.h
+ * @brief   Internal allocation helpers.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Wraps the user allocation vtable in null checked inline functions so internal
+ * code does not repeat the same verifications.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_HELPER_ALLOCATION_H
 #define FUSION_INTERNAL_HELPER_ALLOCATION_H
 #include <Internal/Fus_Instance.h>

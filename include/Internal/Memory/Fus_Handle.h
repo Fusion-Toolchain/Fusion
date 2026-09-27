@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Handle.h
+ * @brief   Typed handles with generation.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Packs identifier, type and generation into a single value, so an invalid
+ * handle is never confused with a reused object.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_MEMORY_H
 #define FUSION_INTERNAL_MEMORY_H
 #include <stddef.h>

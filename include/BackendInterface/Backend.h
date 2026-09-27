@@ -1,3 +1,23 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Backend.h
+ * @brief   Aggregated low level interface for backend implementers.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Brings together the internal backend structures, the instance context and the
+ * error tree, plus the inline FUSB_* helpers used for allocation, deallocation
+ * and data block creation. Not intended for applications that only use the
+ * public API.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef BACKEND_INTERFACE_SETS_H
 #define BACKEND_INTERFACE_SETS_H
 #include <Internal/Fus_Instance.h>

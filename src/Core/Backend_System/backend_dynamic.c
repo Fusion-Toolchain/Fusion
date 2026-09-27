@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    backend_dynamic.c
+ * @brief   Dynamic backend loading.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Opens the backend library at runtime, resolves the interface entry point and
+ * keeps the handle for later teardown.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
 

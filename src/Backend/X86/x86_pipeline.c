@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    x86_pipeline.c
+ * @brief   X86 encoding pipeline.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Flattens the mounted instruction fields (prefixes, REX, opcode, ModRM, SIB,
+ * displacement and immediate) into a byte sequence, consumed by the encoding
+ * steps in the order the processor expects.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 /*
  * x86_pipeline.c — X86 encoding pipeline
  *

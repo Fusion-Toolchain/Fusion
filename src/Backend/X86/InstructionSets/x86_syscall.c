@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    x86_syscall.c
+ * @brief   X86 SYSCALL instruction encoder.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Emits 0F 05 after validating that the node has no destination operand, as
+ * required by the instruction semantics.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 /*
  * x86_syscall.c — SYSCALL encoder (0F 05)
  */

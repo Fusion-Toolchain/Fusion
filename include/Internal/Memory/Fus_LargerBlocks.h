@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_LargerBlocks.h
+ * @brief   Large block allocator.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Serves requests that do not fit in a slab slot, growing through larger blocks
+ * kept in a list and returned to the pool when released.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_LARGER_BLOCKS_H
 #define FUSION_INTERNAL_LARGER_BLOCKS_H
 #include <Fusion/FusionTypes.h>

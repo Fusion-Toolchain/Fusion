@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Linker.h
+ * @brief   Internal structures of the linker.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Joins symbols, relocation requests and the section table into a single link
+ * context, exposing the operations used by the pipeline.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_LINKER_H
 #define FUSION_INTERNAL_LINKER_H
 #include <Fusion/Linker/FusionLinkerInterface.h>

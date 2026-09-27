@@ -1,6 +1,19 @@
 /**
- * @file fus_larger_block.c
- * @brief Implementação do Larger Block System.
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    fus_larger_block.c
+ * @brief   Implementation of the large block allocator.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Reserves the blocks that exceed the slot size, keeps the list of available
+ * blocks and reuses the memory after release.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
  */
 
 #include "Fusion/FusionTypes.h"

@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    FusionTypes.h
+ * @brief   Base types, export macros and engine allocator.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Centralizes the return status, the opaque handle macro, the symbol visibility
+ * attribute and the allocation vtable the user fills in so the engine has no
+ * allocator of its own.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_CORE_TYPES_H
 #define FUSION_CORE_TYPES_H
 #include <stddef.h>

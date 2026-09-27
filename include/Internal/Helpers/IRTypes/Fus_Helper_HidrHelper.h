@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Helper_HidrHelper.h
+ * @brief   Internal HIDR helpers for the core.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * FUSIH_ prefixed variant of the HIDR node accessors, used by the core so it
+ * does not collide with the helpers exposed to the user.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_HIDR_HELPER_H
 #define FUSION_INTERNAL_HIDR_HELPER_H
 

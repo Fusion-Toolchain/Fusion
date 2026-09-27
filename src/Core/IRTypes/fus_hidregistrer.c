@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    fus_hidregistrer.c
+ * @brief   Conversion of names to IR registers.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Parses the name case insensitively, validates the group and returns the
+ * register identifier, or the invalid value when the name does not exist.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Internal/IRTypes/Fus_HidrRegistre.h>
 #include <Fusion/FusionTypes.h>
 

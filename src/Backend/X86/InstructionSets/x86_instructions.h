@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    x86_instructions.h
+ * @brief   Declaration of the X86 encoders by family.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Collects the signatures of every encoding function, grouped by category (MOV,
+ * ALU, control and stack), and avoids repeated includes.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef X86_INTERNAL_FUNCTIONS_SETS_H
 #define X86_INTERNAL_FUNCTIONS_SETS_H
 

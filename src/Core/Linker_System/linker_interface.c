@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    linker_interface.c
+ * @brief   Implementation of the linker API.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Registers sections and symbols, binds relocations to positions in the code
+ * blocks and exposes the queries used by reference resolution.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Fusion/Linker/FusionLinkerInterface.h>
 
 #include <Internal/Linker/Fus_Linker.h>

@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Helper_Backend.h
+ * @brief   Internal helpers for the backend subsystem.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Gathers inline access to the backend API, data block creation and error
+ * emission, also importing the codebase helpers.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_HELPER_BACKEND_H
 #define FUSION_INTERNAL_HELPER_BACKEND_H
 #include <Internal/Backend/Fus_Backend.h>

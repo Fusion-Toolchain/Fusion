@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    FusionTrace.h
+ * @brief   Public API of the error tree.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Allows pushing errors with file and line, clearing the tree and dumping it as
+ * text for diagnostics.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_PUBLIC_TRACE_TREE_H
 #define FUSION_PUBLIC_TRACE_TREE_H
 #include <Fusion/FusionTypes.h>

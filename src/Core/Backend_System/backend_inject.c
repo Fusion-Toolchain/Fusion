@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    backend_inject.c
+ * @brief   Backend API injection into the instance.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Registers the vtable the core offers to the backend, covering allocation,
+ * error reporting and data block creation, using the subsystems of the
+ * instance itself.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Internal/Memory/Fus_Arena.h>
 #include <Internal/Fus_Instance.h>
 #include <Internal/Backend/Fus_Backend.h>

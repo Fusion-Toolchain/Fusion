@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Helper_Instance.h
+ * @brief   Internal instance access helpers.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Inline shortcuts to recover the allocator, the error tree and the tables from
+ * the current instance.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_HELPER_INSTANCE_H
 #define FUSION_INTERNAL_HELPER_INSTANCE_H
 #include "Fusion/FusionTypes.h"

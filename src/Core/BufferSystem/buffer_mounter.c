@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    buffer_mounter.c
+ * @brief   Code buffer creation and reuse.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Reserves anonymous memory, marks it executable, computes the entry point and
+ * allows the same buffer to be reused across compilations without
+ * reallocating.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Fusion/FusionTypes.h>
 #include <Fusion/FusionBuffer.h>
 

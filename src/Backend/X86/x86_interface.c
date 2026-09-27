@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    x86_interface.c
+ * @brief   Entry point of the X86 backend.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Mounts prefixes and REX according to the operation size, selects the family
+ * rule from opcode and operands, encodes the bytes and manages the code block
+ * lifetime along with the relocations sent to the linker.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 /*
  * x86_interface.c — X86 backend entry point
  *

@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Backend.h
+ * @brief   Internal structures of the backend subsystem.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Defines the API a backend must expose, the generation context, the data block
+ * holding bytes and relocations, and the relocation request. This is the
+ * contract between the core and the architecture encoder.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_BACKEND_H
 #define FUSION_INTERNAL_BACKEND_H
 #include <Internal/Memory/Fus_Arena.h>

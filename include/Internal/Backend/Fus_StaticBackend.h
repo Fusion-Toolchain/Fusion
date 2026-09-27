@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_StaticBackend.h
+ * @brief   Static backend registration.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * REGISTER_BACKEND places a backend in the .static_modules_backend section so
+ * the loader can find modules at link time without the user instantiating
+ * them manually.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_STATIC_BACKEND_H
 #define FUSION_INTERNAL_STATIC_BACKEND_H
 #include "Fus_Backend.h"

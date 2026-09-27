@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_HidrRegistre.h
+ * @brief   Internal register mapping.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Defines the register groups and the tables associating IR identifiers with
+ * the physical registers of each architecture.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_HIDR_REGISTRE_H
 #define FUSION_INTERNAL_HIDR_REGISTRE_H
 #include <Fusion/IRTypes/HidrType.h>

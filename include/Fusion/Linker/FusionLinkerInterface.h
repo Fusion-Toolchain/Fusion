@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    FusionLinkerInterface.h
+ * @brief   Public API of the linker.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Defines sections, symbols, segment flags and the link context, along with the
+ * registration and reference resolution operations.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_PUBLIC_LINKER_INTERFACE_H
 #define FUSION_PUBLIC_LINKER_INTERFACE_H
 

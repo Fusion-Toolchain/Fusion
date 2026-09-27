@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    HidrType.h
+ * @brief   Definition of the HIDR intermediate representation.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Describes the instruction node, operand types, operation sizes and the opcode
+ * catalog. HIDR is the only representation the engine consumes: the user
+ * assembles the node list in the order the code must be produced.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_HIDR_TYPE_H
 #define FUSION_HIDR_TYPE_H
 

@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    x86_functions.h
+ * @brief   Declarations of the X86 encoding pipeline.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Exposes conversion of a mounted instruction into bytes in the buffer, advancing
+ * the offset on success, along with the emission helpers.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef X86_BACKEND_FUNCTIONS
 #define X86_BACKEND_FUNCTIONS
 

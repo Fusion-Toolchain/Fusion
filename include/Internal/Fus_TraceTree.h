@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_TraceTree.h
+ * @brief   Internal API of the trace tree.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Declares the error context lifecycle and the FUS_PUSH_ERR macro, which
+ * records file, line and message without repeating the status code by hand.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_TRACE_TREE_H
 #define FUSION_INTERNAL_TRACE_TREE_H
 #include <Fusion/FusionTypes.h>

@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    backend_loader.c
+ * @brief   Backend loader of the engine.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Implements the single loading entry point, resolving a static module through
+ * the registration section or a dynamic one from the given path, and binding
+ * the result to the instance.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Internal/Backend/Fus_Backend.h>
 #include <Fusion/Backend/FusionBackend.h>
 #include <Internal/Backend/Fus_StaticBackend.h>

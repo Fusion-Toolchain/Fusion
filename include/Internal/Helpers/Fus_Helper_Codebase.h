@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    Fus_Helper_Codebase.h
+ * @brief   Shared language macros.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Defines branch prediction hints, compiler attributes and asserts used across
+ * the whole project, isolating differences between GCC, Clang and other
+ * compilers.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_INTERNAL_HELPER_CODEBASE_H
 #define FUSION_INTERNAL_HELPER_CODEBASE_H
 

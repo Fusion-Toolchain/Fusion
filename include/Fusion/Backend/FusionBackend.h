@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    FusionBackend.h
+ * @brief   Public API for loading backend modules.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Defines the supported module kinds (static and dynamic) and the loading entry
+ * point that binds a backend to an engine instance.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_BACKEND_MODULE_H
 #define FUSION_BACKEND_MODULE_H
 #include <Fusion/FusionTypes.h>

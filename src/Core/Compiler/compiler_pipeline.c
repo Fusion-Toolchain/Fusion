@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    compiler_pipeline.c
+ * @brief   Compilation pipeline of the engine.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Walks the command chain declared by the user, converts each HIDR node into
+ * bytes through the hired backend and drives the buffer and linker operations
+ * up to the final result, introducing no step that was not requested.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Internal/Fus_TraceTree.h>
 #include <Fusion/Backend/FusionBackend.h>
 #include <Fusion/Fusion.h>

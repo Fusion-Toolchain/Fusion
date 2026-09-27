@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    linker_pipeline.c
+ * @brief   Relocation application.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Walks the pending entries registered by the backend and writes the final
+ * values into the buffer, applying only the relocations that were requested,
+ * without inferring additional references.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Internal/Backend/Fus_Backend.h>
 #include <Internal/Linker/Fus_Linker.h>
 #include <Internal/Linker/Fus_Hashtable.h>

@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    instance_controller.c
+ * @brief   Engine instance lifecycle controller.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Creates and destroys the engine instance, allocating the handle tables, the
+ * error tree and the internal allocators, and returning every resource on
+ * destruction.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Internal/Memory/Fus_Handle.h>
 #include <Internal/Memory/Fus_Slab.h>
 #include <Internal/Fus_TraceTree.h>

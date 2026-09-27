@@ -1,3 +1,21 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    fus_hidrmount.c
+ * @brief   Assembly of the HIDR node list.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Creates the mount context, grows the node vector as nodes are inserted and
+ * keeps the reference to the instance that supplied the memory.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #include <Fusion/IRTypes/HidrType.h>
 #include <Internal/IRTypes/Fus_CodeBuffer.h>
 #include <Internal/Fus_Instance.h>

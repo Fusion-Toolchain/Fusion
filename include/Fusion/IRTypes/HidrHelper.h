@@ -1,3 +1,22 @@
+/**
+ * ███████╗██╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
+ * ██╔════╝██║   ██║██╔════╝██║██╔═══██╗████╗  ██║
+ * █████╗  ██║   ██║███████╗██║██║   ██║██╔██╗ ██║
+ * ██╔══╝  ██║   ██║╚════██║██║██║   ██║██║╚██╗██║
+ * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
+ * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+ *
+ * @file    HidrHelper.h
+ * @brief   Public API for building HIDR nodes.
+ * @author     Ewerton23929dev
+ *
+ * @details
+ * Exposes creation and destruction of the code mount point, node insertion and
+ * the FUS_HIDRM macro, which allows writing a node in a readable form instead
+ * of filling the structure by hand.
+ * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
+ */
+
 #ifndef FUSION_PUBLIC_CODEMOUNT_H
 #define FUSION_PUBLIC_CODEMOUNT_H
 #include <Fusion/FusionTypes.h>
