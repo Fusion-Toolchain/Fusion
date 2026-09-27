@@ -1,49 +1,55 @@
+/*
+ * x86_call.c — CALL encoders
+ *
+ *  CALL Reg : FF /2  (r/m64)
+ *  CALL Rel : E8 rel32
+ */
+
 #include "../x86_helpers.h"
 #include "x86_instructions.h"
-
 #include <stdbool.h>
 
-bool X86_CaseMountCallReg(X86BackendContext* backend_ctx)
+// ---------------------------------------------------------------------------
+// CALL Reg  (FF /2)
+// ---------------------------------------------------------------------------
+bool X86_CaseMountCallReg(X86BackendContext *ctx)
 {
-    const FusHidrNode_t* mir_node = backend_ctx->hidr;
-    x86Instruction_t* mount_instr = backend_ctx->encoder; 
+    const FusHidrNode_t *mir = ctx->hidr;
+    x86Instruction_t *enc    = ctx->encoder;
 
-    if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
+    if (mir->dst.type != HIDR_OPERAND_TYPE_REG) return false;
 
-    size_t src_reg = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->dst.data.reg));
-    if (src_reg == (size_t)-1) return false;
+    size_t reg = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir->dst.data.reg));
+    if (reg == (size_t)-1) return false;
 
-    /* Opcode: FF */
-    mount_instr->opcode.opcode[0] = 0xFF;
-    mount_instr->opcode.opcode_size = 1;
+    enc->opcode.opcode[0]   = 0xFF;
+    enc->opcode.opcode_size = 1;
 
-    /*
-     * ModRM: mod=11 (reg direct), reg=2 (/2 = CALL), rm=src
-     * Em 64-bit mode FF /2 já opera em 64-bit — REX.W não
-     * é necessário (e na verdade é ignorado pelo processador).
-     */
-    mount_instr->modrm.mod = MODRM_MOD_REG_DIRECT; /* 0b11 */
-    mount_instr->modrm.reg = 2;                     /* /2   */
-    mount_instr->modrm.rm  = (uint8_t)(src_reg & 0x7);
-    mount_instr->has_modrm = true;
+    enc->modrm.mod = MODRM_MOD_REG_DIRECT; // 11
+    enc->modrm.reg = 2;                    // /2 = CALL
+    enc->modrm.rm  = reg & 0x7;
+    enc->has_modrm = true;
 
-    mount_instr->rex.w   = 0;
-    mount_instr->rex.b   = (src_reg > 7) ? 1 : 0;
-    mount_instr->has_rex = (src_reg > 7);
+    // REX.B for R8-R15, W not needed (FF /2 is 64-bit in long mode)
+    enc->rex.w = 0;
+    enc->rex.b = (reg >= 8);
+    enc->has_rex = (reg >= 8);
 
     return true;
 }
 
-bool X86_CaseMountCallRel32(X86BackendContext* backend_ctx)
+// ---------------------------------------------------------------------------
+// CALL Rel32  (E8 rel32)
+// ---------------------------------------------------------------------------
+bool X86_CaseMountCallRel32(X86BackendContext *ctx)
 {
-    x86Instruction_t* mount_instr = backend_ctx->encoder;
+    x86Instruction_t *enc = ctx->encoder;
 
-    mount_instr->opcode.opcode[0] = 0xE8;
-    mount_instr->opcode.opcode_size = 1;
+    enc->opcode.opcode[0]   = 0xE8;
+    enc->opcode.opcode_size = 1;
 
-    mount_instr->imm.value = 0;
-    mount_instr->imm.size  = 4; /* rel32 — sempre 4 bytes */
-    mount_instr->has_imm   = true;
-
+    enc->imm.value = 0; // patched by linker (REL32)
+    enc->imm.size  = 4;
+    enc->has_imm   = true;
     return true;
 }

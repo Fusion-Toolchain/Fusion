@@ -1,69 +1,63 @@
+/*
+ * x86_lea.c — LEA encoder
+ *
+ *  LEA r, [base + disp]
+ *   opcode 8D /r, mod = 00/01/10, REX.W + REX.R/B
+ */
+
 #include "../x86_helpers.h"
 #include "../x86_types.h"
 #include "x86_instructions.h"
 
-bool X86_CaseMountLeaRegMem(X86BackendContext* backend_ctx)
+bool X86_CaseMountLeaRegMem(X86BackendContext *ctx)
 {
-    const FusHidrNode_t* mir_node = backend_ctx->hidr;
-    x86Instruction_t* mount_instr = backend_ctx->encoder;
+    const FusHidrNode_t *mir = ctx->hidr;
+    x86Instruction_t *enc    = ctx->encoder;
 
-    /* Validação de operands */
-    if (mir_node->dst.type != HIDR_OPERAND_TYPE_REG) return false;
-    if (mir_node->src.type != HIDR_OPERAND_TYPE_MEM_REF) return false;
+    // Validate operands
+    if (mir->dst.type != HIDR_OPERAND_TYPE_REG)   return false;
+    if (mir->src.type != HIDR_OPERAND_TYPE_MEM_REF) return false;
 
-    size_t dst_reg  = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->dst.data.reg));
-    size_t base_reg = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir_node->src.data.memory_ref.base));
-    if (dst_reg == (size_t)-1 || base_reg == (size_t)-1) return false;
+    size_t dst  = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir->dst.data.reg));
+    size_t base = X86_MapVirtualReg(FUS_HIDR_REG_INTERNAL(mir->src.data.memory_ref.base));
+    if (dst == (size_t)-1 || base == (size_t)-1) return false;
 
-    uint16_t            offset   = mir_node->src.data.memory_ref.offset;
-    /*
-     * RSP (rm=100) como base sem SIB é encoding indefinido no x86.
-     * Quando HIDR_OPERAND_TYPE_MEM_REF tiver index/scale, resolve aqui.
-     */
-    if ((base_reg & 0x7) == 0x4) { /* RSP ou R12 — ambos rm=100 */
-        return false;
-    }
+    uint16_t off = mir->src.data.memory_ref.offset;
 
-    /* Opcode */
-    mount_instr->opcode.opcode[0] = 0x8D;
-    mount_instr->opcode.opcode_size = 1;
+    // RSP/R12 as base requires SIB — not supported for LEA here
+    if ((base & 0x7) == 0x4) return false; // rm=100 needs SIB
 
-    /* ModRM
-     *   mod=00 → [base]          (offset == 0, exceto RBP → forçamos mod=01)
-     *   mod=01 → [base + disp8]
-     *   mod=10 → [base + disp32]
-     */
+    // Opcode
+    enc->opcode.opcode[0]   = 0x8D;
+    enc->opcode.opcode_size = 1;
+
+    // ModRM.mod based on disp size and base
+    //  RBP/R13 with mod=00 is RIP-relative, so force disp8=0
     uint8_t mod;
-    if (offset == 0 && (base_reg & 0x7) != 0x5) {
-        /* RBP/R13 com mod=00 vira RIP-relative — força disp8=0 */
-        mod = MODRM_MOD_MEM_00;       /* 0b00 */
-    } else if (offset <= 0x7F) {
-        mod = MODRM_MOD_MEM_8BIT_DISP;         /* 0b01 */
-    } else {
-        mod = MODRM_MOD_MEM_32BIT_DISP;        /* 0b10 */
-    }
+    if (off == 0 && (base & 0x7) != 0x5) mod = MODRM_MOD_MEM_00;
+    else if (off <= 0x7F)               mod = MODRM_MOD_MEM_8BIT_DISP;
+    else                                mod = MODRM_MOD_MEM_32BIT_DISP;
 
-    mount_instr->modrm.mod = mod;
-    mount_instr->modrm.reg = (uint8_t)(dst_reg  & 0x7); /* reg  = destino  */
-    mount_instr->modrm.rm  = (uint8_t)(base_reg & 0x7); /* r/m  = base     */
-    mount_instr->has_modrm = true;
+    enc->modrm.mod = mod;
+    enc->modrm.reg = dst  & 0x7;
+    enc->modrm.rm  = base & 0x7;
+    enc->has_modrm = true;
 
-    /* REX.W (64-bit) + extensões de registrador */
-    mount_instr->rex.w = 1;
-    mount_instr->rex.r = (dst_reg  > 7) ? 1 : 0; /* dst  >= R8 → REX.R */
-    mount_instr->rex.b = (base_reg > 7) ? 1 : 0; /* base >= R8 → REX.B */
-    mount_instr->has_rex = true;
+    // REX
+    enc->rex.w = 1;
+    enc->rex.r = (dst  > 7);
+    enc->rex.b = (base > 7);
+    enc->has_rex = true;
 
-    /* Displacement */
+    // Disp
     if (mod == MODRM_MOD_MEM_8BIT_DISP) {
-        mount_instr->disp.value = (int32_t)offset;
-        mount_instr->disp.size  = 1;
-        mount_instr->has_disp   = true;
+        enc->disp.value = (int32_t)off;
+        enc->disp.size  = 1;
+        enc->has_disp   = true;
     } else if (mod == MODRM_MOD_MEM_32BIT_DISP) {
-        mount_instr->disp.value = (int32_t)offset;
-        mount_instr->disp.size  = 4;
-        mount_instr->has_disp   = true;
+        enc->disp.value = (int32_t)off;
+        enc->disp.size  = 4;
+        enc->has_disp   = true;
     }
-
     return true;
 }

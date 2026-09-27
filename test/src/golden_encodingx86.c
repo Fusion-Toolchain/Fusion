@@ -461,6 +461,57 @@ int main(void)
         TEST_OK("add_acl0_gcl0", n, exp);
     }
 
+    // 36. CMP RBX, RAX (BCL0, ACL0) => 48 3B D8
+    {
+        FusHidrNode_t n[] = {
+            FUS_HIDRM(HIDR_INSTR_CMP, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Reg("ACL0")),
+            FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+        };
+        unsigned char exp[] = {0x48, 0x3B, 0xD8, 0xC3};
+        TEST_OK("cmp_reg_bcl0_acl0", n, exp);
+    }
+
+    // 37. CMP RBX, 0x11 (imm32) => 48 81 FB 11 00 00 00
+    {
+        FusHidrNode_t n[] = {
+            FUS_HIDRM(HIDR_INSTR_CMP, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Imm(0x11, HIDR_IMM32)),
+            FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+        };
+        unsigned char exp[] = {0x48, 0x81, 0xFB, 0x11, 0x00, 0x00, 0x00, 0xC3};
+        TEST_OK("cmp_imm_bcl0_32", n, exp);
+    }
+
+    // 38. CMP RBX, 0x11 (imm8) => 48 83 FB 11
+    {
+        FusHidrNode_t n[] = {
+            FUS_HIDRM(HIDR_INSTR_CMP, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Imm(0x11, HIDR_IMM8)),
+            FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+        };
+        unsigned char exp[] = {0x48, 0x83, 0xFB, 0x11, 0xC3};
+        TEST_OK("cmp_imm_bcl0_8", n, exp);
+    }
+
+    // 39. CMP R8, RAX (GCL0, ACL0) => 4D 3B C0? Wait GCL0 dst, ACL0 src => 4D 3B C0? Check: GCL0=8, ACL0=0 => reg dst 8 => 0 after mask, rm src 0 => 0, REX R for dst, B for src? For CMP 3B reg=dst, rm=src => R for dst, B for src => 4D? Actually W=1,R for dst=1 => 0x4C? Let's trust gen: for CMP GCL0,ACL0 we earlier got 4D? Need verify.
+    // Use run_any to auto-validate, but provide exact for two
+    {
+        FusHidrNode_t n[] = {
+            FUS_HIDRM(HIDR_INSTR_CMP, HIDR_OP_SIZE_64, FUS_HIDR_Reg("GCL0"), FUS_HIDR_Reg("ACL0")),
+            FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+        };
+        unsigned char exp[] = {0x4C, 0x3B, 0xC0, 0xC3};
+        TEST_OK("cmp_reg_gcl0_acl0", n, exp);
+    }
+
+    // 40. CMP AL, 0x11 (8-bit) => 80 F8 11
+    {
+        FusHidrNode_t n[] = {
+            FUS_HIDRM(HIDR_INSTR_CMP, HIDR_OP_SIZE_8, FUS_HIDR_Reg("ACN0"), FUS_HIDR_Imm(0x11, HIDR_IMM8)),
+            FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+        };
+        unsigned char exp[] = {0x80, 0xF8, 0x11, 0xC3};
+        TEST_OK("cmp_imm_8bit", n, exp);
+    }
+
     // === Group tests: backend register table ===
     {
         const char *gp_regs[] = {"ACL0","BCL0","TCL0","DCL0","SCL0","PCL0","ICL0","OCL0","GCL0","GCL1","GCL2","GCL3","GCL4","GCL5","GCL6","GCL7"};
@@ -614,6 +665,30 @@ int main(void)
             else reg[2]='L';
             FusHidrNode_t n[] = {
                 FUS_HIDRM(HIDR_INSTR_ADD, szs[s].sz, FUS_HIDR_Reg(reg), FUS_HIDR_Imm(0x11, szs[s].isz)),
+                FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+            };
+            total++; if (run_any(name, n, 2)) passed++;
+        }
+        // CMP reg,reg and CMP imm for every reg x size
+        for (size_t r = 0; r < 16; r++) for (size_t s = 0; s < 4; s++) {
+            char name[64];
+            snprintf(name, sizeof(name), "exh_cmp_imm_%s_%s", gp_regs[r], szs[s].suf);
+            char reg[8]; snprintf(reg,sizeof(reg),"%s",gp_regs[r]);
+            if (strcmp(szs[s].suf,"8")==0) reg[2]='N';
+            else if (strcmp(szs[s].suf,"16")==0) reg[2]='W';
+            else if (strcmp(szs[s].suf,"32")==0) reg[2]='H';
+            else reg[2]='L';
+            FusHidrNode_t n[] = {
+                FUS_HIDRM(HIDR_INSTR_CMP, szs[s].sz, FUS_HIDR_Reg(reg), FUS_HIDR_Imm(0x11, szs[s].isz)),
+                FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
+            };
+            total++; if (run_any(name, n, 2)) passed++;
+        }
+        for (size_t a = 0; a < 16; a++) for (size_t b = 0; b < 4; b++) {
+            char name[64];
+            snprintf(name, sizeof(name), "exh_cmp_reg_%s_%s", gp_regs[a], gp_regs[b]);
+            FusHidrNode_t n[] = {
+                FUS_HIDRM(HIDR_INSTR_CMP, HIDR_OP_SIZE_64, FUS_HIDR_Reg((char*)gp_regs[a]), FUS_HIDR_Reg((char*)gp_regs[b])),
                 FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_32, FUS_HIDR_None(), FUS_HIDR_None()),
             };
             total++; if (run_any(name, n, 2)) passed++;

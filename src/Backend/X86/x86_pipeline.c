@@ -1,151 +1,157 @@
+/*
+ * x86_pipeline.c — X86 encoding pipeline
+ *
+ *  Converts x86Instruction_t fields (prefix/REX/opcode/ModRM/SIB/disp/imm)
+ *  into flat bytes via EncodeSteps.
+ */
+
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
 #include "x86_types.h"
 #include "x86_functions.h"
 
+/* ---------------------------------------------------------------------------
+ * Mounter context
+ * ------------------------------------------------------------------------ */
 struct CopyPartMemory {
-    size_t* offset;
-    unsigned char* dst;
-    size_t dst_size;
-    unsigned char* src;
-    size_t src_size;
+    size_t        *offset;
+    unsigned char *dst;
+    size_t         dst_size;
+    unsigned char *src;
+    size_t         src_size;
 };
-typedef bool (*EncodeStep)(x86Instruction_t*,struct CopyPartMemory*);
+
+typedef bool (*EncodeStep)(x86Instruction_t*, struct CopyPartMemory*);
+
 typedef struct {
     EncodeStep steps[8];
-    size_t count;
+    size_t     count;
 } EncodePipeline;
 
-static bool CopyOffsetData(struct CopyPartMemory* step)
+/* ---------------------------------------------------------------------------
+ * Low-level copy helpers
+ * ------------------------------------------------------------------------ */
+static bool CopyOffsetData(struct CopyPartMemory *m)
 {
-    if (!step->offset || !step->src || !step->dst) return false;
-    if ((*step->offset) + step->src_size > step->dst_size) return false;
-
-    memcpy(step->dst + *step->offset, step->src, step->src_size);
-    *step->offset += step->src_size;
-
-    return true;
-}
-static inline bool CopyOffsetDataU8(struct CopyPartMemory* step, uint8_t value)
-{
-    if (!step->offset || !step->dst) return false;
-    if ((*step->offset) + 1 > step->dst_size) return false;
-
-    step->dst[(*step->offset)++] = value;
+    if (!m->offset || !m->src || !m->dst) return false;
+    if ((*m->offset) + m->src_size > m->dst_size) return false;
+    memcpy(m->dst + *m->offset, m->src, m->src_size);
+    *m->offset += m->src_size;
     return true;
 }
 
-static bool x86Bytes_MountOpcode(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+static inline bool CopyOffsetDataU8(struct CopyPartMemory *m, uint8_t v)
 {
-    mounter->src = instr->opcode.opcode;
-    mounter->src_size = instr->opcode.opcode_size;
-    if (!CopyOffsetData(mounter)) return false;
+    if (!m->offset || !m->dst) return false;
+    if ((*m->offset) + 1 > m->dst_size) return false;
+    m->dst[(*m->offset)++] = v;
     return true;
 }
 
-static inline uint8_t MountModRM(x86ModRm_t* modrm)
+/* ---------------------------------------------------------------------------
+ * Encode steps (one per field)
+ * ------------------------------------------------------------------------ */
+static bool x86Bytes_MountOpcode(x86Instruction_t *i, struct CopyPartMemory *m)
 {
-    if (
-        modrm->mod > MODRM_MOD_MAX_VALUE ||
+    m->src = i->opcode.opcode;
+    m->src_size = i->opcode.opcode_size;
+    return CopyOffsetData(m);
+}
+
+static inline uint8_t MountModRM(x86ModRm_t *modrm)
+{
+    if (modrm->mod > MODRM_MOD_MAX_VALUE ||
         modrm->reg > MODRM_REG_MAX_VALUE ||
-        modrm->rm > MODRM_RM_MAX_VALUE
-    ){
+        modrm->rm  > MODRM_RM_MAX_VALUE) {
         return 0;
     }
-
     return (modrm->mod << 6) | (modrm->reg << 3) | modrm->rm;
 }
-static bool x86Bytes_MountModRM(x86Instruction_t* instr, struct CopyPartMemory* mounter)
-{
-    if (!instr->has_modrm) return true;
 
-    uint8_t modrm = MountModRM(&instr->modrm);
-    if (!CopyOffsetDataU8(mounter, modrm)) return false;
-    return true;
-}
-static bool x86Bytes_MountImm(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+static bool x86Bytes_MountModRM(x86Instruction_t *i, struct CopyPartMemory *m)
 {
-    if (!instr->has_imm) return true;
-
-    mounter->src = (unsigned char*)&instr->imm.value;
-    mounter->src_size = instr->imm.size;
-    if (!CopyOffsetData(mounter)) return false;
-    return true;
-}
-static bool x86Bytes_MountPrefix(x86Instruction_t* instr, struct CopyPartMemory* mounter)
-{
-    if (!instr->has_prefix) return true;
-
-    mounter->src = instr->prefix.prefix;
-    mounter->src_size = instr->prefix.prefix_size;
-    if (!CopyOffsetData(mounter)) return false;
-    return true;
+    if (!i->has_modrm) return true;
+    uint8_t modrm = MountModRM(&i->modrm);
+    return CopyOffsetDataU8(m, modrm);
 }
 
-static inline uint8_t MountSIB(x86Sib_t* sib)
+static bool x86Bytes_MountImm(x86Instruction_t *i, struct CopyPartMemory *m)
+{
+    if (!i->has_imm) return true;
+    m->src = (unsigned char*)&i->imm.value;
+    m->src_size = i->imm.size;
+    return CopyOffsetData(m);
+}
+
+static bool x86Bytes_MountPrefix(x86Instruction_t *i, struct CopyPartMemory *m)
+{
+    if (!i->has_prefix) return true;
+    m->src = i->prefix.prefix;
+    m->src_size = i->prefix.prefix_size;
+    return CopyOffsetData(m);
+}
+
+static inline uint8_t MountSIB(x86Sib_t *sib)
 {
     return (sib->scale << 6) | (sib->index << 3) | sib->base;
 }
-static bool x86Bytes_MountSIB(x86Instruction_t* instr, struct CopyPartMemory* mounter)
-{
-    if (!instr->has_sib) return true;
 
-    uint8_t sib = MountSIB(&instr->sib);
-    return CopyOffsetDataU8(mounter, sib);
+static bool x86Bytes_MountSIB(x86Instruction_t *i, struct CopyPartMemory *m)
+{
+    if (!i->has_sib) return true;
+    uint8_t sib = MountSIB(&i->sib);
+    return CopyOffsetDataU8(m, sib);
 }
 
-static bool x86Bytes_MountDisp(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+static bool x86Bytes_MountDisp(x86Instruction_t *i, struct CopyPartMemory *m)
 {
-    if (!instr->has_disp) return true;
-
-    mounter->src = (unsigned char*)&instr->disp.value;
-    mounter->src_size = instr->disp.size;
-
-    return CopyOffsetData(mounter);
+    if (!i->has_disp) return true;
+    m->src = (unsigned char*)&i->disp.value;
+    m->src_size = i->disp.size;
+    return CopyOffsetData(m);
 }
 
-static bool x86Bytes_MountRex(x86Instruction_t* instr, struct CopyPartMemory* mounter)
+static bool x86Bytes_MountRex(x86Instruction_t *i, struct CopyPartMemory *m)
 {
-    if (!instr->has_rex) return true;
-
-    x86Rex_t* rex = &instr->rex;
-    uint8_t rex_bytes = 0x40 |
-        (rex->w << 3) |
-        (rex->r << 2) |
-        (rex->x << 1) |
-        (rex->b << 0);
-
-    return CopyOffsetDataU8(mounter,rex_bytes);
+    if (!i->has_rex) return true;
+    uint8_t rex = 0x40 | (i->rex.w << 3) | (i->rex.r << 2) | (i->rex.x << 1) | (i->rex.b << 0);
+    return CopyOffsetDataU8(m, rex);
 }
 
+/* ---------------------------------------------------------------------------
+ * Pipeline definition (order matters: prefix -> REX -> opcode -> ModRM/SIB/disp/imm)
+ * ------------------------------------------------------------------------ */
 static EncodePipeline pipeline_funcs = {
     .steps = {
-        [0]=x86Bytes_MountPrefix,
-        [1]=x86Bytes_MountRex,
-        [2]=x86Bytes_MountOpcode,
-        [3]=x86Bytes_MountModRM,
-        [4]=x86Bytes_MountSIB,
-        [5]=x86Bytes_MountDisp,
-        [6]=x86Bytes_MountImm,
+        [0] = x86Bytes_MountPrefix,
+        [1] = x86Bytes_MountRex,
+        [2] = x86Bytes_MountOpcode,
+        [3] = x86Bytes_MountModRM,
+        [4] = x86Bytes_MountSIB,
+        [5] = x86Bytes_MountDisp,
+        [6] = x86Bytes_MountImm,
     },
-    .count = 7 // 0 .. 6
+    .count = 7,
 };
 
-bool X86_MountCodeBytes(x86Instruction_t* instr, size_t* offset, uint8_t* buffer, size_t buffer_size)
+/* ---------------------------------------------------------------------------
+ * Public API: mount instruction bytes into buffer
+ * ------------------------------------------------------------------------ */
+bool X86_MountCodeBytes(x86Instruction_t *instr, size_t *offset, uint8_t *buffer, size_t buffer_size)
 {
     if (!instr || !buffer || !offset) return false;
-    struct CopyPartMemory mounter_copy = {
-        .dst = buffer,
+
+    struct CopyPartMemory ctx = {
+        .dst      = buffer,
         .dst_size = buffer_size,
-        .offset = offset,
+        .offset   = offset,
     };
 
     for (size_t i = 0; i < pipeline_funcs.count; i++) {
-        if (!pipeline_funcs.steps[i](instr,&mounter_copy)) return false;
+        if (!pipeline_funcs.steps[i](instr, &ctx)) return false;
     }
     return true;
 }

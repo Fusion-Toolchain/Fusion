@@ -27,7 +27,6 @@ CORE_SRC := \
 	$(SRC_DIR)/Core/Backend_System/backend_inject.c \
 	$(SRC_DIR)/Core/IO_Sytem/io_interface.c \
 	$(SRC_DIR)/Core/IO_Sytem/io_file.c \
-	$(SRC_DIR)/Core/Fdb_System/fdb_filemount.c \
 	$(SRC_DIR)/Core/Linker_System/linker_hashtable.c \
 	$(SRC_DIR)/Core/Linker_System/linker_interface.c \
 	$(SRC_DIR)/Core/Linker_System/linker_pipeline.c \
@@ -53,6 +52,7 @@ BACKEND_SRC := \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_ret.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_lea.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_stack.c \
+	$(SRC_DIR)/Backend/X86/InstructionSets/x86_cmp.c \
 	$(SRC_DIR)/Backend/X86/InstructionSets/x86_syscall.c
 
 BACKEND_OBJ := $(BACKEND_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)

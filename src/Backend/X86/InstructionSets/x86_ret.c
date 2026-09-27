@@ -1,12 +1,16 @@
+/*
+ * x86_ret.c — RET encoder (C3)
+ */
+
 #include "../x86_helpers.h"
 #include "x86_instructions.h"
 
-bool X86_MountRet(X86BackendContext* backend_ctx)
+bool X86_MountRet(X86BackendContext *ctx)
 {
-    x86Instruction_t* mount_instr = backend_ctx->encoder;
+    x86Instruction_t *enc = ctx->encoder;
 
-    mount_instr->opcode.opcode[0] = 0xC3;
-    mount_instr->opcode.opcode_size = 1;
+    enc->opcode.opcode[0]   = 0xC3; // RET near
+    enc->opcode.opcode_size = 1;
 
     return true;
 }

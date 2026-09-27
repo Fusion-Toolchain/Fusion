@@ -4,12 +4,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/* ============================================================================
+ * Relocation types (used by linker)
+ * ========================================================================= */
 typedef enum {
-    X86_REL32,
-    X86_ABS64
+    X86_REL32,  // 32-bit PC-relative
+    X86_ABS64   // 64-bit absolute
 } X86ReallocTypes_t;
 
-// REGISTERS (único source of truth)
+/* ============================================================================
+ * Physical registers (X86_REG_*) — single source of truth
+ * ========================================================================= */
 #define X86_REG_RAX  0
 #define X86_REG_RCX  1
 #define X86_REG_RDX  2
@@ -20,31 +25,28 @@ typedef enum {
 #define X86_REG_RDI  7
 #define X86_REG_R8   8
 #define X86_REG_R9   9
-#define X86_REG_R10  10
-#define X86_REG_R11  11
-#define X86_REG_R12  12
-#define X86_REG_R13  13
-#define X86_REG_R14  14
-#define X86_REG_R15  15
+#define X86_REG_R10 10
+#define X86_REG_R11 11
+#define X86_REG_R12 12
+#define X86_REG_R13 13
+#define X86_REG_R14 14
+#define X86_REG_R15 15
 
-/*
- * ! MODRM TYPES !
-*/
+/* ============================================================================
+ * ModR/M encoding
+ * ========================================================================= */
+#define MODRM_MOD_MEM_00         0x0  // [r/m]
+#define MODRM_MOD_MEM_8BIT_DISP  0x1  // [r/m + disp8]
+#define MODRM_MOD_MEM_32BIT_DISP 0x2  // [r/m + disp32]
+#define MODRM_MOD_REG_DIRECT     0x3  // r/m is register
 
-#define MODRM_MOD_MEM_00            0x0  
-#define MODRM_MOD_MEM_8BIT_DISP     0x1
-#define MODRM_MOD_MEM_32BIT_DISP    0x2
-#define MODRM_MOD_REG_DIRECT        0x3
-
-/*
- * ! MODRM MAX VALUES !
-*/
-
-#define MODRM_RM_MAX_VALUE 7
+#define MODRM_RM_MAX_VALUE  7
 #define MODRM_REG_MAX_VALUE 7
 #define MODRM_MOD_MAX_VALUE 3
 
-// SIB
+/* ============================================================================
+ * SIB encoding
+ * ========================================================================= */
 #define X86_SIB_INDEX_NONE 4
 
 #define X86_SIB_SCALE_1 0
@@ -52,49 +54,59 @@ typedef enum {
 #define X86_SIB_SCALE_4 2
 #define X86_SIB_SCALE_8 3
 
+/* ============================================================================
+ * Instruction fields
+ * ========================================================================= */
 typedef struct {
     uint8_t opcode[3];
     uint8_t opcode_size;
 } x86Opcode_t;
 
 typedef struct {
-    uint8_t mod;
-    uint8_t reg;
-    uint8_t rm;
+    uint8_t mod; // 2 bits
+    uint8_t reg; // 3 bits
+    uint8_t rm;  // 3 bits
 } x86ModRm_t;
 
 typedef struct {
     uint8_t prefix[4];
     uint8_t prefix_size;
 } x86Prefix_t;
-typedef struct {
-    uint64_t value;
-    uint8_t size;
-} x86Imm_t;
-typedef struct {
-    uint8_t scale;
-    uint8_t index;
-    uint8_t base;
-} x86Sib_t;
-typedef struct {
-    int32_t value;
-    uint8_t size;
-} x86Disp_t;
-typedef struct {
-    uint8_t w : 1;
-    uint8_t r : 1;
-    uint8_t x : 1;
-    uint8_t b : 1;
-} x86Rex_t;
 
 typedef struct {
+    uint64_t value;
+    uint8_t  size; // 1,2,4,8
+} x86Imm_t;
+
+typedef struct {
+    uint8_t scale; // 2 bits
+    uint8_t index; // 3 bits
+    uint8_t base;  // 3 bits
+} x86Sib_t;
+
+typedef struct {
+    int32_t value;
+    uint8_t size; // 1 or 4
+} x86Disp_t;
+
+typedef struct {
+    uint8_t w : 1; // 64-bit operand
+    uint8_t r : 1; // extension of ModRM.reg
+    uint8_t x : 1; // extension of SIB.index
+    uint8_t b : 1; // extension of ModRM.rm / opcode reg
+} x86Rex_t;
+
+/* ============================================================================
+ * Complete X86 instruction (prefix + REX + opcode + ModRM/SIB/disp/imm)
+ * ========================================================================= */
+typedef struct {
     x86Prefix_t prefix;
-    x86Rex_t rex;
+    x86Rex_t    rex;
     x86Opcode_t opcode;
-    x86ModRm_t modrm;
-    x86Imm_t imm;
-    x86Sib_t sib;
-    x86Disp_t disp;
+    x86ModRm_t  modrm;
+    x86Imm_t    imm;
+    x86Sib_t    sib;
+    x86Disp_t   disp;
 
     bool has_prefix;
     bool has_modrm;
