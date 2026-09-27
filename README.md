@@ -1,250 +1,318 @@
-# Fusion
+<div align="center">
+
+# Fusion Code Engine
 
 ![Logo](Documentation/img/FusionLogo.png)
 
-<p align="center">
-  <b>A low-level compiler backend and code generation toolchain for CPU (and GPU in the future).</b><br/>
-  Custom IR · Custom Linker · Pluggable Backends · JIT & AOT
-</p>
+**Motor de geração de código para CPU, em C.**
+
+*Sem otimização implícita. Sem decisões não solicitadas.*
+
+[Quick Start](#quick-start) · [Filosofia](#filosofia) · [Conceitos](#conceitos) · [API](#referência-da-api) · [Building](#building)
+
+</div>
 
 ---
 
-## Overview
+## Apresentação
 
-Fusion is a modular code generation engine written in C. It takes an intermediate representation called **HIDR** and compiles it down to native machine code through a pluggable backend system. The design philosophy is inspired by Vulkan: explicit control, no hidden magic, the caller owns the pipeline.
+**Fusion** é um motor de geração de código para arquitetura CPU, implementado em C.
+
+O sistema recebe instruções em sua representação própria — o **HIDR** — e as converte em código de máquina nativo por meio de um conjunto de backends plugáveis. O resultado pode ser executado diretamente na memória (**JIT**) ou gravado em disco (**AOT**).
 
 ```
-HIDR Nodes  →  FusCommandRule chain  →  fusMountHidrsBytes  →  FusBufferContext_t  →  Execute
+   HIDR nodes          cadeia de comandos       backend            linker          buffer
+  ┌────────────┐      ┌──────────────────┐    ┌───────────┐    ┌────────────┐   ┌───────────┐
+  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │ X86 / ..  │ ─▶ │  relocação │ ▶ │   bytes   │ ─▶ executar
+  │  (a lista) │      │      chain       │    │  encoder  │    │   patch    │   │ (JIT/AOT)│
+  └────────────┘      └──────────────────┘    └───────────┘    └────────────┘   └───────────┘
+      o usuário             configuração             seleção             registro          uso
 ```
 
-Fusion does **not** dictate how you manage memory, how you parse your language, or which backend you use. You wire it together.
+O Fusion não determina como o usuário gerencia memória, como realiza a análise léxica de sua linguagem, nem qual backend empregar. Essas decisões pertencem à aplicação: o motor executa a pipeline exatamente como ela foi declarada.
 
 ---
 
-## Features
+## Filosofia
 
-- **Custom x86 backend** — native code generation for x86, with `mov`, `add`, `call`, `lea`, `ret` and growing instruction coverage
-- **Pluggable backend system** — load backends by name at runtime (`FUS_BACKEND_TYPE_STATIC`, dynamic planned)
-- **Custom linker** — symbol resolution via internal hashtable pipeline
-- **Custom allocator support** — bring your own `Alloc`/`Free`/`Realloc` via `FusInstanceMyAllocation_t`
-- **JIT execution** — compile to an executable buffer and call it directly
-- **HIDR IR** — compact node-array intermediate representation feeding the backend
+O projeto parte de um posicionamento deliberado em relação às ferramentas de geração de código convencionais.
 
----
+Sistemas como LLVM, os componentes internos do GCC e Cranelift são construídos com o objetivo de produzir o melhor código possível. Operam otimizações, passes de transformação, análise de fluxo de dados e inlining agressivo. A premissa subjacente é que o programador não sabe expressar com precisão o resultado desejado, e que o compilador deve decidir por ele.
 
-## Project Structure
+**Fusion adota o princípio oposto:**
 
-```
-include/Fusion/          # Public API headers
-  Fusion.h               # Main entry point
-  FusionTypes.h          # Core types (FusInstance, FusBufferContext_t, FusStatusFlag_t)
-  FusionRule.h           # Command rule chain (FusCommandRuleBase_t and friends)
-  Backend/FusionBackend.h
-  Linker/FusionLinkerInterface.h
-  IRTypes/HidrType.h
+> **O usuário sabe o que deseja gerar. O Fusion apenas fornece o meio para gerá-lo.**
 
-src/
-  Backend/X86/           # x86 instruction emitters and pipeline
-  Core/
-    Compiler/            # compiler_pipeline.c — HIDR → backend → buffer
-    Linker_System/       # Symbol resolution
-    Memory/              # Arena, Slab, Handle, LargerBlocks
-    Backend_System/      # Backend loader and injector
-```
+Em termos de comportamento, isso significa que:
+
+- o HIDR não otimiza, reordena ou elimina as instruções fornecidas;
+- o backend executa a codificação correspondente a cada nó, sem transformações;
+- o linker aplica exclusivamente as relocações registradas pelo backend, sem inferir referências adicionais;
+- cada etapa do pipeline executa a operação solicitada e encerra.
+
+Não existem passes de otimização, registros de flags ou parâmetros de agressividade. O que não é solicitado não é executado.
+
+A consequência é um sistema efetivamente **embutível**. A acepção de "embutível" aqui não é a do LLVM, que implica vincular dezenas de bibliotecas e manter centenas de megabytes de representação intermediária em memória. É embutível no sentido direto: incluir os headers, chamar as funções, obter os bytes, utilizá-los. Não há alocação implícita, comportamento não documentado nem estado global exposto.
+
+O destinatário não é quem busca um compilador. É **quem precisa gerar código** — para emulação, para compilação JIT específica, para toolchains de hardware proprietário, ou para pesquisa. O contexto de uso típico é o de quem se aproximou do LLVM, avaliou a complexidade de integração e optou por uma alternativa de superfície mínima.
+
+Em formulação resumida:
+
+> **Fusion destina-se a quem deseja `GERAR` código, e não a quem delega a terceiros a tarefa de `OTIMIZAR` código.**
+
+### Comparação
+
+| | LLVM / GCC | **Fusion** |
+|---|---|---|
+| Otimização de código | Silenciosa e agressiva | **Inexistente** |
+| Reescrita de instruções | Sim | **Não** |
+| Decisões implícitas | Numerosas | **Nenhuma** — configuração explícita |
+| Superfície da API | Centenas de entradas | **~20 funções `fus*`** |
+| Curva de aprendizado | Alta | **Um header, uma cadeia, uma chamada** |
+| Dependências | Extensas | **libc** |
+| Alocador próprio | Difícil de substituir | **Uma struct** |
+
+A referência de design é o **Vulkan**: o usuário constrói a cadeia, o motor a respeita, e cada recurso possui um descarte explícito e correspondente.
 
 ---
 
 ## Quick Start
 
-### 1. Create an instance
+Exemplo completo e executável: [`example/src/basic.c`](example/src/basic.c)
 
 ```c
 #include <Fusion/Fusion.h>
 
-// Use the default system allocator
-FusInstanceMyAllocation_t alloc = {
-    .Alloc   = my_alloc,
-    .Free    = my_free,
-    .Realloc = my_realloc,
-    .userdata = NULL,
-};
+int main(void)
+{
+    // 1. Instância (NULL = alocador do sistema)
+    FusInstance  instance = NULL;
+    FusCodeMount mount    = NULL;
+    fusCreateInstance(&instance, NULL);
+    fusCreateCodeMount(&instance, &mount);
 
-FusInstance instance;
-FusStatusFlag_t status = fusCreateInstance(&instance, &alloc);
-if (status != FUSION_OK) {
-    fprintf(stderr, "fusCreateInstance: %s\n", fusStrError(status));
-    return 1;
+    // 2. Instruções, na ordem desejada
+    fusInsertCodeBlock(mount, FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64,
+        FUS_HIDR_Reg("BCL0"),              // dst: rbx
+        FUS_HIDR_Sym("Print")));           // src: símbolo → relocação
+    fusInsertCodeBlock(mount, FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64,
+        FUS_HIDR_Reg("OCL0"),              // rdi
+        FUS_HIDR_Imm(30, HIDR_IMM64)));
+    fusInsertCodeBlock(mount, FUS_HIDRM(HIDR_INSTR_CALL, HIDR_OP_SIZE_64,
+        FUS_HIDR_Reg("BCL0"), FUS_HIDR_None()));
+    fusInsertCodeBlock(mount, FUS_HIDRM(HIDR_INSTR_RET, HIDR_OP_SIZE_NONE,
+        FUS_HIDR_None(), FUS_HIDR_None()));
+
+    // 3. Backend
+    FusModuleBackend x86 = NULL;
+    fusLoaderBackend(instance, &x86, "X86_Backend", FUS_BACKEND_TYPE_STATIC);
+
+    // 4. Cadeia de comandos (configuração da pipeline)
+    FusCommandBackend cmd_backend = {
+        .sType = FUS_COMMAND_SEND_BACKEND, .backend = x86, .pNext = NULL
+    };
+    FusCommandHidr cmd_hidr = {
+        .sType = FUS_COMMAND_SEND_HIDR,   .code = mount,
+        .pNext = (const FusCommandRuleBase_t*)&cmd_backend
+    };
+
+    // 5. Geração
+    FusBackendReturn compiler = NULL;
+    fusMountHidrsBytes(instance, (FusCommandRuleBase_t*)&cmd_hidr, &compiler);
+
+    // 6. Resolução de símbolos (se utilizados)
+    FusLinkerContext linker = NULL;
+    fusCreateLinkerContext(instance, &linker);
+    fusAddSymbolLinker(linker, "Print", (uintptr_t)&Print);
+    fusLinkerResolver((FusCommandRuleBase_t*)&cmd_backend, linker, compiler);
+
+    // 7. Execução
+    FusBufferContext_t* buffer = fusGetStreamBufferCompiler(instance, compiler);
+    if (!fusExecutableBuffer(buffer)) {
+        typedef void (*Fn)(void);
+        ((Fn)buffer->buffer)();          // função chamando código gerado
+    }
+
+    // 8. Descarte — sempre, na ordem inversa
+    fusDestroyBufferCode(instance, buffer);
+    fusDestroyBackendReturn(instance, compiler);
+    fusDestroyBackend(instance, x86);
+    fusDestroyLinkerContext(instance, linker);
+    fusDestroyCodeMount(instance, mount);
+    fusDestroyInstance(instance);
+    return 0;
 }
 ```
 
-### 2. Load a backend
+Não há registro de passes, flags de otimização ou rotinas de inicialização suplementares. Oito etapas, das quais a última é o descarte explícito dos recursos.
 
-```c
-FusModuleBackend backend;
-status = fusLoaderBackend(instance, &backend, "x86", FUS_BACKEND_TYPE_STATIC);
-if (status != FUSION_OK) { /* handle */ }
-```
+Outros exemplos:
 
-### 3. Build the command rule chain
-
-The compiler pipeline is driven by a `pNext` chain of `FusCommandRuleBase_t` structs — similar to Vulkan's `pNext` extension chain.
-
-```c
-// Provide the output buffer
-FusBufferContext_t* out_buf = fusCreateBufferCode(4096);
-
-FusCommandBuffer cmd_buf = {
-    .sType  = FUS_COMMAND_SEND_BUFFER,
-    .pNext  = NULL,
-    .buffer = out_buf,
-};
-
-// Provide your HIDR code mount
-FusCommandHidr cmd_hidr = {
-    .sType = FUS_COMMAND_SEND_HIDR,
-    .pNext = (FusCommandRuleBase_t*)&cmd_buf,
-    .code  = my_code_mount,
-};
-
-// Provide the backend
-FusCommandBackend cmd_backend = {
-    .sType   = FUS_COMMAND_SEND_BACKEND,
-    .pNext   = (FusCommandRuleBase_t*)&cmd_hidr,
-    .backend = backend,
-};
-```
-
-### 4. Compile
-
-```c
-FusBackendReturn result;
-FusStatusFlag_t status = fusMountHidrsBytes(instance, (FusCommandRuleBase_t*)&cmd_backend, &result);
-
-FusBufferContext_t* exec_buf = fusGetStreamBufferCompiler(result);
-```
-
-### 5. Execute (JIT)
-
-```c
-fusExecutableBuffer(exec_buf);   // marks buffer as executable (mprotect)
-
-typedef int (*JitFn)(void);
-JitFn fn = (JitFn)exec_buf->buffer;
-int ret = fn();
-```
-
-### 6. Cleanup
-
-```c
-fusDestroyBackendReturn(instance, result);
-fusDestroyBufferCode(exec_buf);
-fusDestroyBackend(backend);
-fusDestroyInstance(instance);
-```
+| Exemplo | Objetivo |
+|---|---|
+| [`example/src/basic.c`](example/src/basic.c) | JIT com linker: código gerado invoca função C |
+| [`example/src/program.c`](example/src/program.c) | AOT: produção de um arquivo ELF executável |
 
 ---
 
-## API Reference
+## Conceitos
 
-### Instance
+### **HIDR** — a representação de instruções do Fusion
 
-| Function | Description |
-|---|---|
-| `fusCreateInstance(ctx, allocation)` | Create a Fusion instance with a custom allocator |
-| `fusDestroyInstance(ctx)` | Destroy instance and free all associated resources |
+Um array de nós. Cada nó descreve uma instrução por meio de `opcode`, tamanho de operando e dois operandos (`dst` e `src`). Não há sistema de tipos, forma SSA ou etapa de verificação. O usuário declara as instruções e sua ordem.
 
-### Buffer
+```c
+FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Imm(30, HIDR_IMM64))
+```
 
-| Function | Description |
-|---|---|
-| `fusCreateBufferCode(size)` | Allocate a code buffer of `size` bytes |
-| `fusExecutableBuffer(buffer)` | Mark buffer as executable (call before JIT execution) |
-| `fusDestroyBufferCode(buffer)` | Free a code buffer |
+Construtores de operando: `FUS_HIDR_Reg` · `FUS_HIDR_Imm` · `FUS_HIDR_Mem` · `FUS_HIDR_Sym` · `FUS_HIDR_None`
 
-### Backend
+Opcodes disponíveis: `MOV` `ADD` `CMP` `ADDR` (lea) `CALL` `PUSH` `POP` `RET` `SYSCALL`
 
-| Function | Description |
-|---|---|
-| `fusLoaderBackend(instance, ctx, name, type)` | Load a backend module by name |
-| `fusDestroyBackend(backend)` | Unload and free a backend module |
+### **Registradores simbólicos** — identificação por função
 
-### Compilation
+O HIDR não expõe identificadores de registradores da arquitetura. Registradores são designados por sua função, e cada backend realiza a correspondência para o hardware correspondente.
 
-| Function | Description |
-|---|---|
-| `fusMountHidrsBytes(instance, rule, out)` | Run the compiler pipeline from a command rule chain |
-| `fusGetStreamBufferCompiler(ctx_backend)` | Extract the output buffer from a compilation result |
-| `fusDestroyBackendReturn(instance, ctx_backend)` | Free compilation result resources |
+```
+   A C L 0
+   │ │ │ └── índice
+   │ │ └──── tamanho:  L = 64 bits
+   │ └────── grupo:    C = general purpose
+   └──────── papel:    A = acumulador
+```
 
-### Utilities
+A composição dos campos, a tabela completa de caracteres e os exemplos de mapeamento estão documentados em **[Documentation/UserDocumentation/FusionRegistre.md](Documentation/UserDocumentation/FusionRegistre.md)**.
 
-| Function | Description |
-|---|---|
-| `fusStrError(status)` | Convert a `FusStatusFlag_t` to a human-readable string |
+O mesmo HIDR pode ser submetido a x86, ARM ou RISC-V sem alteração, uma vez que cada backend traduz o papel declarado para o seu conjunto de registradores.
 
----
+### **Cadeia de comandos** — a configuração da pipeline
 
-## Command Rule Chain
+A pipeline é configurada por uma lista encadeada no padrão `pNext` do Vulkan. Cada struct declara seu papel por meio de `sType` e aponta para o próximo elemento. A ordem dos elementos é irrelevante, pois o Fusion percorre a cadeia integralmente.
 
-The compilation pipeline is configured via a linked chain of command structs. Each struct has an `sType` identifying its role and a `pNext` pointing to the next rule in the chain.
-
-| Type | Struct | Purpose |
+| `sType` | Struct | Função |
 |---|---|---|
-| `FUS_COMMAND_SEND_BUFFER` | `FusCommandBuffer` | Output buffer for generated code |
-| `FUS_COMMAND_SEND_HIDR` | `FusCommandHidr` | Input HIDR node array |
-| `FUS_COMMAND_SEND_BACKEND` | `FusCommandBackend` | Backend module to use |
-| `FUS_COMMAND_SEND_LINKER` | *(planned)* | Linker configuration |
+| `FUS_COMMAND_SEND_BACKEND` | `FusCommandBackend` | Backend a ser utilizado |
+| `FUS_COMMAND_SEND_HIDR` | `FusCommandHidr` | Mount de HIDR de entrada |
+| `FUS_COMMAND_SEND_BUFFER` | `FusCommandBuffer` | Buffer de saída (reservado) |
+| `FUS_COMMAND_SEND_LINKER` | — | Reservado |
 
 ---
 
-## Status Codes
+## Referência da API
 
-```c
-FUSION_OK   = 1   // Success (truthy)
-FUSION_ERRO = 0   // Generic error — use fusStrError() for details
-```
+A API pública reside em `include/Fusion/`. O header único `Fusion/Fusion.h` agrega todas as declarações, e cada cabeçalho é pequeno e autocontido:
 
----
+| Header | Escopo |
+|---|---|
+| `Fusion/FusionTypes.h` | Tipos base, `FUS_API`, `FUS_DEFINE_HANDLE` |
+| `Fusion/FusionInstance.h` | `fusCreateInstance` · `fusDestroyInstance` |
+| `Fusion/FusionBuffer.h` | Criação, mapeamento executável, IO e descarte de buffers |
+| `Fusion/FusionCompile.h` | `fusMountHidrsBytes` · `fusGetStreamBufferCompiler` |
+| `Fusion/FusionRule.h` | Estruturas da cadeia de comandos |
+| `Fusion/FusionTrace.h` | Árvore de rastreamento de erros |
+| `Fusion/Backend/FusionBackend.h` | Carga e descarte de backends |
+| `Fusion/Linker/FusionLinkerInterface.h` | Símbolos, seções e resolução de relocações |
+| `Fusion/IRTypes/HidrType.h` | Nós, operandos e opcodes do HIDR |
+| `Fusion/IRTypes/HidrHelper.h` | `FusCodeMount` e construtores `FUS_HIDR_*` |
+| `Fusion/IRTypes/HidrRegistre.h` | Registradores simbólicos |
+| `Fusion/IO/FusionGenericIO.h` · `FusionFileIO.h` | Sinks genéricos e de arquivo |
 
-## Custom Allocator
-
-Fusion never calls `malloc`/`free` directly. You provide the allocator at instance creation:
-
-```c
-typedef struct {
-    void* (*Alloc)  (void* userdata, size_t size);
-    void  (*Free)   (void* userdata, void* ptr);
-    void* (*Realloc)(void* userdata, void* old_ptr, size_t old_size, size_t new_size);
-    void* userdata;
-} FusInstanceMyAllocation_t;
-```
+Convenções observadas em toda a API: as funções recebem `FusInstance` como primeiro parâmetro; handles são opacos e typedefados por `FUS_DEFINE_HANDLE`; todo recurso criado possui uma função `fusDestroy*` correspondente; o status de retorno é `FUSION_OK` (1) ou `FUSION_ERRO` (0), e os detalhes são consultados na árvore de rastreamento da instância.
 
 ---
 
 ## Backends
 
-| Backend | Status |
+### Backend disponível
+
+| Backend | Estado |
 |---|---|
-| x86 | ✅ Active — `mov`, `add`, `call`, `lea`, `ret` |
+| `X86_Backend` | Ativo — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · relocações `REL32` e `ABS64` |
+
+### Implementação de um Backend Estatico
+
+Um backend implementa duas funções e registra-se por meio de uma macro:
+
+```c
+#include <BackendInterface/Backend.h>
+
+FusBackendInterface_t* MyBackendDefine(void)
+{
+    static FusBackendInterface_t interface = {
+        .FUSI_BackendMountHidrArray   = my_mount_hidr,   // array HIDR -> bloco de dados
+        .FUSI_BackendLinkerRelocation = my_relocate,    // aplica uma relocação
+    };
+    return &interface;
+}
+
+REGISTER_BACKEND(My_Backend, MyBackendDefine);
+```
+
+O Core injeta uma `FusBackendApi_t`, que provê alocação, criação de blocos de saída, transfers com destrutor explícito, registro de relocações e acesso à árvore de rastreamento. Helpers disponíveis: `FUSB_ALLOC` `FUSB_FREE` `FUSB_CREATE_BLOCK` `FUSB_CREATE_TRASNFER` `FUSB_REGISTRE_REALOCATION` `FUSB_GET_TRACE_FUSION`.
+
+O tipo de relocação é **opaco** para o Core: sua definição e interpretação pertencem ao backend. O Core não infere nem modifica esse valor.
+
+---
+
+## Detalhes técnicos
+
+- **Alocador próprio** — o Fusion não invoca `malloc` diretamente. Forneça uma `FusInstanceMyAllocation_t` (`Alloc` / `Free` / `Realloc` / `userdata`) ou passe `NULL` para utilizar o alocador padrão.
+- **Árvore de rastreamento** — cada etapa interna registra um nó na árvore de erros da instância. `fusDumpTrace` apresenta a cadeia completa de causa e efeito, com arquivo e linha.
+- **Gerência de memória** — subsistemas próprios de Arena, Slab, Handle e LargerBlocks, operando sobre o alocador fornecido.
+- **Saída AOT** — `fusBufferIOSink` grava os bytes em qualquer `FusIOSink`: ELF, binário plano ou formato próprio.
+
+### Estrutura de diretórios
+
+```
+include/Fusion/          # API pública
+  Fusion.h               # header único — agrega todos
+  FusionTypes.h          # tipos base, FUS_API, handles
+  FusionInstance.h  FusionBuffer.h  FusionCompile.h  FusionRule.h  FusionTrace.h
+  Backend/  Linker/  IRTypes/  IO/
+include/BackendInterface/ Backend.h   # API para implementação de backends
+include/Internal/                      # headers privados
+
+src/Backend/X86/          # encoder e conjuntos de instruções
+src/Core/
+  Compiler/              # HIDR -> backend -> buffer
+  Linker_System/         # símbolos e resolução de relocações
+  Memory/                # Arena, Slab, Handle, LargerBlocks
+  Backend_System/        # registro e carga de backends
+  BufferSystem/          # buffer de código e montagem executável
+  Error_Tree/  IO_Sytem/  IRTypes/
+```
 
 ---
 
 ## Building
 
 ```bash
-make -j 6
+make -j 6              # gera libfusion.so
+make example           # gera example_basic e example_program
+make -C test test      # executa os testes sob valgrind
 ```
 
-## Examples Building
+| Flag | Efeito |
+|---|---|
+| `DEBUG=Y` | Habilita rastreamento `FUSION_DEBUG` nos alocadores do core |
 
 ```bash
-make example
+cd example
+./example_basic     # JIT: função C invocada por código gerado
+./example_program   # AOT: produz output.elf
+./output.elf        # → código de saída 1 (exit(60))
 ```
 
-The Makefile targets the project as a static library. See `src/linker.ld` for the custom linker script.
+Requisitos: compilador com suporte a C23 (gcc ou clang) e Linux. Única dependência: **libc**.
 
 ---
 
 ## License
 
-GPL-3.0 — see [LICENSE](LICENSE).
+GPL-3.0 — consulte [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+<sub>Fusion Code Engine — para quem deseja <b>gerar</b> código.</sub>
+</div>
