@@ -2,7 +2,7 @@
 
 # Fusion Code Engine
 
-![Logo](Documentation/img/FusionLogo.png)
+![Logo](../Documentation/img/FusionLogo.png)
 
 **Motor de geração de código para CPU, em C.**
 
@@ -10,7 +10,7 @@
 
 [Quick Start](#quick-start) · [Filosofia](#filosofia) · [Conceitos](#conceitos) · [API](#referência-da-api) · [Building](#building)
 
-**Idioma / Language:** [Português](README.md) · [English](translate/README.en.md) · [Español](translate/README.es.md) · [Русский](translate/README.ru.md)
+[English](README.en.md) · [Português](README.pt.md) · [Español](README.es.md) · [Русский](README.ru.md)
 
 </div>
 
@@ -80,7 +80,7 @@ A referência de design é o **Vulkan**: o usuário constrói a cadeia, o motor 
 
 ## Quick Start
 
-Exemplo completo e executável: [`example/src/basic.c`](example/src/basic.c)
+Exemplo completo e executável: [`example/src/basic.c`](../example/src/basic.c)
 
 ```c
 #include <Fusion/Fusion.h>
@@ -152,8 +152,8 @@ Outros exemplos:
 
 | Exemplo | Objetivo |
 |---|---|
-| [`example/src/basic.c`](example/src/basic.c) | JIT com linker: código gerado invoca função C |
-| [`example/src/program.c`](example/src/program.c) | AOT: produção de um arquivo ELF executável |
+| [`example/src/basic.c`](../example/src/basic.c) | JIT com linker: código gerado invoca função C |
+| [`example/src/program.c`](../example/src/program.c) | AOT: produção de um arquivo ELF executável |
 
 ---
 
@@ -183,7 +183,7 @@ O HIDR não expõe identificadores de registradores da arquitetura. Registradore
    └──────── papel:    A = acumulador
 ```
 
-A composição dos campos, a tabela completa de caracteres e os exemplos de mapeamento estão documentados em **[Documentation/UserDocumentation/FusionRegistre.md](Documentation/UserDocumentation/FusionRegistre.md)**.
+A composição dos campos, a tabela completa de caracteres e os exemplos de mapeamento estão documentados em **[Documentation/UserDocumentation/FusionRegistre.md](../Documentation/UserDocumentation/FusionRegistre.md)**.
 
 O mesmo HIDR pode ser submetido a x86, ARM ou RISC-V sem alteração, uma vez que cada backend traduz o papel declarado para o seu conjunto de registradores.
 
@@ -311,7 +311,7 @@ Requisitos: compilador com suporte a C23 (gcc ou clang) e Linux. Única dependê
 
 ## License
 
-GPL-3.0 — consulte [LICENSE](LICENSE).
+GPL-3.0 — consulte [LICENSE](../LICENSE).
 
 ---
 
