@@ -107,7 +107,7 @@ int main(void)
 
     // 3. Backend
     FusModuleBackend x86 = NULL;
-    fusLoaderBackend(instance, &x86, "X86_Backend", FUS_BACKEND_TYPE_STATIC);
+    fusLoaderBackend(instance, &x86, "YOUR_BACKEND", FUS_BACKEND_TYPE_STATIC);
 
     // 4. Cadeia de comandos (configuração da pipeline)
     FusCommandBackend cmd_backend = {
