@@ -6,27 +6,23 @@
  * ██║     ╚██████╔╝███████║██║╚██████╔╝██║ ╚████║
  * ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
  *
- * @file    x86_functions.h
- * @brief   Declarations of the X86 encoding pipeline.
+ * @file    backend_internal.h
+ * @brief   Internal declarations of the backend loader.
  * @author     Ewerton23929dev
  *
  * @details
- * Exposes conversion of a mounted instruction into bytes in the buffer, advancing
- * the offset on success, along with the emission helpers.
+ * Boundary between the public loader and its implementations: dynamic library
+ * context, interface definition and load and unload functions.
  * @copyright  Copyright (c) 2026 Ewerton23929dev. All rights reserved.
  */
 
-#ifndef X86_BACKEND_FUNCTIONS
-#define X86_BACKEND_FUNCTIONS
+#ifndef BACKEND_INTERNAL_DEFINES_H
+#define BACKEND_INTERNAL_DEFINES_H
+#include <Internal/Backend/Fus_Backend.h>
 
-#include "x86_types.h"
-#include <stddef.h>
-#include <stdbool.h>
+FusBackendApi_t fusiInterfaceDefine(); // BACKEND INJECT
 
-/*
- * Encode x86Instruction_t into buffer at *offset.
- * Advances *offset on success.
- */
-bool X86_MountCodeBytes(x86Instruction_t *instr, size_t *offset, uint8_t *buffer, size_t buffer_size);
+FusStatusFlag_t fusiLoaderDynamicBackend(const char* path, FusBackendDynamic* out);
+void fusiDestroyDynamicBackend(FusBackendDynamic* dyn);
 
 #endif

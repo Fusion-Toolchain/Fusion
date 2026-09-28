@@ -48,13 +48,18 @@ static inline FusBackendInterface_t* LoaderStaticInterfaceMethod(const char* nam
 
     FusBackendInterface_t* interface = entry->fn(); // RETURN STATIC TABLE FOR MODULE!!!
     if (unlikely(!interface)) return NULL;
-
     return interface;
 }
-static inline FusBackendInterface_t* LoaderBackendInterfaceType(const char* name,FusModuleBackendType_t type)
+static inline FusBackendInterface_t* LoaderBackendInterfaceType(FusModuleBackend backend, const char* name,FusModuleBackendType_t type)
 {
     switch (type) {
         case FUS_BACKEND_TYPE_STATIC: return LoaderStaticInterfaceMethod(name);
+        case FUS_BACKEND_TYPE_DINAMIC: {
+            FusBackendDynamic dynamic_save = {0};
+            if (!fusiLoaderDynamicBackend(name,&dynamic_save)) return NULL;
+            backend->dynamic_save = dynamic_save;
+            return dynamic_save.interface;
+        }
         default: return NULL;
     }
 }
@@ -93,8 +98,7 @@ FusStatusFlag_t fusLoaderBackend(FusInstance instance, FusModuleBackend* ctx,con
     memcpy(name_copy, name, len);
 
     BackendDefineInterface(instance,api); // DEFINE API INTERFACE
-
-    FusBackendInterface_t* interface = LoaderBackendInterfaceType(name, type);
+    FusBackendInterface_t* interface = LoaderBackendInterfaceType(ctx_real, name, type);
     if (unlikely(!interface)) {
         FUSIH_FREE(alloc, (void*)name_copy);
         FUSIH_FREE(alloc, api);
@@ -114,13 +118,11 @@ FusStatusFlag_t fusLoaderBackend(FusInstance instance, FusModuleBackend* ctx,con
 void fusDestroyBackend(FusInstance instance, FusModuleBackend backend)
 {
     if (unlikely(!backend)) return;
-    struct FusModuleBackend_T* backend_real = backend;
+    if (backend->type == FUS_BACKEND_TYPE_DINAMIC) fusiDestroyDynamicBackend(&backend->dynamic_save);
 
     FusInstanceMyAllocation_t* alloc   = FUSIH_INSTANCE_GET_ALLOC(instance);
-
-    FUSIH_FREE(alloc, (void*)backend_real->name);
-    FUSIH_FREE(alloc, backend_real->api);
-    FUSIH_FREE(alloc, backend_real);
-
+    FUSIH_FREE(alloc, (void*)backend->name);
+    FUSIH_FREE(alloc, backend->api);
+    FUSIH_FREE(alloc, backend);
     backend = NULL;
 }

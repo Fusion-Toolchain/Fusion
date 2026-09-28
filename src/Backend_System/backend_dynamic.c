@@ -29,16 +29,13 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
-FusStatusFlag_t fusiLoaderDynamicBackend(const char* path, FusBackendApi_t* api, FusBackendDynamic_t* out)
+FusStatusFlag_t fusiLoaderDynamicBackend(const char* path, FusBackendDynamic* out)
 {
-    if (unlikely(!path || !api || !out)) return FUSION_ERRO;
+    if (unlikely(!path || !out)) return FUSION_ERRO;
     void* handle = dlopen(path,RTLD_NOW);
     if (unlikely(!handle)) return FUSION_ERRO;
 
-    dlerror();
-    FusBackendInterfaceDefine_t ModuleBackendDefine = (FusBackendInterfaceDefine_t)
-        dlsym(handle,"FUS_CreateBackend");
-    
+    FusBackendInterfaceDefine_t ModuleBackendDefine = (FusBackendInterfaceDefine_t)dlsym(handle,"FusCreateBackend");
     char* error = dlerror();
     if (unlikely(error != NULL)) {
         fprintf(stderr, "Erro to found backend init: %s\n",error);
@@ -47,15 +44,14 @@ FusStatusFlag_t fusiLoaderDynamicBackend(const char* path, FusBackendApi_t* api,
     }
 
     out->handle = handle;
-    out->interface = ModuleBackendDefine(api);
+    out->interface = ModuleBackendDefine();
     return FUSION_OK;
 }
-void fusiDestroyDynamicBackend(FusBackendDynamic_t* dyn)
+void fusiDestroyDynamicBackend(FusBackendDynamic* dyn)
 {
     if (unlikely(!dyn)) return;
 
     dlclose(dyn->handle);
-
     dyn->handle = NULL;
     dyn->interface = NULL;
 }

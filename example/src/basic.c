@@ -60,11 +60,10 @@ int main(void)
     fusCreateLinkerContext(instance, &linker);
     fusAddSymbolLinker(linker,"Print",(uintptr_t)&Print);
 
-    fusLoaderBackend(
-        instance,
-        &x86,
-        "X86_Backend",
-        FUS_BACKEND_TYPE_STATIC);
+    if (!fusLoaderBackend(instance,&x86,"X86_Backend",FUS_BACKEND_TYPE_STATIC)) {
+        printf("Erro to load static backend!\n");
+        goto _end;
+    }
     FusCommandBackend backend = {
         .sType = FUS_COMMAND_SEND_BACKEND,
         .pNext = NULL,
