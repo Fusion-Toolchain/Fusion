@@ -10,7 +10,7 @@
 
 [Quick Start](#quick-start) · [Philosophy](#philosophy) · [Concepts](#concepts) · [API](#api-reference) · [Building](#building)
 
-[English](translate/README.en.md) · [Português](translate/README.pt.md) · [Español](translate/README.es.md) · [Русский](translate/README.ru.md)
+[English](README.en.md) · [Português](README.pt.md) · [Español](README.es.md) · [Русский](README.ru.md)
 
 </div>
 
@@ -25,8 +25,8 @@ The system receives instructions in its own representation — the **HIDR** — 
 ```
    HIDR nodes          command chain         backend           linker          buffer
   ┌────────────┐      ┌──────────────────┐    ┌───────────┐    ┌────────────┐   ┌───────────┐
-  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │ X86 / ..  │ ─▶ │ relocation │ ▶ │   bytes   │ ─▶ execute
-  │  (the list)│      │      chain       │    │  encoder  │    │    patch   │   │ (JIT/AOT) │    the result
+  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │           │ ─▶ │ relocation │ ▶ │   bytes   │ ─▶ execute
+  │  (the list)│      │      chain       │    │  encoder  │    │    patch   │   │ (JIT/AOT) │
   └────────────┘      └──────────────────┘    └───────────┘    └────────────┘   └───────────┘
       the user           configuration          selection         registration        use
 ```
@@ -78,7 +78,7 @@ The design reference is **Vulkan**: the user builds the chain, the engine respec
 
 ## Quick Start
 
-Complete, runnable example: [`example/src/basic.c`](example/src/basic.c)
+Complete, runnable example: [`example/src/basic.c`](../example/src/basic.c)
 
 ```c
 #include <Fusion/Fusion.h>
@@ -104,12 +104,12 @@ int main(void)
         FUS_HIDR_None(), FUS_HIDR_None()));
 
     // 3. Backend
-    FusModuleBackend x86 = NULL;
-    fusLoaderBackend(instance, &x86, "X86_Backend", FUS_BACKEND_TYPE_STATIC);
+    FusModuleBackend backend = NULL;
+    fusLoaderBackend(instance, &backend, "YOUR_BACKEND", FUS_BACKEND_TYPE_STATIC);
 
     // 4. Command chain (pipeline configuration)
     FusCommandBackend cmd_backend = {
-        .sType = FUS_COMMAND_SEND_BACKEND, .backend = x86, .pNext = NULL
+        .sType = FUS_COMMAND_SEND_BACKEND, .backend = backend, .pNext = NULL
     };
     FusCommandHidr cmd_hidr = {
         .sType = FUS_COMMAND_SEND_HIDR,   .code = mount,
@@ -130,13 +130,13 @@ int main(void)
     FusBufferContext_t* buffer = fusGetStreamBufferCompiler(instance, compiler);
     if (!fusExecutableBuffer(buffer)) {
         typedef void (*Fn)(void);
-        ((Fn)buffer->buffer)();          // function calling generated code
+        ((Fn)buffer->buffer)();
     }
 
     // 8. Release — always, in reverse order
     fusDestroyBufferCode(instance, buffer);
     fusDestroyBackendReturn(instance, compiler);
-    fusDestroyBackend(instance, x86);
+    fusDestroyBackend(instance, backend);
     fusDestroyLinkerContext(instance, linker);
     fusDestroyCodeMount(instance, mount);
     fusDestroyInstance(instance);
@@ -145,13 +145,6 @@ int main(void)
 ```
 
 No pass registry, no optimization flags, no additional initialization routines. Eight steps, the last one being the explicit release of resources.
-
-Other examples:
-
-| Example | Purpose |
-|---|---|
-| [`example/src/basic.c`](example/src/basic.c) | JIT with linker: generated code calls a C function |
-| [`example/src/program.c`](example/src/program.c) | AOT: produces a runnable ELF file |
 
 ---
 
@@ -165,9 +158,8 @@ An array of nodes. Each node describes one instruction through `opcode`, operand
 FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Imm(30, HIDR_IMM64))
 ```
 
-Operand constructors: `FUS_HIDR_Reg` · `FUS_HIDR_Imm` · `FUS_HIDR_Mem` · `FUS_HIDR_Sym` · `FUS_HIDR_None`
-
-Available opcodes: `MOV` `ADD` `CMP` `ADDR` (lea) `CALL` `PUSH` `POP` `RET` `SYSCALL`
+> **Operand constructors**: `FUS_HIDR_Reg`, `FUS_HIDR_Imm`, `FUS_HIDR_Mem`, `FUS_HIDR_Sym`, `FUS_HIDR_None`.
+> **Available opcodes**: `MOV`, `ADD`, `CMP`, `ADDR`, `CALL`, `PUSH`, `POP`, `RET`, `SYSCALL`.
 
 ### **Symbolic registers** — identification by role
 
@@ -181,7 +173,7 @@ HIDR does not expose architecture register identifiers. Registers are designated
    └──────── role:   A = accumulator
 ```
 
-Field composition, the complete character table and mapping examples are documented in **[Documentation/UserDocumentation/FusionRegistre.md](Documentation/UserDocumentation/FusionRegistre.md)**.
+Field composition, the complete character table and mapping examples are documented in **[FusionRegistre](../Documentation/UserDocumentation/FusionRegistre.md)**.
 
 The same HIDR can be submitted to x86, ARM or RISC-V without change, since each backend translates the declared role into its own register set.
 
@@ -227,7 +219,7 @@ Conventions observed across the whole API: functions take `FusInstance` as their
 
 | Backend | Status |
 |---|---|
-| `X86_Backend` | Active — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · `REL32` and `ABS64` relocations |
+| [X86_Backend](https://github.com/Fusion-Toolchain/FusionBackendX86) | Active — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · `REL32` and `ABS64` relocations |
 
 ### Implementing a Static Backend
 
@@ -264,7 +256,7 @@ The relocation type is **opaque** to the Core: its definition and interpretation
 ### Directory structure
 
 ```
-include/Fusion/          # public API
+include/Fusion/          # public API, subrepo
   Fusion.h               # single header — aggregates everything
   FusionTypes.h          # base types, FUS_API, handles
   FusionInstance.h  FusionBuffer.h  FusionCompile.h  FusionRule.h  FusionTrace.h
@@ -272,7 +264,6 @@ include/Fusion/          # public API
 include/BackendInterface/ Backend.h   # API for backend implementations
 include/Internal/                      # private headers
 
-src/Backend/X86/          # encoder and instruction sets
 src/Core/
   Compiler/              # HIDR -> backend -> buffer
   Linker_System/         # symbols and relocation resolution
@@ -302,14 +293,11 @@ cd example
 ./example_program   # AOT: produces output.elf
 ./output.elf        # → exit code 1 (exit(60))
 ```
-
 Requirements: a C23 capable compiler (gcc or clang) and Linux. Only dependency: **libc**.
-
----
 
 ## License
 
-GPL-3.0 — see [LICENSE](LICENSE).
+GPL-3.0 — see [LICENSE](../LICENSE).
 
 ---
 

@@ -25,7 +25,7 @@ El sistema recibe instrucciones en su propia representación — el **HIDR** —
 ```
    HIDR nodes          command chain         backend           linker          buffer
   ┌────────────┐      ┌──────────────────┐    ┌───────────┐    ┌────────────┐   ┌───────────┐
-  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │ X86 / ..  │ ─▶ │ relocation │ ▶ │   bytes   │ ─▶ execute
+  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │           │ ─▶ │ relocation │ ▶ │   bytes   │ ─▶ execute
   │  (the list)│      │      chain       │    │  encoder  │    │    patch   │   │ (JIT/AOT) │    the result
   └────────────┘      └──────────────────┘    └───────────┘    └────────────┘   └───────────┘
       the user           configuration          selection         registration        use
@@ -104,12 +104,12 @@ int main(void)
         FUS_HIDR_None(), FUS_HIDR_None()));
 
     // 3. Backend
-    FusModuleBackend x86 = NULL;
-    fusLoaderBackend(instance, &x86, "X86_Backend", FUS_BACKEND_TYPE_STATIC);
+    FusModuleBackend backend = NULL;
+    fusLoaderBackend(instance, &backend, "YOUR_BACKEND", FUS_BACKEND_TYPE_STATIC);
 
     // 4. Cadena de comandos (configuración del pipeline)
     FusCommandBackend cmd_backend = {
-        .sType = FUS_COMMAND_SEND_BACKEND, .backend = x86, .pNext = NULL
+        .sType = FUS_COMMAND_SEND_BACKEND, .backend = backend, .pNext = NULL
     };
     FusCommandHidr cmd_hidr = {
         .sType = FUS_COMMAND_SEND_HIDR,   .code = mount,
@@ -130,13 +130,13 @@ int main(void)
     FusBufferContext_t* buffer = fusGetStreamBufferCompiler(instance, compiler);
     if (!fusExecutableBuffer(buffer)) {
         typedef void (*Fn)(void);
-        ((Fn)buffer->buffer)();          // función llamando al código generado
+        ((Fn)buffer->buffer)();
     }
 
     // 8. Liberación — siempre, en orden inverso
     fusDestroyBufferCode(instance, buffer);
     fusDestroyBackendReturn(instance, compiler);
-    fusDestroyBackend(instance, x86);
+    fusDestroyBackend(instance, backend);
     fusDestroyLinkerContext(instance, linker);
     fusDestroyCodeMount(instance, mount);
     fusDestroyInstance(instance);
@@ -145,13 +145,6 @@ int main(void)
 ```
 
 No hay registro de pases, flags de optimización ni rutinas de inicialización adicionales. Ocho pasos, el último siendo la liberación explícita de los recursos.
-
-Otros ejemplos:
-
-| Ejemplo | Objetivo |
-|---|---|
-| [`example/src/basic.c`](../example/src/basic.c) | JIT con linker: el código generado invoca una función C |
-| [`example/src/program.c`](../example/src/program.c) | AOT: produce un archivo ELF ejecutable |
 
 ---
 
@@ -165,9 +158,8 @@ Un array de nodos. Cada nodo describe una instrucción mediante `opcode`, tamañ
 FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Imm(30, HIDR_IMM64))
 ```
 
-Constructores de operando: `FUS_HIDR_Reg` · `FUS_HIDR_Imm` · `FUS_HIDR_Mem` · `FUS_HIDR_Sym` · `FUS_HIDR_None`
-
-Opcodes disponibles: `MOV` `ADD` `CMP` `ADDR` (lea) `CALL` `PUSH` `POP` `RET` `SYSCALL`
+> **Constructores de operando**: `FUS_HIDR_Reg`, `FUS_HIDR_Imm`, `FUS_HIDR_Mem`, `FUS_HIDR_Sym`, `FUS_HIDR_None`.
+> **Opcodes disponibles**: `MOV`, `ADD`, `CMP`, `ADDR`, `CALL`, `PUSH`, `POP`, `RET`, `SYSCALL`.
 
 ### **Registros simbólicos** — identificación por función
 
@@ -181,7 +173,7 @@ El HIDR no expone identificadores de registros de la arquitectura. Los registros
    └──────── papel:    A = acumulador
 ```
 
-La composición de los campos, la tabla completa de caracteres y los ejemplos de mapeo están documentados en **[Documentation/UserDocumentation/FusionRegistre.md](../Documentation/UserDocumentation/FusionRegistre.md)**.
+La composición de los campos, la tabla completa de caracteres y los ejemplos de mapeo están documentados en **[FusionRegistre](../Documentation/UserDocumentation/FusionRegistre.md)**.
 
 El mismo HIDR puede enviarse a x86, ARM o RISC-V sin cambios, ya que cada backend traduce el papel declarado a su conjunto de registros.
 
@@ -227,7 +219,7 @@ Convenciones observadas en toda la API: las funciones reciben `FusInstance` como
 
 | Backend | Estado |
 |---|---|
-| `X86_Backend` | Activo — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · relocaciones `REL32` y `ABS64` |
+| [X86_Backend](https://github.com/Fusion-Toolchain/FusionBackendX86) | Activo — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · relocaciones `REL32` y `ABS64` |
 
 ### Implementación de un Backend Estático
 
@@ -264,7 +256,7 @@ El tipo de relocación es **opaco** para el Core: su definición e interpretaci�
 ### Estructura de directorios
 
 ```
-include/Fusion/          # API pública
+include/Fusion/          # API pública, subrepo
   Fusion.h               # header único — agrega todo
   FusionTypes.h          # tipos base, FUS_API, handles
   FusionInstance.h  FusionBuffer.h  FusionCompile.h  FusionRule.h  FusionTrace.h
@@ -272,7 +264,6 @@ include/Fusion/          # API pública
 include/BackendInterface/ Backend.h   # API para implementación de backends
 include/Internal/                      # headers privados
 
-src/Backend/X86/          # encoder y conjuntos de instrucciones
 src/Core/
   Compiler/              # HIDR -> backend -> buffer
   Linker_System/         # símbolos y resolución de relocaciones
@@ -302,10 +293,7 @@ cd example
 ./example_program   # AOT: produce output.elf
 ./output.elf        # → código de salida 1 (exit(60))
 ```
-
 Requisitos: compilador con soporte C23 (gcc o clang) y Linux. Única dependencia: **libc**.
-
----
 
 ## Licencia
 

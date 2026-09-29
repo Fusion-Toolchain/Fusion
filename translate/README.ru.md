@@ -25,7 +25,7 @@
 ```
    HIDR nodes          command chain         backend           linker          buffer
   ┌────────────┐      ┌──────────────────┐    ┌───────────┐    ┌────────────┐   ┌───────────┐
-  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │ X86 / ..  │ ─▶ │ relocation │ ▶ │   bytes   │ ─▶ execute
+  │FusCodeMount│ ───▶ │ FusCommandRule   │ ─▶ │           │ ─▶ │ relocation │ ▶ │   bytes   │ ─▶ execute
   │  (the list)│      │      chain       │    │  encoder  │    │    patch   │   │ (JIT/AOT) │    the result
   └────────────┘      └──────────────────┘    └───────────┘    └────────────┘   └───────────┘
       the user           configuration          selection         registration        use
@@ -104,12 +104,12 @@ int main(void)
         FUS_HIDR_None(), FUS_HIDR_None()));
 
     // 3. Бэкенд
-    FusModuleBackend x86 = NULL;
-    fusLoaderBackend(instance, &x86, "X86_Backend", FUS_BACKEND_TYPE_STATIC);
+    FusModuleBackend backend = NULL;
+    fusLoaderBackend(instance, &backend, "YOUR_BACKEND", FUS_BACKEND_TYPE_STATIC);
 
     // 4. Цепочка команд (конфигурация конвейера)
     FusCommandBackend cmd_backend = {
-        .sType = FUS_COMMAND_SEND_BACKEND, .backend = x86, .pNext = NULL
+        .sType = FUS_COMMAND_SEND_BACKEND, .backend = backend, .pNext = NULL
     };
     FusCommandHidr cmd_hidr = {
         .sType = FUS_COMMAND_SEND_HIDR,   .code = mount,
@@ -130,13 +130,13 @@ int main(void)
     FusBufferContext_t* buffer = fusGetStreamBufferCompiler(instance, compiler);
     if (!fusExecutableBuffer(buffer)) {
         typedef void (*Fn)(void);
-        ((Fn)buffer->buffer)();          // функция, вызывающая сгенерированный код
+        ((Fn)buffer->buffer)();
     }
 
     // 8. Освобождение — всегда, в обратном порядке
     fusDestroyBufferCode(instance, buffer);
     fusDestroyBackendReturn(instance, compiler);
-    fusDestroyBackend(instance, x86);
+    fusDestroyBackend(instance, backend);
     fusDestroyLinkerContext(instance, linker);
     fusDestroyCodeMount(instance, mount);
     fusDestroyInstance(instance);
@@ -145,13 +145,6 @@ int main(void)
 ```
 
 Никакого реестра проходов, никаких флагов оптимизации, никаких дополнительных подготовительных процедур. Восемь шагов, последний из которых — явное освобождение ресурсов.
-
-Другие примеры:
-
-| Пример | Назначение |
-|---|---|
-| [`example/src/basic.c`](../example/src/basic.c) | JIT с линкером: сгенерированный код вызывает функцию C |
-| [`example/src/program.c`](../example/src/program.c) | AOT: создание исполняемого файла ELF |
 
 ---
 
@@ -165,9 +158,8 @@ int main(void)
 FUS_HIDRM(HIDR_INSTR_MOV, HIDR_OP_SIZE_64, FUS_HIDR_Reg("BCL0"), FUS_HIDR_Imm(30, HIDR_IMM64))
 ```
 
-Конструкторы операндов: `FUS_HIDR_Reg` · `FUS_HIDR_Imm` · `FUS_HIDR_Mem` · `FUS_HIDR_Sym` · `FUS_HIDR_None`
-
-Доступные опкоды: `MOV` `ADD` `CMP` `ADDR` (lea) `CALL` `PUSH` `POP` `RET` `SYSCALL`
+> **Конструкторы операндов**: `FUS_HIDR_Reg`, `FUS_HIDR_Imm`, `FUS_HIDR_Mem`, `FUS_HIDR_Sym`, `FUS_HIDR_None`.
+> **Доступные опкоды**: `MOV`, `ADD`, `CMP`, `ADDR`, `CALL`, `PUSH`, `POP`, `RET`, `SYSCALL`.
 
 ### **Символические регистры** — идентификация по роли
 
@@ -181,7 +173,7 @@ HIDR не выставляет идентификаторы регистров �
    └──────── роль:     A = аккумулятор
 ```
 
-Состав полей, полная таблица символов и примеры сопоставления описаны в **[Documentation/UserDocumentation/FusionRegistre.md](../Documentation/UserDocumentation/FusionRegistre.md)**.
+Состав полей, полная таблица символов и примеры сопоставления описаны в **[FusionRegistre](../Documentation/UserDocumentation/FusionRegistre.md)**.
 
 Один и тот же HIDR можно передать на x86, ARM или RISC-V без изменений, поскольку каждый бэкенд переводит объявленную роль в свой набор регистров.
 
@@ -227,7 +219,7 @@ HIDR не выставляет идентификаторы регистров �
 
 | Бэкенд | Состояние |
 |---|---|
-| `X86_Backend` | Активен — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · релокации `REL32` и `ABS64` |
+| [X86_Backend](https://github.com/Fusion-Toolchain/FusionBackendX86) | Активен — x86-64: `mov` `add` `cmp` `lea` `call` `push` `pop` `ret` `syscall` · релокации `REL32` и `ABS64` |
 
 ### Реализация статического бэкенда
 
@@ -264,7 +256,7 @@ REGISTER_BACKEND(My_Backend, MyBackendDefine);
 ### Структура каталогов
 
 ```
-include/Fusion/          # публичный API
+include/Fusion/          # публичный API, subrepo
   Fusion.h               # единый заголовок — агрегирует всё
   FusionTypes.h          # базовые типы, FUS_API, дескрипторы
   FusionInstance.h  FusionBuffer.h  FusionCompile.h  FusionRule.h  FusionTrace.h
@@ -272,7 +264,6 @@ include/Fusion/          # публичный API
 include/BackendInterface/ Backend.h   # API для реализаций бэкендов
 include/Internal/                      # приватные заголовки
 
-src/Backend/X86/          # кодировщик и наборы инструкций
 src/Core/
   Compiler/              # HIDR -> бэкенд -> буфер
   Linker_System/         # символы и разрешение релокаций
@@ -302,10 +293,7 @@ cd example
 ./example_program   # AOT: создаёт output.elf
 ./output.elf        # → код возврата 1 (exit(60))
 ```
-
 Требования: компилятор с поддержкой C23 (gcc или clang) и Linux. Единственная зависимость: **libc**.
-
----
 
 ## Лицензия
 
