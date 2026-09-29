@@ -11,3 +11,4 @@ doc_code/
 _dont_*
 .vscode
 tips*
+*.a
