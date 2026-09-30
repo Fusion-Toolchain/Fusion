@@ -18,7 +18,7 @@
  */
 
 #include <Fusion/FusionTypes.h>
-#include <Fusion/FusionBuffer.h>
+#include <Internal/Fus_Buffer.h>
 
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
@@ -35,74 +35,94 @@ static inline int fus_memfd_create(const char* name)
     return (int)syscall(SYS_memfd_create, name, 1); // 1 = MFD_CLOEXEC
 }
 
-FusBufferContext_t* fusCreateBufferCode(FusInstance instance, size_t buffer_size)
+static inline void* internal_mmap(void* userdata, size_t size)
 {
-    if (unlikely(buffer_size == 0)) return NULL;
-    FusBufferContext_t* ctx = FUSIH_INSTANCE_ALLOC(&instance,sizeof(FusBufferContext_t));
-    if (unlikely(!ctx)) return NULL;
+    (void)userdata;
 
-    long page_size = sysconf(_SC_PAGESIZE);
-    if (page_size == -1) page_size = 4096; // Fallback
-
-    size_t aligned_size = (buffer_size + page_size - 1) & ~(page_size - 1);
-
-    unsigned char* buffer = mmap(
+    if (unlikely(size == 0)) return MAP_FAILED;
+    return mmap(
         NULL,
-        aligned_size,
+        size,
         PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANONYMOUS,
+        MAP_ANONYMOUS | MAP_PRIVATE,
         -1,
         0
     );
+}
+static inline void internal_munmap(void* userdata, void* data, size_t size)
+{
+    (void)userdata;
+
+    if (unlikely(size == 0)) return;
+    munmap(data,size);
+}
+static FusExecMemAllocator allocator_internal = {
+    .userdata = NULL,
+    .alloc = internal_mmap,
+    .free = internal_munmap
+};
+
+static inline FusExecMemAllocator* select_allocator(FusExecMemAllocator* allocator)
+{
+    if (allocator == NULL) return &allocator_internal;
+    return allocator;
+}
+FusStatusFlag_t fusCreateBufferExecutable(FusInstance instance, FusBufferExecutable* out, size_t buffer_size, FusExecMemAllocator* allocator)
+{
+    if (unlikely(!out || buffer_size == 0)) return FUSION_ERRO;
+    FusExecMemAllocator* current_allocator = select_allocator(allocator);
+
+    struct FusBufferExecutable_T* ctx = FUSIH_INSTANCE_ALLOC(&instance,sizeof(struct FusBufferExecutable_T));
+    if (unlikely(!ctx)) return FUSION_ERRO;
+
+    long page_size = sysconf(_SC_PAGESIZE);
+    if (page_size == -1) page_size = 4096; // Fallback
+    size_t aligned_size = (buffer_size + page_size - 1) & ~(page_size - 1);
+
+    unsigned char* buffer = current_allocator->alloc(current_allocator->userdata,aligned_size);
     if (unlikely(buffer == MAP_FAILED)) {
         FUSIH_INSTANCE_FREE(&instance,ctx);
-        return NULL;
+        return FUSION_ERRO;
     }
 
-    ctx->buffer = buffer;
-    ctx->buffer_size = aligned_size;
+    ctx->data = buffer;
+    ctx->size = aligned_size;
     ctx->offset = 0;
+    ctx->allocator = current_allocator;
+    *out = ctx;
 
-    return ctx;
+    return FUSION_OK;
 }
-void fusReUsedBuffer(FusBufferContext_t* buffer)
+void fusReUsedBuffer(FusBufferExecutable buffer)
 {
     if (unlikely(!buffer)) return;
     buffer->offset = 0;
 }
 
-FusStatusFlag_t fusExecutableBuffer(FusBufferContext_t* buffer)
+FusStatusFlag_t fusMakeExecutable(FusBufferExecutable buffer)
 {
-    if (unlikely(!buffer)) return FUSION_ERRO;
-
-    int fd = fus_memfd_create("fusion_jit");
-    if (fd < 0) {
-        return FUSION_ERRO;
-    }
-
-    if (write(fd, buffer->buffer, buffer->offset) != (ssize_t)buffer->offset) {
-        close(fd);
-        return FUSION_ERRO;
-    }
-
-    munmap(buffer->buffer, buffer->buffer_size);
-    void* exec = mmap(NULL, buffer->buffer_size,
-                      PROT_READ | PROT_EXEC,
-                      MAP_SHARED, fd, 0
-    );
-    close(fd);
-
-    if (exec == MAP_FAILED) {
-        return FUSION_ERRO;
-    }
-
-    buffer->buffer = exec;
+    if (unlikely(!buffer || !buffer->data)) return FUSION_ERRO;
+    /*
+     * Troca as permissões de RW para RX.
+     * Nunca temos W+X ao mesmo tempo.
+     */
+    if (mprotect(buffer->data, buffer->size, PROT_READ | PROT_EXEC) != 0) return FUSION_ERRO;
     return FUSION_OK;
 }
-void fusDestroyBufferCode(FusInstance instance, FusBufferContext_t* buffer)
+FusStatusFlag_t fusGetExecutableController(FusBufferExecutable buffer, FusBufferController* controller)
+{
+    if (unlikely(!buffer || !controller)) return FUSION_ERRO;
+
+    controller->data = buffer->data;
+    controller->offset = buffer->offset;
+    controller->size = buffer->size;
+
+    return FUSION_OK;
+}
+void fusDestroyBufferExecutable(FusInstance instance, FusBufferExecutable buffer)
 {
     if (unlikely(!buffer)) return;
 
-    munmap(buffer->buffer,buffer->buffer_size);
+    buffer->allocator->free(buffer->allocator->userdata,buffer->data,buffer->size);
     FUSIH_INSTANCE_FREE(&instance, buffer);
 }

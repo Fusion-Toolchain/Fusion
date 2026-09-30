@@ -24,9 +24,9 @@
 // HELPER
 #include <Internal/Helpers/Fus_Helper_Codebase.h>
 
-FusStatusFlag_t fusBufferIOSink(FusBufferContext_t* buffer, FusIOSink sink)
+FusStatusFlag_t fusBufferIOSink(FusBufferController* buffer, FusIOSink sink)
 {
     if (unlikely(!buffer || !sink)) return FUSION_ERRO;
-    sink->interface.write(sink->ctx,buffer->buffer,buffer->offset);
+    sink->interface.write(sink->ctx,buffer->data,buffer->offset);
     return FUSION_OK;
 }

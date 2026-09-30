@@ -21,6 +21,7 @@
 #include <Fusion/Backend/FusionBackend.h>
 #include <Fusion/Fusion.h>
 
+#include <Internal/Fus_Buffer.h>
 #include <Internal/Backend/Fus_Backend.h>
 #include <Internal/IRTypes/Fus_CodeBuffer.h>
 #include <Internal/Fus_Instance.h>
@@ -129,18 +130,30 @@ FusStatusFlag_t fusMountHidrsBytes(FusInstance instance,FusCommandRuleBase_t* co
     return FUSION_ERRO; // RETURN ERROR
 }
 
-FusBufferContext_t* fusGetStreamBufferCompiler(FusInstance instance, FusBackendReturn ctx_backend)
+FusStatusFlag_t fusCopyFromBufferExecutable(FusInstance instance, FusBackendReturn ctx_backend, FusBufferExecutable* out, FusExecMemAllocator* allocator)
 {
-    if (unlikely(!ctx_backend)) return NULL;
+    if (unlikely(!ctx_backend)) return FUSION_ERRO;
 
     FusBackendGenerateDataBlock_t* data_block = (FusBackendGenerateDataBlock_t*)ctx_backend->transfer_data->data;
-    FusBufferContext_t* exec = fusCreateBufferCode(instance, data_block->slab_size);
-    if (unlikely(!exec)) return NULL;
+    FusBufferExecutable buffer = NULL;
+    if (!fusCreateBufferExecutable(instance,&buffer,data_block->slab_size,allocator)) return FUSION_ERRO;
 
-    memcpy(exec->buffer, data_block->buffer_slab,data_block->slab_size);
-    exec->offset = data_block->slab_offset; // PASS OFFSET
+    memcpy(buffer->data, data_block->buffer_slab,data_block->slab_size);
+    buffer->offset = data_block->slab_offset; // PASS OFFSET
 
-    return exec;
+    *out = buffer;
+    return FUSION_OK;
+}
+FusStatusFlag_t fusGetReturnBufferAccess(FusBackendReturn ctx_backend, FusBufferController* controller)
+{
+    if (unlikely(!ctx_backend || controller)) return FUSION_ERRO;
+    FusBackendGenerateDataBlock_t* data_block = (FusBackendGenerateDataBlock_t*)ctx_backend->transfer_data->data;
+
+    controller->data = data_block->buffer_slab;
+    controller->offset = data_block->slab_offset;
+    controller->size = data_block->slab_size;
+
+    return FUSION_OK;
 }
 
 void fusDestroyBackendReturn(FusInstance instance, FusBackendReturn ctx_backend)
